@@ -144,6 +144,18 @@
   #startBtn:hover{border-color:var(--acid); color:#fff;}
   #startBtn:active{border-bottom-width:2px; transform:translateY(3px);}
   #startBtn:disabled{opacity:.45; cursor:not-allowed; transform:none;}
+  #bombBtn{
+    width:100%; padding:10px 6px; font-size:11px; font-weight:bold; letter-spacing:1px;
+    font-family:inherit; border-radius:6px; cursor:pointer;
+    background:linear-gradient(180deg, #5e3220, #401f14); color:#f8c8a0;
+    border:2px solid #96522e; border-bottom-width:5px;
+    text-shadow:0 0 6px rgba(232,145,42,.4);
+  }
+  #bombBtn:hover{border-color:#e8912a; color:#fff;}
+  #bombBtn:active{border-bottom-width:2px; transform:translateY(3px);}
+  #bombBtn:disabled{opacity:.45; cursor:not-allowed; transform:none;}
+  #bombBtn.aiming{border-color:var(--red); color:#fff;
+    box-shadow:0 0 10px rgba(224,85,69,.6);}
   .hint{color:var(--dim); font-size:9px; line-height:1.55; border-top:1px solid var(--edge); padding-top:6px;}
 
   /* ================= overlays ================= */
@@ -226,6 +238,7 @@
     <div class="col mando">
       <div class="clabel">&#9670; MANDO &#9670;</div>
       <button id="startBtn">&#9654; DESACTIVAR DISRUPTOR (30s) [Espacio]</button>
+      <button id="bombBtn">&#9762; BOMBARDEO $250 + 2&#9881; [B]</button>
       <div class="row">
         <button class="act" id="pauseBtn">&#10074;&#10074; PAUSA [P]</button>
         <button class="act" id="speedBtn">&times;1</button>

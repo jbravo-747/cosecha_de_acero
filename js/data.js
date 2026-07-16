@@ -137,7 +137,7 @@
   // ---------- unidades de apoyo ----------
   var UNITS = {
     carrier: { name: 'CARGADOR', cost: 90, hp: 60, speed: 46, flying: false,
-               desc: 'Peón de granja: lleva munición del granero a los mechas y vuelve por más. Los mechas lo cubren si está en su rango.' },
+               desc: 'Peón mecánico: lleva munición del granero a los mechas y los repara en el campo. Los mechas lo cubren si está en su rango.' },
     drone:   { name: 'DRON', cost: 140, hp: 70, speed: 72, flying: true,
                ammo: 50, atkRange: 75, atkDmg: 5, atkRof: 0.35,
                desc: 'Dron de apoyo: alterna entre RECARGAR mechas y ATACAR bichos. Vuela sobre cualquier tile, incluido el camino.' }
@@ -153,8 +153,17 @@
   var REPAIR_PER_HP = 0.5;  // $ por punto de vida reparado
   var UP_PARTS = [1, 2];    // partes ⚙ para subir a nivel 2 y 3
   var MOVE_CD = 4;          // seg de enfriamiento tras mover un mecha
-  var RELOAD_TIME = 0.8;    // seg que tarda una unidad en recargar un mecha
-  var AMMO_LOW = 0.6;       // umbral (fracción) para pedir recarga
+  var RELOAD_TIME = 0.8;    // seg que tarda una unidad en dar servicio a un mecha
+  var AMMO_LOW = 0.6;       // umbral de munición (fracción) para pedir servicio
+  var HP_LOW = 0.7;         // umbral de vida (fracción) para pedir reparación
+
+  // mejora del taller: torreta ligera montada en el techo
+  var SHOP_TURRET = { cost: 150, parts: 1, range: 95, dmg: 7, rof: 0.5, projSpeed: 340 };
+
+  // especial: bombardeo que arrasa un área (ignora blindaje, solo bichos)
+  var BOMB = { cost: 250, parts: 2, radius: 70, dmg: 260, cd: 45, delay: 0.8 };
+
+  var DRONE_GIFT = 90;      // seg entre drones de apoyo gratis
 
   window.DATA = {
     COLS: COLS, ROWS: ROWS, TILE: TILE,
@@ -170,7 +179,8 @@
     BUILD_TIME: BUILD_TIME, EARLY_BONUS: EARLY_BONUS,
     ATTACK_RANGE: ATTACK_RANGE, ATTACK_CD: ATTACK_CD,
     REPAIR_PER_HP: REPAIR_PER_HP, UP_PARTS: UP_PARTS,
-    MOVE_CD: MOVE_CD, RELOAD_TIME: RELOAD_TIME, AMMO_LOW: AMMO_LOW,
+    MOVE_CD: MOVE_CD, RELOAD_TIME: RELOAD_TIME, AMMO_LOW: AMMO_LOW, HP_LOW: HP_LOW,
+    SHOP_TURRET: SHOP_TURRET, BOMB: BOMB, DRONE_GIFT: DRONE_GIFT,
     START_MONEY: 320, START_LIVES: 20
   };
 })();

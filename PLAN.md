@@ -113,7 +113,18 @@ js/game.js      — motor: estado, bucle, entidades, input, render
   oleada 4, más frecuentes a cada oleada.
 - **Cuadrícula tenue** horneada sobre el mapa.
 
-## 10. Refactor: arquitectura modular ✔
+## 10. Apoyo de campaña ✔
+
+- El **CARGADOR** da servicio completo: recarga munición **y repara** al
+  mecha en la visita (pide servicio con munición < 60 % o vida < 70 %).
+- El **TALLER** admite la mejora **torreta de techo** ($150 + 1⚙, daño 7,
+  rango 95): defensa automática del edificio.
+- Especial **BOMBARDEO** ($250 + 2⚙, enfriamiento 45 s, tecla B): diana
+  libre sobre el mapa; a los 0.8 s cae un obús que hace 260 de daño
+  ignorando blindaje en un radio de 70 px (solo bichos).
+- Cada **90 s** llega un **dron de apoyo gratis** al granero.
+
+## 11. Refactor: arquitectura modular ✔
 
 `game.js` se partió en módulos IIFE comunicados por `window.G` (sin build,
 se conserva el doble clic en `index.html`): `core.js` (estado + helpers),

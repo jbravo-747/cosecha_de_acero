@@ -100,6 +100,11 @@
     S.spawnQueue = [];
     S.waveT = 0;
     S.buildT = D.BUILD_TIME;   // cuenta atrás del disruptor de portales
+    S.giftT = D.DRONE_GIFT;    // cuenta atrás del dron de apoyo gratis
+    S.bombCd = 0;              // enfriamiento del bombardeo
+    S.bombs = [];              // bombardeos en caída
+    S.aimingBomb = false;      // apuntando el especial
+    S.hoverPx = null;          // posición exacta del ratón en el canvas
     S.placing = null;          // tipo de torre/edificio en colocación
     S.selected = null;         // torre seleccionada
     S.selectedB = null;        // edificio seleccionado

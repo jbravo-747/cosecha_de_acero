@@ -193,6 +193,21 @@
         ctx.fillStyle = b.hp / b.maxHp > 0.4 ? '#8ac94a' : '#e05545';
         ctx.fillRect(b.x - bhw / 2, b.r * TILE - 5, bhw * Math.max(0, b.hp / b.maxHp), 2);
       }
+      // torreta instalada en el taller
+      if (b.turret) {
+        ctx.save();
+        ctx.translate(b.x, b.y - 18);
+        ctx.rotate(b.gunA || -Math.PI / 2);
+        ctx.fillStyle = '#12100e';
+        ctx.fillRect(-2, -3, 14, 6);
+        ctx.fillStyle = '#454c52';
+        ctx.fillRect(-2, -2, 12, 4);
+        if (b.gflash > 0) {
+          ctx.fillStyle = '#f2d94e';
+          ctx.fillRect(12, -2, 4, 4);
+        }
+        ctx.restore();
+      }
       if (b === S.selectedB) {
         ctx.strokeStyle = '#f2d94e';
         ctx.strokeRect(b.c * TILE + 1.5, b.r * TILE + 1.5, TILE - 3, TILE - 3);
@@ -332,6 +347,36 @@
       ctx.beginPath(); ctx.arc(q.x, q.y, 2.5, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = '#5f9926';
       ctx.fillRect(q.x - 1, q.y - 1, 1, 1);
+    }
+
+    // bombardeos en caída: diana parpadeante y obús descendiendo
+    for (i = 0; i < S.bombs.length; i++) {
+      var bm = S.bombs[i];
+      var pr = bm.t / D.BOMB.delay;                 // 1 → 0
+      ctx.globalAlpha = ((bm.t * 10) | 0) % 2 ? 0.8 : 0.35;
+      ctx.strokeStyle = '#e05545';
+      ctx.beginPath(); ctx.arc(bm.x, bm.y, D.BOMB.radius, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(bm.x, bm.y, 5, 0, Math.PI * 2); ctx.stroke();
+      ctx.globalAlpha = 1;
+      var by = bm.y - pr * 130;
+      ctx.fillStyle = '#12100e';
+      ctx.beginPath(); ctx.arc(bm.x, by, 4, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#454c52';
+      ctx.fillRect(bm.x - 1, by - 7, 2, 4);
+    }
+
+    // puntería del bombardeo
+    if (S.aimingBomb && S.hoverPx) {
+      ctx.globalAlpha = 0.6;
+      ctx.strokeStyle = '#e05545';
+      ctx.beginPath();
+      ctx.arc(S.hoverPx.x, S.hoverPx.y, D.BOMB.radius, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(S.hoverPx.x - 8, S.hoverPx.y); ctx.lineTo(S.hoverPx.x + 8, S.hoverPx.y);
+      ctx.moveTo(S.hoverPx.x, S.hoverPx.y - 8); ctx.lineTo(S.hoverPx.x, S.hoverPx.y + 8);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
     }
 
     // efectos (rayos y trazadoras)

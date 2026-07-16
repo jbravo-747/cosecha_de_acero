@@ -201,18 +201,20 @@ assert(S.money > moneyPreWave, 'los bichos muertos, el bono de oleada y el disru
 assert(S.lives === D.START_LIVES, 'con 2 COYOTES no se escapa ningún dron en la oleada 1');
 assert(S.towers.some(t => t.ammo < G.towerStats(t).maxAmmo), 'disparar consume munición');
 
-console.log('— Logística: el cargador repone munición —');
+console.log('— Logística: el cargador repone munición y repara —');
 S.buildT = 99999;                       // congela el disruptor durante la prueba
 key('7');                               // comprar CARGADOR
 assert(S.units.some(u => u.type === 'carrier'), 'el cargador se recluta en el granero');
 const hungry = S.towers.find(t => t.c === 4 && t.r === 4);
 hungry.ammo = 1;
+hungry.hp = Math.floor(hungry.maxHp * 0.4);
 let refilled = false;
 for (let i = 0; i < 40 * 60 && !refilled; i++) {
   step(1);
   refilled = hungry.ammo >= G.towerStats(hungry).maxAmmo;
 }
 assert(refilled, 'una unidad llevó munición del granero al mecha');
+assert(hungry.hp === hungry.maxHp, 'el cargador también repara al mecha en el campo');
 for (let i = 0; i < 20 * 60; i++) {     // deja que las unidades vuelvan a base
   step(1);
   if (S.units.every(u => u.state === 'idle')) break;
@@ -285,6 +287,48 @@ buildB('shop', 16, 4);
 build('mg', 6, 2);
 assert(S.towers.length === tPreShop + 1, 'con taller nuevo se vuelve a ensamblar');
 selectTile(6, 2); byId.sellBtn.click();
+
+console.log('— Torreta del taller —');
+S.buildT = 99999;
+S.money += 500; S.parts += 3;
+selectTile(16, 4);
+assert(S.selectedB && S.selectedB.type === 'shop', 'taller re-seleccionado');
+byId.upBtn.click();
+assert(S.selectedB.turret === true, 'la mejora instala la torreta en el taller');
+const waspT = G.spawnEnemy('wasp');
+let waspHurt = false;
+for (let i = 0; i < 12 * 60; i++) {
+  step(1);
+  if (waspT.dead || waspT.hp < waspT.maxHp) { waspHurt = true; break; }
+  if (S.enemies.indexOf(waspT) === -1) break;   // se fugó intacta
+}
+assert(waspHurt, 'la torreta del taller dispara a los bichos que pasan');
+S.enemies.length = 0;
+
+console.log('— Especial: bombardeo de área —');
+S.money += 1000; S.parts += 5;
+byId.bombBtn.click();
+assert(S.aimingBomb, 'el botón de mando arma el bombardeo');
+const d1 = G.spawnEnemy('drone', 3, 0, 300, 300);
+const d2 = G.spawnEnemy('drone', 3, 0, 320, 300);
+const moneyPreBomb = S.money, partsPreBomb = S.parts;
+canvasClickPx(310, 300);
+assert(!S.aimingBomb && S.bombs.length === 1, 'clic en el mapa suelta la bomba');
+assert(S.money === moneyPreBomb - D.BOMB.cost && S.parts === partsPreBomb - D.BOMB.parts,
+  'el bombardeo cobra créditos y partes');
+for (let i = 0; i < 2 * 60; i++) step(1);
+assert((d1.dead || S.enemies.indexOf(d1) === -1) && (d2.dead || S.enemies.indexOf(d2) === -1),
+  'la explosión arrasa con los bichos del área');
+assert(S.bombCd > 0, 'el bombardeo queda en enfriamiento');
+
+console.log('— Dron de apoyo gratis —');
+const dronesBefore = S.units.filter(u => u.type === 'drone').length;
+S.giftT = 0.5;
+step(60);
+const dronesAfter = S.units.filter(u => u.type === 'drone').length;
+assert(dronesAfter === dronesBefore + 1 && S.units[S.units.length - 1].invested === 0,
+  'cada ' + D.DRONE_GIFT + 's llega un dron de apoyo gratis');
+S.buildT = D.BUILD_TIME;
 
 console.log('— Campaña completa hasta la Nodriza —');
 S.money += 9000;

@@ -46,18 +46,27 @@ entrega el mecha reparado y recargado.
 
 ### Unidades de apoyo
 
-- **CARGADOR** ($90) — peón que lleva munición del granero a los mechas y
-  vuelve por más. Los mechas cubren su ruta: priorizan a los bichos que
-  atacan a tu gente.
+- **CARGADOR** ($90) — peón mecánico: lleva munición del granero a los
+  mechas **y los repara en el campo**. Los mechas cubren su ruta:
+  priorizan a los bichos que atacan a tu gente.
 - **DRON** ($140) — vuela sobre cualquier tile. Alterna entre modo
   **RECARGA** (reabastece mechas) y modo **ATAQUE** (métralla ligera,
-  reposicionable con un clic). **La partida empieza con uno.**
+  reposicionable con un clic). **La partida empieza con uno y cada 90
+  segundos llega otro gratis al granero.**
+
+### Especial: BOMBARDEO ☢
+
+Con `B` o el botón de mando ($250 + 2⚙, enfriamiento 45s) armas un
+bombardeo: apunta con la diana y haz clic — tras un instante cae un obús
+que **arrasa a los bichos del área** (ignora blindaje).
 
 ### Infraestructura
 
 - **GENERADOR** ($120) — alimenta con 4 ⚡ a los mechas **dentro de su
   radio**. Un mecha lejos de todo generador queda SIN ⚡ y no dispara.
-- **TALLER** ($200) — sin al menos uno en pie no se ensamblan ni mejoran mechas.
+- **TALLER** ($200) — sin al menos uno en pie no se ensamblan ni mejoran
+  mechas. Admite una mejora: **torreta de techo** ($150 + 1⚙) que dispara
+  sola a los bichos que pasan.
 
 Los bichos **muerden y escupen** a todo: mechas, unidades y edificios.
 Repara, reconstruye y reposiciona.

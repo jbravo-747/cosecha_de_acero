@@ -36,12 +36,14 @@
       }
     }
     S.placing = (S.placing === key) ? null : key;
+    S.aimingBomb = false;
     clearSelection();
     AU.click();
   }
 
   function cancelActions() {
     S.placing = null;
+    S.aimingBomb = false;
     clearSelection();
   }
 
@@ -153,6 +155,62 @@
     G.floater(t.x, t.y, '+$' + refund, '#f2d94e');
     S.selected = null;
     AU.sell();
+  }
+
+  // mejora del taller: torreta ligera en el techo
+  function upgradeShopTurret() {
+    var b = S.selectedB;
+    if (!b || b.type !== 'shop' || b.turret) return;
+    var st = D.SHOP_TURRET;
+    if (S.money < st.cost || S.parts < st.parts) return;
+    S.money -= st.cost;
+    S.parts -= st.parts;
+    b.invested += st.cost;
+    b.turret = true;
+    b.cd = 0; b.gunA = -Math.PI / 2; b.gflash = 0;
+    G.burst(b.x, b.y - 16, '#f2d94e', 12, 70);
+    G.floater(b.x, b.y - 16, 'TORRETA INSTALADA', '#8ac94a');
+    AU.build();
+  }
+
+  // especial: bombardeo de área
+  function armBomb() {
+    if (S.phase !== 'build' && S.phase !== 'wave') return;
+    if (S.aimingBomb) { S.aimingBomb = false; AU.click(); return; }
+    if (S.bombCd > 0 || S.money < D.BOMB.cost || S.parts < D.BOMB.parts) {
+      AU.click(); return;
+    }
+    S.aimingBomb = true;
+    S.placing = null;
+    clearSelection();
+    AU.click();
+  }
+
+  function dropBomb(x, y) {
+    if (!S.aimingBomb) return;
+    S.aimingBomb = false;
+    S.money -= D.BOMB.cost;
+    S.parts -= D.BOMB.parts;
+    S.bombCd = D.BOMB.cd;
+    S.bombs.push({ x: x, y: y, t: D.BOMB.delay });
+    G.floater(x, y - 14, 'BOMBARDEO SOLICITADO', '#e05545');
+    AU.horn();
+  }
+
+  function explodeBomb(bm) {
+    for (var j = 0; j < S.enemies.length; j++) {
+      var o = S.enemies[j];
+      if (!o.dead && G.dist2(bm.x, bm.y, o.x, o.y) <= D.BOMB.radius * D.BOMB.radius) {
+        damageEnemy(o, D.BOMB.dmg + o.def.armor);   // ignora blindaje
+      }
+    }
+    G.burst(bm.x, bm.y, '#e8912a', 34, 190);
+    G.burst(bm.x, bm.y, '#f2d94e', 20, 150);
+    G.burst(bm.x, bm.y, '#454c52', 16, 110);
+    S.decals.push({ x: bm.x, y: bm.y, life: 25, size: 16, rubble: true });
+    S.shake = Math.max(S.shake, 0.6);
+    AU.cannon();
+    AU.boom();
   }
 
   function repairSelectedB() {
@@ -344,17 +402,19 @@
     return false;
   }
 
-  function needsAmmo(t) {
-    return !t.moving && t.ammo < G.towerStats(t).maxAmmo * D.AMMO_LOW && !t.incoming;
+  // un mecha pide servicio si le falta munición o está dañado
+  function needsService(t) {
+    return !t.moving && !t.incoming &&
+      (t.ammo < G.towerStats(t).maxAmmo * D.AMMO_LOW || t.hp < t.maxHp * D.HP_LOW);
   }
 
   function updateReloader(u, def, dt) {
     if (u.state === 'idle') {
-      // en el granero: busca el mecha con hambre de munición más cercano
+      // en el granero: busca el mecha que pida servicio más cercano
       var best = null, bd = Infinity;
       for (var i = 0; i < S.towers.length; i++) {
         var t = S.towers[i];
-        if (!needsAmmo(t)) continue;
+        if (!needsService(t)) continue;
         var d2 = G.dist2(u.x, u.y, t.x, t.y);
         if (d2 < bd) { bd = d2; best = t; }
       }
@@ -378,9 +438,11 @@
       if (u.t <= 0) {
         var tg2 = u.target;
         if (tg2 && S.towers.indexOf(tg2) !== -1) {
+          var repaired = tg2.hp < tg2.maxHp;
           tg2.ammo = G.towerStats(tg2).maxAmmo;
+          tg2.hp = tg2.maxHp;              // servicio completo: también repara
           tg2.incoming = null;
-          G.floater(tg2.x, tg2.y - 16, '+MUNICIÓN', '#f2d94e');
+          G.floater(tg2.x, tg2.y - 16, repaired ? '+MUNICIÓN +REPARADO' : '+MUNICIÓN', '#f2d94e');
           AU.coin();
         }
         u.target = null;
@@ -509,9 +571,44 @@
     // unidades de apoyo
     for (i = 0; i < S.units.length; i++) updateUnit(S.units[i], dt);
 
-    // flash de edificios golpeados
+    // dron de apoyo gratis cada cierto tiempo
+    S.giftT -= dt;
+    if (S.giftT <= 0) {
+      S.giftT = D.DRONE_GIFT;
+      S.units.push(G.makeUnit('drone', true));
+      G.floater(D.BARN_POS.x, D.BARN_POS.y - 16, '¡DRON DE APOYO GRATIS!', '#6ab0e8');
+      AU.coin();
+    }
+
+    // edificios: flash y torreta del taller
     for (i = 0; i < S.buildings.length; i++) {
-      if (S.buildings[i].flash > 0) S.buildings[i].flash -= dt;
+      var bb = S.buildings[i];
+      if (bb.flash > 0) bb.flash -= dt;
+      if (!bb.turret) continue;
+      if (bb.gflash > 0) bb.gflash -= dt;
+      bb.cd -= dt;
+      if (bb.cd > 0) continue;
+      var te = acquireTarget(bb.x, bb.y, D.SHOP_TURRET.range);
+      if (!te) continue;
+      bb.cd = D.SHOP_TURRET.rof;
+      bb.gunA = Math.atan2(te.y - (bb.y - 18), te.x - bb.x);
+      bb.gflash = 0.08;
+      S.projectiles.push({
+        kind: 'bullet', x: bb.x, y: bb.y - 18,
+        speed: D.SHOP_TURRET.projSpeed, dmg: D.SHOP_TURRET.dmg, splash: 0,
+        target: te, lx: te.x, ly: te.y
+      });
+      AU.shot();
+    }
+
+    // bombardeos en caída
+    if (S.bombCd > 0) S.bombCd -= dt;
+    for (i = S.bombs.length - 1; i >= 0; i--) {
+      S.bombs[i].t -= dt;
+      if (S.bombs[i].t <= 0) {
+        explodeBomb(S.bombs[i]);
+        S.bombs.splice(i, 1);
+      }
     }
 
     // proyectiles aliados
@@ -602,6 +699,9 @@
   G.sellSelected = sellSelected;
   G.repairSelectedB = repairSelectedB;
   G.sellSelectedB = sellSelectedB;
+  G.upgradeShopTurret = upgradeShopTurret;
+  G.armBomb = armBomb;
+  G.dropBomb = dropBomb;
   G.startWave = startWave;
   G.spawnEnemy = spawnEnemy;
   G.damageEnemy = damageEnemy;

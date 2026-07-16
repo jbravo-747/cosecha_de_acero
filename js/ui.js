@@ -21,6 +21,7 @@
     energy: document.getElementById('energy'),
     parts: document.getElementById('parts'),
     pauseBtn: document.getElementById('pauseBtn'),
+    bombBtn: document.getElementById('bombBtn'),
     info: document.getElementById('info'),
     towerBtns: document.getElementById('towerBtns'),
     upBtn: document.getElementById('upBtn'),
@@ -115,6 +116,19 @@
     }
     el.pauseBtn.innerHTML = S.paused ? '&#9654; SEGUIR [P]' : '&#10074;&#10074; PAUSA [P]';
 
+    // especial: bombardeo
+    if (S.bombCd > 0) {
+      el.bombBtn.innerHTML = '&#9762; RECARGANDO (' + Math.ceil(S.bombCd) + 's)';
+      el.bombBtn.disabled = true;
+    } else {
+      el.bombBtn.innerHTML = S.aimingBomb
+        ? '&#9762; APUNTA Y HAZ CLIC... [Esc]'
+        : '&#9762; BOMBARDEO $' + D.BOMB.cost + ' + ' + D.BOMB.parts + '&#9881; [B]';
+      el.bombBtn.disabled = S.money < D.BOMB.cost || S.parts < D.BOMB.parts ||
+        (S.phase !== 'build' && S.phase !== 'wave');
+    }
+    el.bombBtn.classList.toggle('aiming', S.aimingBomb);
+
     D.TOWER_ORDER.forEach(function (key) {
       var def = D.TOWERS[key], b = towerBtnEls[key];
       b.classList.toggle('sel', S.placing === key);
@@ -149,13 +163,22 @@
     } else if (S.selectedB) {
       var bl = S.selectedB, bdef = D.BUILDINGS[bl.type];
       var intact = bl.hp >= bl.maxHp;
+      var canTurret = bl.type === 'shop' && !bl.turret && intact;
       el.info.innerHTML =
         '<span class="name">' + bdef.name + '</span> — vida <b>' + Math.max(0, Math.ceil(bl.hp)) +
         '/' + bl.maxHp + '</b>' +
         (bdef.energy ? '<br>Energía: <b>+' + bdef.energy + ' ⚡</b>' : '<br>Permite ensamblar y mejorar mechas.') +
+        (bl.turret ? '<br>Torreta: <b>instalada</b>' : '') +
         '<br><span class="desc">' + bdef.desc + '</span>';
-      el.upBtn.disabled = intact || S.money < G.repairCost(bl);
-      el.upBtn.textContent = intact ? 'INTACTO' : 'REPARAR $' + G.repairCost(bl);
+      if (canTurret) {
+        el.upBtn.disabled = S.money < D.SHOP_TURRET.cost || S.parts < D.SHOP_TURRET.parts;
+        el.upBtn.textContent = 'TORRETA $' + D.SHOP_TURRET.cost + ' + ' + D.SHOP_TURRET.parts + '⚙';
+      } else {
+        el.upBtn.disabled = intact || S.money < G.repairCost(bl);
+        el.upBtn.textContent = intact
+          ? (bl.turret ? 'TORRETA LISTA' : 'INTACTO')
+          : 'REPARAR $' + G.repairCost(bl);
+      }
       el.sellBtn.disabled = false;
       el.sellBtn.textContent = 'VENDER $' + Math.round(bl.invested * D.SELL_FACTOR);
     } else if (S.selected) {
@@ -217,13 +240,15 @@
   canvas.addEventListener('mousemove', function (ev) {
     var p = canvasPos(ev);
     S.hover = { c: (p.x / TILE) | 0, r: (p.y / TILE) | 0 };
+    S.hoverPx = { x: p.x, y: p.y };
   });
-  canvas.addEventListener('mouseleave', function () { S.hover = null; });
+  canvas.addEventListener('mouseleave', function () { S.hover = null; S.hoverPx = null; });
 
   canvas.addEventListener('click', function (ev) {
     if (S.phase !== 'build' && S.phase !== 'wave') return;
     var p = canvasPos(ev);
     var c = (p.x / TILE) | 0, r = (p.y / TILE) | 0;
+    if (S.aimingBomb) { G.dropBomb(p.x, p.y); return; }
     if (S.placing) { G.tryBuild(c, r); return; }
     // orden de movimiento al mecha seleccionado (tiles iluminados)
     if (S.selected && G.tryMove(S.selected, c, r)) return;
@@ -257,11 +282,17 @@
     else if (k >= '1' && k <= '4') G.startPlacing(D.TOWER_ORDER[+k - 1]);
     else if (k === '5' || k === '6') G.startPlacing(D.BUILDING_ORDER[+k - 5]);
     else if (k === '7' || k === '8') G.buyUnit(D.UNIT_ORDER[+k - 7]);
+    else if (k === 'b' || k === 'B') G.armBomb();
   });
+  el.bombBtn.addEventListener('click', function () { G.armBomb(); });
 
   el.upBtn.addEventListener('click', function () {
     if (S.selectedU) G.toggleUnitMode();
-    else if (S.selectedB) G.repairSelectedB();
+    else if (S.selectedB) {
+      var bl = S.selectedB;
+      if (bl.type === 'shop' && !bl.turret && bl.hp >= bl.maxHp) G.upgradeShopTurret();
+      else G.repairSelectedB();
+    }
     else G.upgradeSelected();
   });
   el.sellBtn.addEventListener('click', function () {
