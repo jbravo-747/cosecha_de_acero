@@ -7,6 +7,10 @@ Los bichos salieron del agujero al oeste de la propiedad y avanzan por el
 camino de tierra hacia el granero. Coloca mechas, electrifica la cerca y
 sobrevive 10 oleadas — en la última llega **la Nodriza**.
 
+La partida **se guarda sola** (localStorage) durante cada fase de
+construcción: si cierras a media oleada, el botón **CONTINUAR** del
+título te devuelve a la construcción previa con todo tu arsenal.
+
 ## Cómo jugar
 
 Sin instalación ni dependencias: abre `index.html` en cualquier navegador

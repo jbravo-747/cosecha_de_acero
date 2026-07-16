@@ -38,6 +38,7 @@
     endTitle: document.getElementById('endTitle'),
     endText: document.getElementById('endText'),
     playBtn: document.getElementById('playBtn'),
+    continueBtn: document.getElementById('continueBtn'),
     restartBtn: document.getElementById('restartBtn'),
     titleArt: document.getElementById('titleArt')
   };
@@ -350,11 +351,22 @@
   });
   el.playBtn.addEventListener('click', function () {
     AU.unlock();
+    G.clearSave();               // partida nueva desde el título
     S.phase = 'build';
     el.title.classList.add('hidden');
     AU.horn();
   });
+  // reanudar la partida guardada
+  if (G.hasSave()) el.continueBtn.classList.remove('hidden');
+  el.continueBtn.addEventListener('click', function () {
+    AU.unlock();
+    if (G.loadGame()) {
+      el.title.classList.add('hidden');
+      AU.horn();
+    }
+  });
   el.restartBtn.addEventListener('click', function () {
+    G.clearSave();
     G.resetState();
     S.phase = 'build';
     el.endScreen.classList.add('hidden');
@@ -367,6 +379,7 @@
     if (S.phase === 'menu') return;
     if (performance.now() < confirmNewUntil) {
       confirmNewUntil = 0;
+      G.clearSave();
       G.resetState();
       S.phase = 'build';
       el.endScreen.classList.add('hidden');

@@ -185,7 +185,17 @@ Detalles de vida: respiración idle de los mechas, retroceso al disparar,
 polvo bajo las pisadas al moverse, vaivén de vuelo del dron y pulso
 púrpura del portal mientras siga escupiendo bichos.
 
-## 15. Refactor: arquitectura modular ✔
+## 15. Guardado en localStorage ✔
+
+`js/save.js`: instantánea serializable (dinero, vidas, partes, oleada,
+mechas con nivel/vida/munición, edificios con torreta, unidades con modo)
+bajo la clave `cosecha-de-acero-save`. Autoguardado cada 3 s durante la
+fase de construcción y como punto de control al superar cada oleada;
+cerrar a media oleada reanuda en la construcción previa. Botón
+**CONTINUAR** en el título si hay guardado; ganar, perder, ARRANCAR y
+NUEVA PARTIDA lo borran. Tolerante a localStorage bloqueado.
+
+## 16. Refactor: arquitectura modular ✔
 
 `game.js` se partió en módulos IIFE comunicados por `window.G` (sin build,
 se conserva el doble clic en `index.html`): `core.js` (estado + helpers),

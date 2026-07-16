@@ -53,12 +53,18 @@ global.document = {
 
 let simNow = 0;
 global.performance = { now: () => simNow };
+global.localStorage = {
+  _data: {},
+  getItem(k) { return Object.prototype.hasOwnProperty.call(this._data, k) ? this._data[k] : null; },
+  setItem(k, v) { this._data[k] = String(v); },
+  removeItem(k) { delete this._data[k]; }
+};
 let rafCb = null;
 global.requestAnimationFrame = cb => { rafCb = cb; };
 global.window = global;
 
 // ---------- carga del juego real ----------
-['sprites', 'data', 'audio', 'core', 'anim', 'behaviors', 'entities', 'render', 'ui', 'main'].forEach(name => {
+['sprites', 'data', 'audio', 'core', 'anim', 'save', 'behaviors', 'entities', 'render', 'ui', 'main'].forEach(name => {
   const src = fs.readFileSync(path.join(__dirname, '..', 'js', name + '.js'), 'utf8');
   eval(src); // eslint-disable-line no-eval
 });
@@ -299,6 +305,26 @@ step(30);
 assert(twObj.v === 10, 'el tween aterriza exacto en el destino');
 assert(S.towers.every(t => t.sy === 1),
   'los mechas terminan su animación de despliegue en escala 1');
+
+console.log('— Guardado en localStorage —');
+G.saveGame();
+assert(G.hasSave(), 'la partida se guarda');
+const savedMoney = S.money, savedWave = S.wave, savedParts = S.parts,
+  savedTowers = S.towers.length, savedBuildings = S.buildings.length,
+  savedUnits = S.units.length;
+S.money = 0; S.towers.length = 0; S.parts = 0;   // arruina el estado en vivo
+assert(G.loadGame(), 'la partida se restaura desde el guardado');
+assert(S.money === savedMoney && S.wave === savedWave && S.parts === savedParts &&
+  S.towers.length === savedTowers && S.buildings.length === savedBuildings &&
+  S.units.length === savedUnits,
+  'dinero, oleada, partes, mechas, edificios y unidades vuelven intactos');
+assert(S.phase === 'build' && S.towers.every(t => !t.moving),
+  'se reanuda en fase de construcción');
+S.buildT = 99999;
+step(1);                        // el autoguardado vuelve a escribir
+assert(G.hasSave(), 'el autoguardado corre en fase de construcción');
+G.clearSave();
+assert(!G.hasSave(), 'limpiar el guardado lo elimina');
 S.buildT = D.BUILD_TIME;
 
 console.log('— Voladores: las avispas van directo al granero —');

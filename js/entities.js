@@ -625,6 +625,15 @@
       }
     }
 
+    // autoguardado en los momentos seguros (fase de construcción)
+    if (S.phase === 'build') {
+      S.saveT = (S.saveT || 0) - dt;
+      if (S.saveT <= 0) {
+        S.saveT = 3;
+        G.saveGame();
+      }
+    }
+
     // spawner
     if (S.phase === 'wave') {
       S.waveT += dt;
@@ -864,11 +873,13 @@
       S.money += bonus;
       G.floater(W / 2, H / 2 - 30, 'OLEADA SUPERADA  +$' + bonus, '#8ac94a');
       AU.coin();
+      G.saveGame();              // punto de control tras cada oleada
     }
   }
 
   function endGame(won) {
     S.phase = won ? 'won' : 'lost';
+    G.clearSave();               // la temporada terminó: sin reanudación
     if (won) AU.win(); else AU.lose();
   }
 
