@@ -147,7 +147,24 @@ js/game.js      — motor: estado, bucle, entidades, input, render
 - Botón **NUEVA PARTIDA** en el mando (confirmación de 3 s) para
   reiniciar en caliente.
 
-## 13. Refactor: arquitectura modular ✔
+## 13. La cerca, el hacha y la economía de escala ✔
+
+- **Campo de fuerza**: dos CERCA-9 encendidas flanqueando una celda del
+  camino (vertical u horizontal) generan una barrera (vida 80 × suma de
+  niveles) que bloquea a los terrestres; es objetivo atacable (mordiscos,
+  escupitajos, kamikazes) y se regenera 12 s después de romperse. Cae si
+  un pilón se mueve, se apaga o muere. Los voladores la ignoran.
+- **Melé universal**: todo mecha golpea (12 + 8/nivel de daño, rango 26 px,
+  cada 1 s) a los bichos pegados, sin gastar munición.
+- **LEÑADOR** ($140): mecha de hacha — barre a todos los bichos en 38 px
+  (34 daño, +alcance por nivel), 260 de vida, sin munición. Teclas ahora:
+  mechas 1-5, edificios 6-7, unidades 8-9.
+- **Talleres en serie**: cada taller extra abarata las mejoras un 12 %
+  (tope 36 %).
+- Selección de mecha: casillas alcanzables con pulso + flechas
+  direccionales.
+
+## 14. Refactor: arquitectura modular ✔
 
 `game.js` se partió en módulos IIFE comunicados por `window.G` (sin build,
 se conserva el doble clic en `index.html`): `core.js` (estado + helpers),

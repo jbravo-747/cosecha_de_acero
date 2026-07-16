@@ -90,7 +90,7 @@ function build(type, c, r) {
 }
 function buildB(type, c, r) {
   key('Escape');
-  key(String(D.BUILDING_ORDER.indexOf(type) + 5));
+  key(String(D.BUILDING_ORDER.indexOf(type) + 6));
   canvasClick(c, r);
   const b = S.buildings.find(b => b.c === c && b.r === r);
   if (!b) throw new Error('no se pudo construir ' + type + ' en ' + c + ',' + r);
@@ -203,7 +203,7 @@ assert(S.towers.some(t => t.ammo < G.towerStats(t).maxAmmo), 'disparar consume m
 
 console.log('— Logística: el cargador repone munición y repara —');
 S.buildT = 99999;                       // congela el disruptor durante la prueba
-key('7');                               // comprar CARGADOR
+key('8');                               // comprar CARGADOR
 assert(S.units.some(u => u.type === 'carrier'), 'el cargador se recluta en el granero');
 const hungry = S.towers.find(t => t.c === 4 && t.r === 4);
 hungry.ammo = 1;
@@ -233,6 +233,54 @@ assert(!hungry.moving && hungry.moveCd > 0, 'al llegar queda en enfriamiento de 
 selectTile(5, 5);
 canvasClick(6, 6);
 assert(hungry.c === 5, 'en enfriamiento no acepta otra orden');
+
+console.log('— Melé: los mechas pelean a quemarropa —');
+hungry.ammo = 0;                        // sin balas: solo le queda el puño
+const closeBug = G.spawnEnemy('drone', 3, 0, hungry.x + 18, hungry.y);
+step(15);
+assert(closeBug.dead || closeBug.hp < closeBug.maxHp,
+  'sin munición, el mecha golpea cuerpo a cuerpo a los bichos pegados');
+S.enemies.length = 0;
+
+console.log('— LEÑADOR: el mecha del hacha —');
+S.money += 500;
+const axeMech = build('axe', 4, 3);
+assert(!axeMech.offline, 'el LEÑADOR se enciende junto al generador');
+const chop1 = G.spawnEnemy('drone', 3, 0, axeMech.x + 20, axeMech.y - 6);
+const chop2 = G.spawnEnemy('drone', 3, 0, axeMech.x - 20, axeMech.y + 6);
+step(40);
+assert(chop1.dead && chop2.dead, 'el hacha barre a todos los bichos al alcance');
+assert(axeMech.ammo === 0 && G.towerStats(axeMech).maxAmmo === 0,
+  'el hacha no gasta munición');
+S.enemies.length = 0;
+selectTile(4, 3); byId.sellBtn.click();
+
+console.log('— Campo de fuerza entre pilones CERCA-9 —');
+S.money += 800;
+build('tesla', 2, 4);
+build('tesla', 4, 4);
+assert(S.fields.length === 1 && S.fields[0].c === 3 && S.fields[0].r === 4,
+  'dos pilones flanqueando el camino crean el campo');
+const fld = S.fields[0];
+assert(fld.maxHp === D.FIELD.hpPerLvl * 2, 'la vida del campo escala con los niveles');
+const blockedBug = G.spawnEnemy('scarab');
+for (let i = 0; i < 15 * 60; i++) {
+  step(1);
+  if (fld.hp < fld.maxHp) break;
+}
+assert(!blockedBug.dead && blockedBug.y < fld.y - 8, 'el terrestre se detiene ante el campo');
+assert(fld.hp < fld.maxHp, 'y lo muerde para romperlo');
+fld.hp = 1;
+for (let i = 0; i < 5 * 60 && fld.downT <= 0; i++) step(1);
+assert(fld.downT > 0 && fld.hp === 0, 'el campo se rompe');
+for (let i = 0; i < 6 * 60 && blockedBug.y <= fld.y && !blockedBug.dead; i++) step(1);
+assert(blockedBug.dead || blockedBug.y > fld.y, 'roto el campo, el bicho avanza');
+fld.downT = 0.3;
+step(30);
+assert(fld.hp === fld.maxHp, 'los pilones regeneran el campo');
+S.enemies.length = 0;
+[[2, 4], [4, 4]].forEach(([c, r]) => { selectTile(c, r); byId.sellBtn.click(); });
+assert(S.fields.length === 0, 'sin pilones no hay campo');
 S.buildT = D.BUILD_TIME;
 
 console.log('— Voladores: las avispas van directo al granero —');
@@ -287,6 +335,23 @@ buildB('shop', 16, 4);
 build('mg', 6, 2);
 assert(S.towers.length === tPreShop + 1, 'con taller nuevo se vuelve a ensamblar');
 selectTile(6, 2); byId.sellBtn.click();
+
+console.log('— Más talleres, mejoras más baratas —');
+const upT = S.towers[0];
+const fullCost = G.upgradeCost(upT);
+S.money += 1500;
+buildB('shop', 2, 8);
+assert(G.upgradeCost(upT) ===
+  Math.round(D.TOWERS[upT.type].cost * D.UP_COST_FACTOR * upT.level * (1 - D.SHOP_DISCOUNT)),
+  'un taller extra abarata la mejora ($' + fullCost + ' → $' + G.upgradeCost(upT) + ')');
+buildB('shop', 4, 9);
+buildB('shop', 6, 9);
+buildB('shop', 9, 10);
+assert(G.upgradeCost(upT) ===
+  Math.round(D.TOWERS[upT.type].cost * D.UP_COST_FACTOR * upT.level * (1 - D.SHOP_DISCOUNT_MAX)),
+  'el descuento se topa en ' + (D.SHOP_DISCOUNT_MAX * 100) + '%');
+[[2, 8], [4, 9], [6, 9], [9, 10]].forEach(([c, r]) => { selectTile(c, r); byId.sellBtn.click(); });
+assert(G.upgradeCost(upT) === fullCost, 'vender talleres devuelve el precio normal');
 
 console.log('— Torreta del taller —');
 S.buildT = 99999;
@@ -402,7 +467,7 @@ buildB('gen', 12, 4);
 buildB('gen', 15, 7);
 buildB('gen', 14, 5);
 // logística de munición: cargadores + el dron inicial en modo recarga
-key('7'); key('7'); key('7'); key('7');
+key('8'); key('8'); key('8'); key('8');
 // defensa en los cuellos del recorrido
 build('mg', 2, 2);
 build('tesla', 4, 7);

@@ -158,6 +158,24 @@
       }
     },
 
+    // hacha del LEÑADOR: barre a todos los bichos al alcance
+    axe: {
+      fire: function (t, st) {
+        var hit = 0;
+        for (var i = 0; i < S.enemies.length; i++) {
+          var o = S.enemies[i];
+          if (!o.dead && G.dist2(t.x, t.y, o.x, o.y) <= st.range * st.range) {
+            G.damageEnemy(o, st.dmg);
+            hit++;
+          }
+        }
+        if (hit) {
+          S.effects.push({ kind: 'swing', x: t.x, y: t.y - 6, a: t.angle, r: st.range, life: 0.16 });
+          AU.cannon();
+        }
+      }
+    },
+
     chain: {
       fire: function (t, st, e, def) {
         var hitList = [e], cur = e;

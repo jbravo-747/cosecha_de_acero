@@ -37,7 +37,7 @@
       name: 'CERCA-9', cost: 150, range: 90, dmg: 15, rof: 0.85, energy: 1,
       hp: 180, ammo: 70, move: 1,
       proj: 'chain', chain: 3, slow: 0.5, slowDur: 1.4,
-      desc: 'Pilón eléctrico de la cerca. La descarga salta entre bichos y los frena.'
+      desc: 'Pilón eléctrico de la cerca. La descarga salta entre bichos y los frena. Dos pilones flanqueando el camino crean un campo de fuerza que bloquea a los terrestres.'
     },
     cannon: {
       name: 'BISONTE', cost: 180, range: 125, dmg: 42, rof: 1.5, energy: 2,
@@ -50,9 +50,19 @@
       hp: 130, ammo: 22, move: 3,
       proj: 'beam', airBonus: 1.5,
       desc: 'Rifle de larga distancia. Un tiro, un bicho grande menos. Daño ×1.5 contra voladores.'
+    },
+    axe: {
+      name: 'LEÑADOR', cost: 140, range: 38, dmg: 34, rof: 1.0, energy: 1,
+      hp: 260, ammo: 0, move: 2,
+      proj: 'axe',
+      desc: 'Mecha leñador: su hacha barre a todos los bichos al alcance. Cuerpo a cuerpo puro, no gasta munición y aguanta como un tractor.'
     }
   };
-  var TOWER_ORDER = ['mg', 'tesla', 'cannon', 'sniper'];
+  var TOWER_ORDER = ['mg', 'tesla', 'cannon', 'sniper', 'axe'];
+
+  // golpe cuerpo a cuerpo de emergencia: todos los mechas lo tienen y
+  // no gasta munición
+  var MELEE = { range: 26, cd: 1.0, dmg: 12, perLvl: 8 };
   var MAX_LEVEL = 3;
   // mejora: nivel 2 y 3
   var UP_COST_FACTOR = 0.75;   // costo mejora = base * factor * nivelActual
@@ -140,7 +150,16 @@
     gen:  { name: 'GENERADOR', cost: 120, hp: 180, energy: 4, powerRange: 110,
             desc: 'Generador diésel: alimenta con 4 ⚡ a los mechas dentro de su radio.' },
     shop: { name: 'TALLER', cost: 200, hp: 220, energy: 0,
-            desc: 'Taller de ensamblado. Sin al menos uno en pie no se construyen ni mejoran mechas.' }
+            desc: 'Taller de ensamblado. Sin al menos uno en pie no se construyen ni mejoran mechas. Cada taller extra abarata las mejoras un 12% (máx. 36%).' }
+  };
+  var SHOP_DISCOUNT = 0.12;      // descuento de mejora por taller extra
+  var SHOP_DISCOUNT_MAX = 0.36;  // tope del descuento
+
+  // campo de fuerza: dos CERCA-9 flanqueando una celda del camino
+  var FIELD = {
+    hpPerLvl: 80,   // vida = 80 × (nivel pilón A + nivel pilón B)
+    regen: 12,      // seg para reformarse tras romperse
+    block: 15       // px del centro a los que se detienen los terrestres
   };
   var BUILDING_ORDER = ['gen', 'shop'];
   var START_BUILDINGS = [{ type: 'gen', c: 16, r: 10 }, { type: 'shop', c: 16, r: 4 }];
@@ -205,6 +224,8 @@
     REPAIR_PER_HP: REPAIR_PER_HP, UP_PARTS: UP_PARTS,
     MOVE_CD: MOVE_CD, RELOAD_TIME: RELOAD_TIME, AMMO_LOW: AMMO_LOW, HP_LOW: HP_LOW,
     SHOP_TURRET: SHOP_TURRET, BOMB: BOMB, DRONE_GIFT: DRONE_GIFT,
+    SHOP_DISCOUNT: SHOP_DISCOUNT, SHOP_DISCOUNT_MAX: SHOP_DISCOUNT_MAX,
+    FIELD: FIELD, MELEE: MELEE,
     DRONE_CAP: DRONE_CAP, SELF_DESTRUCT: SELF_DESTRUCT,
     START_MONEY: 320, START_LIVES: 20
   };

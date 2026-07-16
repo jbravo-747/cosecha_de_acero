@@ -339,6 +339,23 @@
     '...kkkk..kkkk...'
   ];
 
+  // Mecha leñador: chasis de madera y acero con el hacha al hombro
+  var MECH_AXE = [
+    '.....kkkkkk.kWk.',
+    '....kttttttkWWWk',
+    '...ktToooTtkWWWk',
+    '...ktToyoTtk.tk.',
+    '....kttttttk.tk.',
+    '..kkktTTTTtk.tk.',
+    '.kttkTttttTkktk.',
+    '.kttkTtyytTktk..',
+    '.kssk.kTTk.kssk.',
+    '...kTTk..kTTk...',
+    '...kTTk..kTTk...',
+    '..kTTTk..kTTTk..',
+    '..kkkkk..kkkkk..'
+  ];
+
   var TESLA = [
     '......kyyk......',
     '.....ky..yk.....',
@@ -584,7 +601,8 @@
       mg:     makeSprite(MECH_MG),
       cannon: makeSprite(MECH_CANNON),
       sniper: makeSprite(MECH_SNIPER),
-      tesla:  makeSprite(TESLA)
+      tesla:  makeSprite(TESLA),
+      axe:    makeSprite(MECH_AXE)
     },
     buildings: {
       gen:  makeSprite(GEN),

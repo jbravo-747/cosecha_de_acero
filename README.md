@@ -21,9 +21,9 @@ python3 -m http.server 8080
 
 | Tecla / acción | Efecto |
 |---|---|
-| `1`–`4` o clic en tarjeta | Elegir mecha para colocar |
-| `5` / `6` | Generador de energía / Taller de ensamblado |
-| `7` / `8` | Reclutar CARGADOR / DRON (salen del granero) |
+| `1`–`5` o clic en tarjeta | Elegir mecha para colocar |
+| `6` / `7` | Generador de energía / Taller de ensamblado |
+| `8` / `9` | Reclutar CARGADOR / DRON (salen del granero) |
 | Clic en el pasto | Colocar el mecha o edificio |
 | Clic en mecha / edificio / unidad | Seleccionar |
 | Mecha seleccionado + clic en tile iluminado | **Moverlo** (paso tipo ajedrez) |
@@ -34,15 +34,23 @@ python3 -m http.server 8080
 ### Mechas (unidades móviles con vida y munición)
 
 - **COYOTE** ($100, 1 ⚡, paso 2) — ametralladora rápida, 200 balas.
-- **CERCA-9** ($150, 1 ⚡, paso 1) — pilón tesla: salta entre bichos y los frena.
+- **CERCA-9** ($150, 1 ⚡, paso 1) — pilón tesla: salta entre bichos y los
+  frena. **Dos pilones flanqueando el camino crean un campo de fuerza**
+  que bloquea a los terrestres: tiene vida (80 × suma de niveles), lo
+  muerden y escupen para romperlo, y se regenera en 12s si los pilones
+  siguen encendidos. Los voladores pasan por encima.
 - **BISONTE** ($180, 2 ⚡, paso 1) — cañón de área, 45 obuses.
-- **VIUDA** ($260, 2 ⚡, paso 3) — francotirador, 22 balas.
+- **VIUDA** ($260, 2 ⚡, paso 3) — francotirador, 22 balas, ×1.5 a voladores.
+- **LEÑADOR** ($140, 1 ⚡, paso 2) — mecha del hacha: barre a **todos** los
+  bichos a su alcance, no gasta munición y aguanta como un tractor (260 vida).
 
 Cada disparo gasta munición; sin balas el mecha calla hasta que lo
-reabastezcan. Se **mueven** como piezas de ajedrez (su "paso" en tiles, con
-enfriamiento) y **cambian de aspecto** al subir de nivel: hombreras de acero
-a nivel 2, astas doradas a nivel 3. Mejorar cuesta dinero **y partes ⚙** y
-entrega el mecha reparado y recargado.
+reabastezcan — pero **todos los mechas pelean cuerpo a cuerpo**: si un
+bicho se les pega, lo aplastan a golpes (sin gastar munición). Se
+**mueven** como piezas de ajedrez — al seleccionarlos se iluminan las
+casillas alcanzables con **flechas** — y **cambian de aspecto** al subir
+de nivel: hombreras de acero a nivel 2, astas doradas a nivel 3. Mejorar
+cuesta dinero **y partes ⚙** y entrega el mecha reparado y recargado.
 
 ### Unidades de apoyo
 
@@ -79,7 +87,8 @@ que **arrasa a los bichos del área** (ignora blindaje).
   radio**. Un mecha lejos de todo generador queda SIN ⚡ y no dispara.
 - **TALLER** ($200) — sin al menos uno en pie no se ensamblan ni mejoran
   mechas. Admite una mejora: **torreta de techo** ($150 + 1⚙) que dispara
-  sola a los bichos que pasan.
+  sola a los bichos que pasan. **Cada taller extra abarata las mejoras un
+  12% (máximo 36%)** — la economía de escala de la granja.
 
 Los bichos **muerden y escupen** a todo: mechas, unidades y edificios.
 Repara, reconstruye y reposiciona.

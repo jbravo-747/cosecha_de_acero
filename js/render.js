@@ -57,7 +57,7 @@
   // ---------- piezas ----------
   function drawGun(t) {
     var def = D.TOWERS[t.type];
-    if (def.proj === 'chain') return; // el pilón no tiene cañón
+    if (def.proj === 'chain' || def.proj === 'axe') return; // sin cañón
     ctx.save();
     ctx.translate(t.x, t.y - 6);
     ctx.rotate(t.angle);
@@ -135,16 +135,28 @@
       ctx.globalAlpha = 1;
     }
 
-    // tiles de desplazamiento del mecha seleccionado (movimiento tipo ajedrez)
+    // tiles de desplazamiento del mecha seleccionado: casillas iluminadas
+    // con pulso y flechas que apuntan desde el mecha a cada destino
     if (S.selected && !S.selected.moving && S.selected.moveCd <= 0) {
       var mt = S.selected, mdef = D.TOWERS[mt.type];
-      ctx.globalAlpha = 0.16;
-      ctx.fillStyle = '#f2d94e';
+      var pulse = 0.15 + 0.09 * Math.sin(performance.now() / 200);
       for (var mr = mt.r - mdef.move; mr <= mt.r + mdef.move; mr++) {
         for (var mc = mt.c - mdef.move; mc <= mt.c + mdef.move; mc++) {
-          if (G.canBuild(mc, mr)) {
-            ctx.fillRect(mc * TILE + 1, mr * TILE + 1, TILE - 2, TILE - 2);
-          }
+          if (!G.canBuild(mc, mr)) continue;
+          ctx.globalAlpha = pulse;
+          ctx.fillStyle = '#f2d94e';
+          ctx.fillRect(mc * TILE + 1, mr * TILE + 1, TILE - 2, TILE - 2);
+          ctx.globalAlpha = 0.85;
+          var tcx = mc * TILE + TILE / 2, tcy = mr * TILE + TILE / 2;
+          var ang = Math.atan2(tcy - mt.y, tcx - mt.x);
+          ctx.save();
+          ctx.translate(tcx, tcy);
+          ctx.rotate(ang);
+          ctx.beginPath();
+          ctx.moveTo(4, 0); ctx.lineTo(-3, -4); ctx.lineTo(-3, 4);
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
         }
       }
       ctx.globalAlpha = 1;
@@ -239,13 +251,13 @@
         ctx.fillStyle = t.hp / t.maxHp > 0.4 ? '#8ac94a' : '#e05545';
         ctx.fillRect(t.x - 11, t.y - 17, 22 * Math.max(0, t.hp / t.maxHp), 1);
       }
-      if (t.ammo < stBar.maxAmmo) {
+      if (stBar.maxAmmo > 0 && t.ammo < stBar.maxAmmo) {
         ctx.fillStyle = '#12100e';
         ctx.fillRect(t.x - 12, t.y - 14, 24, 3);
         ctx.fillStyle = '#f2d94e';
         ctx.fillRect(t.x - 11, t.y - 13, 22 * (t.ammo / stBar.maxAmmo), 1);
       }
-      if (t.ammo <= 0) {
+      if (stBar.maxAmmo > 0 && t.ammo <= 0) {
         ctx.font = 'bold 9px monospace';
         ctx.textAlign = 'center';
         ctx.fillStyle = '#f2d94e';
@@ -264,6 +276,28 @@
         ctx.globalAlpha = 1;
       }
     }
+
+    // campos de fuerza entre pilones CERCA-9
+    for (i = 0; i < S.fields.length; i++) {
+      var fd = S.fields[i];
+      if (fd.hp <= 0) continue;
+      ctx.globalAlpha = (fd.flash > 0 ? 0.95 : 0.55) +
+        0.25 * Math.sin(performance.now() / 90 + i * 2);
+      ctx.strokeStyle = '#6ab0e8';
+      ctx.lineWidth = 2;
+      zigzag(fd.ax, fd.ay, fd.bx, fd.by);
+      ctx.strokeStyle = '#cfe9ff';
+      ctx.lineWidth = 1;
+      zigzag(fd.ax, fd.ay, fd.bx, fd.by);
+      ctx.globalAlpha = 1;
+      if (fd.hp < fd.maxHp) {
+        ctx.fillStyle = '#12100e';
+        ctx.fillRect(fd.x - 11, fd.y + 8, 22, 3);
+        ctx.fillStyle = '#6ab0e8';
+        ctx.fillRect(fd.x - 10, fd.y + 9, 20 * (fd.hp / fd.maxHp), 1);
+      }
+    }
+    ctx.lineWidth = 1;
 
     // unidades de apoyo
     for (i = 0; i < S.units.length; i++) {
@@ -395,6 +429,12 @@
         zigzag(fx.x1, fx.y1, fx.x2, fx.y2);
         ctx.strokeStyle = '#e8f8c0'; ctx.lineWidth = 1;
         zigzag(fx.x1, fx.y1, fx.x2, fx.y2);
+      } else if (fx.kind === 'swing') {
+        // tajo de hacha / golpe de melé
+        ctx.strokeStyle = '#e8e0cc'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(fx.x, fx.y, fx.r, fx.a - 0.8, fx.a + 0.8); ctx.stroke();
+        ctx.strokeStyle = '#f2d94e'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.arc(fx.x, fx.y, fx.r - 3, fx.a - 0.6, fx.a + 0.6); ctx.stroke();
       } else {
         ctx.strokeStyle = '#f2d94e'; ctx.lineWidth = 1.5;
         ctx.beginPath(); ctx.moveTo(fx.x1, fx.y1); ctx.lineTo(fx.x2, fx.y2); ctx.stroke();

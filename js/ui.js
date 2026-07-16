@@ -73,11 +73,11 @@
       function () { G.startPlacing(key); });
   });
   D.BUILDING_ORDER.forEach(function (key, i) {
-    makeBtn(key, D.BUILDINGS[key], SP.buildings[key], i + 5,
+    makeBtn(key, D.BUILDINGS[key], SP.buildings[key], i + 6,
       function () { G.startPlacing(key); });
   });
   D.UNIT_ORDER.forEach(function (key, i) {
-    makeBtn(key, D.UNITS[key], SP.units[key][0], i + 7,
+    makeBtn(key, D.UNITS[key], SP.units[key][0], i + 8,
       function () { G.buyUnit(key); });
   });
 
@@ -188,7 +188,9 @@
       el.info.innerHTML =
         '<span class="name">' + bdef.name + '</span> — vida <b>' + Math.max(0, Math.ceil(bl.hp)) +
         '/' + bl.maxHp + '</b>' +
-        (bdef.energy ? '<br>Energía: <b>+' + bdef.energy + ' ⚡</b>' : '<br>Permite ensamblar y mejorar mechas.') +
+        (bdef.energy ? '<br>Energía: <b>+' + bdef.energy + ' ⚡</b>'
+          : '<br>Descuento de mejora: <b>' + Math.round(G.upgradeDiscount() * 100) +
+            '%</b> (talleres: ' + G.shopCount() + ')') +
         (bl.turret ? '<br>Torreta: <b>instalada</b>' : '') +
         '<br><span class="desc">' + bdef.desc + '</span>';
       if (canTurret) {
@@ -211,7 +213,9 @@
         (t.offline ? ' <span style="color:var(--red)">SIN ⚡</span>' : '') +
         '<br>Daño: <b>' + st.dmg + '</b> &middot; Rango: <b>' + st.range + '</b>' +
         ' &middot; Vida: <b>' + Math.max(0, Math.ceil(t.hp)) + '/' + t.maxHp + '</b>' +
-        '<br>Munici&oacute;n: <b>' + t.ammo + '/' + st.maxAmmo + '</b>' +
+        '<br>' + (st.maxAmmo > 0
+          ? 'Munici&oacute;n: <b>' + t.ammo + '/' + st.maxAmmo + '</b>'
+          : 'Melé puro: <b>sin munici&oacute;n</b>') +
         ' &middot; Paso: <b>' + def.move + '</b>' +
         (t.moveCd > 0 ? ' (' + Math.ceil(t.moveCd) + 's)' : '') +
         '<br><span class="desc">' + def.desc +
@@ -240,10 +244,10 @@
       el.upBtn.disabled = true; el.upBtn.textContent = 'MEJORAR';
       el.sellBtn.disabled = true; el.sellBtn.textContent = 'VENDER';
     } else {
-      el.info.innerHTML = '<span class="desc">Mechas [1-4], edificios [5-6] y unidades [7-8]. ' +
-        'Los mechas gastan munici&oacute;n: el CARGADOR y el DRON la reponen desde el granero. ' +
-        'Los generadores alimentan a los mechas cercanos ⚡. ' +
-        'Selecciona un mecha y haz clic en un tile iluminado para moverlo.</span>';
+      el.info.innerHTML = '<span class="desc">Mechas [1-5], edificios [6-7] y unidades [8-9]. ' +
+        'Los mechas gastan munici&oacute;n y pelean cuerpo a cuerpo si los rodean. ' +
+        'Dos CERCA-9 flanqueando el camino crean un campo de fuerza. ' +
+        'Selecciona un mecha y sigue las flechas para moverlo.</span>';
       el.upBtn.disabled = true; el.upBtn.textContent = 'MEJORAR';
       el.sellBtn.disabled = true; el.sellBtn.textContent = 'VENDER';
     }
@@ -300,9 +304,9 @@
     if (k === ' ') { ev.preventDefault(); G.startWave(true); }
     else if (k === 'Escape') G.cancelActions();
     else if (k === 'p' || k === 'P') S.paused = !S.paused;
-    else if (k >= '1' && k <= '4') G.startPlacing(D.TOWER_ORDER[+k - 1]);
-    else if (k === '5' || k === '6') G.startPlacing(D.BUILDING_ORDER[+k - 5]);
-    else if (k === '7' || k === '8') G.buyUnit(D.UNIT_ORDER[+k - 7]);
+    else if (k >= '1' && k <= '5') G.startPlacing(D.TOWER_ORDER[+k - 1]);
+    else if (k === '6' || k === '7') G.startPlacing(D.BUILDING_ORDER[+k - 6]);
+    else if (k === '8' || k === '9') G.buyUnit(D.UNIT_ORDER[+k - 8]);
     else if (k === 'b' || k === 'B') G.armBomb();
   });
   el.bombBtn.addEventListener('click', function () { G.armBomb(); });

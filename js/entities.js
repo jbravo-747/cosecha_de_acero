@@ -89,6 +89,7 @@
     t.tx = c * TILE + TILE / 2;
     t.ty = r * TILE + TILE / 2;
     t.moving = true;
+    G.recomputePower();             // un pilón en marcha apaga su campo
     AU.click();
     return true;
   }
@@ -140,6 +141,7 @@
     t.maxHp = st.maxHp;
     t.hp = st.maxHp;            // el taller lo deja como nuevo
     t.ammo = st.maxAmmo;        // y con el cargador lleno
+    G.recomputePower();         // los campos escalan con el nivel del pilón
     G.burst(t.x, t.y, '#f2d94e', 12, 60);
     G.floater(t.x, t.y - 10, 'NIVEL ' + t.level, '#8ac94a');
     AU.build();
@@ -253,7 +255,9 @@
     var targets = G.defenseTargets();
     for (j = 0; j < targets.length; j++) {
       var o2 = targets[j];
-      if (o2.chained || G.dist2(o.x, o.y, o2.x, o2.y) > bs.r * bs.r) continue;
+      if (G.dist2(o.x, o.y, o2.x, o2.y) > bs.r * bs.r) continue;
+      if (o2.kind === 'field') { damageDefense(o2, bs.dmg); continue; }
+      if (o2.chained) continue;
       o2.hp -= bs.dmg;
       o2.flash = 0.2;
       if (o2.hp <= 0) {
@@ -366,7 +370,9 @@
     var targets = G.defenseTargets();
     for (var j = 0; j < targets.length; j++) {
       var o = targets[j];
-      if (o.chained || G.dist2(e.x, e.y, o.x, o.y) > bm.r * bm.r) continue;
+      if (G.dist2(e.x, e.y, o.x, o.y) > bm.r * bm.r) continue;
+      if (o.kind === 'field') { damageDefense(o, bm.dmg); continue; }
+      if (o.chained) continue;
       o.hp -= bm.dmg;
       o.flash = 0.2;
       if (o.hp <= 0) {
@@ -406,6 +412,15 @@
     o.hp -= dmg;
     o.flash = 0.15;
     if (o.hp > 0) return;
+    if (o.kind === 'field') {
+      // el campo se rompe pero los pilones lo regeneran
+      o.hp = 0;
+      o.downT = D.FIELD.regen;
+      G.burst(o.x, o.y, '#6ab0e8', 14, 110);
+      G.floater(o.x, o.y - 10, '¡CAMPO ROTO!', '#6ab0e8');
+      AU.zap();
+      return;
+    }
     if (o.kind === 'bldg') destroyBuilding(o);
     else if (o.kind === 'tower') destroyTower(o);
     else killUnit(o);
@@ -461,15 +476,29 @@
   }
 
   function fireTower(t, st) {
-    if (t.ammo <= 0) return;
     var def = D.TOWERS[t.type];
+    if (def.ammo > 0 && t.ammo <= 0) return;   // las armas de melé no gastan
     var e = acquireTarget(t.x, t.y, st.range);
     if (!e) return;
     t.angle = Math.atan2(e.y - t.y, e.x - t.x);
     t.cd = st.rof;
     t.flash = 0.08;
-    t.ammo--;
+    if (def.ammo > 0) t.ammo--;
     G.WEAPONS[def.proj].fire(t, st, e, def);
+  }
+
+  // golpe cuerpo a cuerpo: cualquier mecha aplasta a los bichos pegados,
+  // aunque no tenga munición
+  function meleeTower(t, dt) {
+    t.meleeCd = (t.meleeCd || 0) - dt;
+    if (t.meleeCd > 0) return;
+    var e = acquireTarget(t.x, t.y, D.MELEE.range);
+    if (!e) return;
+    t.meleeCd = D.MELEE.cd;
+    t.angle = Math.atan2(e.y - t.y, e.x - t.x);
+    damageEnemy(e, D.MELEE.dmg + D.MELEE.perLvl * (t.level - 1));
+    S.effects.push({ kind: 'swing', x: t.x, y: t.y - 6, a: t.angle, r: D.MELEE.range, life: 0.12 });
+    AU.squish();
   }
 
   // ---------- unidades de apoyo ----------
@@ -605,13 +634,28 @@
         var d = Math.sqrt(dx * dx + dy * dy) || 0.001;
         var step = spd * dt;
         e.angle = Math.atan2(dy, dx);
-        if (step >= d) {
-          e.x = wp.x; e.y = wp.y;
-          if (!e.chargeTarget) e.wp++;
-        } else {
-          e.x += dx / d * step; e.y += dy / d * step;
+        var arrive = step >= d;
+        var nx = arrive ? wp.x : e.x + dx / d * step;
+        var ny = arrive ? wp.y : e.y + dy / d * step;
+        // los campos de fuerza detienen a los terrestres
+        var blockedByField = false;
+        if (!e.flying) {
+          for (j = 0; j < S.fields.length; j++) {
+            var ff = S.fields[j];
+            if (ff.hp <= 0) continue;
+            var nd2 = G.dist2(nx, ny, ff.x, ff.y);
+            if (nd2 < D.FIELD.block * D.FIELD.block &&
+                nd2 <= G.dist2(e.x, e.y, ff.x, ff.y)) {
+              blockedByField = true;
+              break;
+            }
+          }
         }
-        e.dist += step;
+        if (!blockedByField) {
+          e.x = nx; e.y = ny;
+          if (arrive && !e.chargeTarget) e.wp++;
+          e.dist += step;
+        }
       }
       if (e.wp >= e.path.length) {
         // llegó al granero
@@ -648,7 +692,21 @@
       }
       if (t.moveCd > 0) t.moveCd -= dt;
       if (t.offline) continue;   // sin energía no dispara
+      meleeTower(t, dt);
       if (t.cd <= 0) fireTower(t, G.towerStats(t));
+    }
+
+    // campos de fuerza: parpadeo y regeneración
+    for (i = 0; i < S.fields.length; i++) {
+      var fd = S.fields[i];
+      if (fd.flash > 0) fd.flash -= dt;
+      if (fd.downT > 0) {
+        fd.downT -= dt;
+        if (fd.downT <= 0) {
+          fd.hp = fd.maxHp;
+          G.floater(fd.x, fd.y - 10, 'CAMPO RESTAURADO', '#6ab0e8');
+        }
+      }
     }
 
     // unidades de apoyo
@@ -731,7 +789,8 @@
       var alive = q.target && q.target.hp > 0 &&
         (S.buildings.indexOf(q.target) !== -1 ||
          S.towers.indexOf(q.target) !== -1 ||
-         S.units.indexOf(q.target) !== -1);
+         S.units.indexOf(q.target) !== -1 ||
+         S.fields.indexOf(q.target) !== -1);
       if (alive) { q.lx = q.target.x; q.ly = q.target.y; }
       var qdx = q.lx - q.x, qdy = q.ly - q.y;
       var qd = Math.sqrt(qdx * qdx + qdy * qdy) || 0.001;

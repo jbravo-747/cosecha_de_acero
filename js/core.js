@@ -105,6 +105,7 @@
     S.bombs = [];              // bombardeos en caída
     S.chainQ = [];             // detonaciones en cadena pendientes
     S.confirmBoom = 0;         // temporizador de confirmación de autodestrucción
+    S.fields = [];             // campos de fuerza entre pares de CERCA-9
     S.aimingBomb = false;      // apuntando el especial
     S.hoverPx = null;          // posición exacta del ratón en el canvas
     S.placing = null;          // tipo de torre/edificio en colocación
@@ -153,6 +154,45 @@
     }
     S.energyCap = cap;
     S.energyUsed = used;
+    recomputeFields();
+  }
+
+  // Dos CERCA-9 encendidas flanqueando una celda del camino (vertical u
+  // horizontal) generan un campo de fuerza que bloquea a los terrestres.
+  function recomputeFields() {
+    var old = {}, seen = {}, i, j;
+    for (i = 0; i < S.fields.length; i++) {
+      old[S.fields[i].c + ',' + S.fields[i].r] = S.fields[i];
+    }
+    S.fields = [];
+    var py = [];
+    for (i = 0; i < S.towers.length; i++) {
+      var t = S.towers[i];
+      if (t.type === 'tesla' && !t.moving && !t.offline) py.push(t);
+    }
+    for (i = 0; i < py.length; i++) {
+      for (j = i + 1; j < py.length; j++) {
+        var a = py[i], b = py[j], c = -1, r = -1;
+        if (a.c === b.c && Math.abs(a.r - b.r) === 2) { c = a.c; r = (a.r + b.r) / 2; }
+        else if (a.r === b.r && Math.abs(a.c - b.c) === 2) { c = (a.c + b.c) / 2; r = a.r; }
+        if (c < 0 || !pathCells[c + ',' + r] || seen[c + ',' + r]) continue;
+        seen[c + ',' + r] = true;
+        var maxHp = D.FIELD.hpPerLvl * (a.level + b.level);
+        var f = {
+          kind: 'field', c: c, r: r,
+          x: c * TILE + TILE / 2, y: r * TILE + TILE / 2,
+          ax: a.x, ay: a.y - 14, bx: b.x, by: b.y - 14,
+          hp: maxHp, maxHp: maxHp, downT: 0, flash: 0
+        };
+        var prev = old[c + ',' + r];
+        if (prev) {
+          f.hp = Math.min(prev.hp, maxHp);
+          f.downT = prev.downT;
+          if (f.downT > 0) f.hp = 0;
+        }
+        S.fields.push(f);
+      }
+    }
   }
 
   // ---------- helpers ----------
@@ -210,9 +250,14 @@
     return Math.max(Math.abs(c1 - c2), Math.abs(r1 - r2));
   }
 
-  // todo lo que los bichos pueden atacar: edificios, mechas y unidades
+  // todo lo que los bichos pueden atacar: edificios, mechas, unidades y
+  // los campos de fuerza activos
   function defenseTargets() {
-    return S.buildings.concat(S.towers, S.units);
+    var arr = S.buildings.concat(S.towers, S.units);
+    for (var i = 0; i < S.fields.length; i++) {
+      if (S.fields[i].hp > 0) arr.push(S.fields[i]);
+    }
+    return arr;
   }
 
   // unidad a menos de `rad` px de un punto (para seleccionarlas con clic)
@@ -225,8 +270,22 @@
     return best;
   }
 
+  function shopCount() {
+    var n = 0;
+    for (var i = 0; i < S.buildings.length; i++) {
+      if (S.buildings[i].type === 'shop') n++;
+    }
+    return n;
+  }
+
+  // cada taller extra abarata las mejoras (economía de escala)
+  function upgradeDiscount() {
+    return Math.min(D.SHOP_DISCOUNT_MAX, Math.max(0, shopCount() - 1) * D.SHOP_DISCOUNT);
+  }
+
   function upgradeCost(t) {
-    return Math.round(D.TOWERS[t.type].cost * D.UP_COST_FACTOR * t.level);
+    return Math.round(D.TOWERS[t.type].cost * D.UP_COST_FACTOR * t.level *
+      (1 - upgradeDiscount()));
   }
 
   function upgradeParts(t) { return D.UP_PARTS[t.level - 1] || 0; }
@@ -257,6 +316,7 @@
   G.resetState = resetState;
   G.shopAlive = shopAlive;
   G.recomputePower = recomputePower;
+  G.recomputeFields = recomputeFields;
   G.dist2 = dist2;
   G.towerAt = towerAt;
   G.buildingAt = buildingAt;
@@ -264,6 +324,8 @@
   G.nearPath = nearPath;
   G.isBldgKey = isBldgKey;
   G.towerStats = towerStats;
+  G.shopCount = shopCount;
+  G.upgradeDiscount = upgradeDiscount;
   G.upgradeCost = upgradeCost;
   G.upgradeParts = upgradeParts;
   G.repairCost = repairCost;
