@@ -119,8 +119,10 @@
     },
 
     beam: {
-      fire: function (t, st, e) {
-        G.damageEnemy(e, st.dmg);
+      fire: function (t, st, e, def) {
+        // la VIUDA castiga a los voladores
+        var dmg = (e.flying && def.airBonus) ? Math.round(st.dmg * def.airBonus) : st.dmg;
+        G.damageEnemy(e, dmg);
         S.effects.push({ kind: 'beam', x1: t.x, y1: t.y - 8, x2: e.x, y2: e.y, life: 0.12 });
         G.burst(e.x, e.y, '#f2d94e', 5, 70);
         AU.snipe();

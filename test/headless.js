@@ -321,13 +321,51 @@ assert((d1.dead || S.enemies.indexOf(d1) === -1) && (d2.dead || S.enemies.indexO
   'la explosión arrasa con los bichos del área');
 assert(S.bombCd > 0, 'el bombardeo queda en enfriamiento');
 
-console.log('— Dron de apoyo gratis —');
+console.log('— Dron de apoyo gratis (con tope de flota) —');
 const dronesBefore = S.units.filter(u => u.type === 'drone').length;
 S.giftT = 0.5;
 step(60);
 const dronesAfter = S.units.filter(u => u.type === 'drone').length;
 assert(dronesAfter === dronesBefore + 1 && S.units[S.units.length - 1].invested === 0,
   'cada ' + D.DRONE_GIFT + 's llega un dron de apoyo gratis');
+while (S.units.filter(u => u.type === 'drone').length < D.DRONE_CAP) {
+  S.units.push(G.makeUnit('drone', true));
+}
+S.giftT = 0.5;
+step(60);
+assert(S.units.filter(u => u.type === 'drone').length === D.DRONE_CAP,
+  'con la flota al tope (' + D.DRONE_CAP + ') no llegan más regalos');
+
+console.log('— Menú contextual de la consola —');
+selectTile(5, 5);
+step(1);
+assert(byId.towerBtns.classList.contains('hidden') && !byId.ctxPanel.classList.contains('hidden'),
+  'al seleccionar, el arsenal cede su lugar al menú contextual');
+key('Escape');
+step(1);
+assert(!byId.towerBtns.classList.contains('hidden') && byId.ctxPanel.classList.contains('hidden'),
+  'al deseleccionar vuelve el arsenal');
+
+console.log('— Autodestrucción y explosión en cadena —');
+S.money += 500;
+const boomA = buildB('gen', 5, 2);
+const boomB = buildB('gen', 6, 2);
+const victim = G.spawnEnemy('drone', 2, 0, boomA.x + 14, boomA.y);
+selectTile(5, 2);
+byId.boomBtn.click();
+assert(S.buildings.indexOf(boomA) !== -1, 'el primer clic solo pide confirmación');
+byId.boomBtn.click();
+assert(S.buildings.indexOf(boomA) === -1, 'confirmar detona la unidad seleccionada');
+assert(victim.dead, 'la onda arrasa a los bichos cercanos');
+step(30);
+assert(S.buildings.indexOf(boomB) === -1, 'el generador vecino detona en cadena');
+
+console.log('— VIUDA: bonus antiaéreo —');
+const waspAir = G.spawnEnemy('wasp');
+waspAir.hp = 200;
+G.WEAPONS.beam.fire({ x: waspAir.x, y: waspAir.y }, { dmg: 100 }, waspAir, D.TOWERS.sniper);
+assert(waspAir.hp === 50, 'el rifle hace ×1.5 de daño a voladores (200 → ' + waspAir.hp + ')');
+S.enemies.length = 0;
 S.buildT = D.BUILD_TIME;
 
 console.log('— Campaña completa hasta la Nodriza —');

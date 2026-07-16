@@ -48,8 +48,8 @@
     sniper: {
       name: 'VIUDA', cost: 260, range: 215, dmg: 95, rof: 2.3, energy: 2,
       hp: 130, ammo: 22, move: 3,
-      proj: 'beam',
-      desc: 'Rifle de larga distancia. Un tiro, un bicho grande menos.'
+      proj: 'beam', airBonus: 1.5,
+      desc: 'Rifle de larga distancia. Un tiro, un bicho grande menos. Daño ×1.5 contra voladores.'
     }
   };
   var TOWER_ORDER = ['mg', 'tesla', 'cannon', 'sniper'];
@@ -164,6 +164,19 @@
   var BOMB = { cost: 250, parts: 2, radius: 70, dmg: 260, cd: 45, delay: 0.8 };
 
   var DRONE_GIFT = 90;      // seg entre drones de apoyo gratis
+  var DRONE_CAP = 4;        // máximo de drones activos para recibir regalos
+
+  // autodestrucción: radio y daño de la onda por tipo de entidad.
+  // La onda daña bichos Y aliados; los aliados destruidos por ella
+  // detonan también (explosión en cadena).
+  var SELF_DESTRUCT = {
+    tower:   { r: 62, base: 150, perLvl: 40 },
+    gen:     { r: 70, dmg: 180 },
+    shop:    { r: 70, dmg: 160 },
+    carrier: { r: 46, dmg: 90 },
+    drone:   { r: 46, dmg: 100 },
+    chainDelay: 0.18   // seg entre eslabones de la cadena
+  };
 
   window.DATA = {
     COLS: COLS, ROWS: ROWS, TILE: TILE,
@@ -181,6 +194,7 @@
     REPAIR_PER_HP: REPAIR_PER_HP, UP_PARTS: UP_PARTS,
     MOVE_CD: MOVE_CD, RELOAD_TIME: RELOAD_TIME, AMMO_LOW: AMMO_LOW, HP_LOW: HP_LOW,
     SHOP_TURRET: SHOP_TURRET, BOMB: BOMB, DRONE_GIFT: DRONE_GIFT,
+    DRONE_CAP: DRONE_CAP, SELF_DESTRUCT: SELF_DESTRUCT,
     START_MONEY: 320, START_LIVES: 20
   };
 })();

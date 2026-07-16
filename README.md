@@ -54,6 +54,19 @@ entrega el mecha reparado y recargado.
   reposicionable con un clic). **La partida empieza con uno y cada 90
   segundos llega otro gratis al granero.**
 
+### Consola contextual y autodestrucción
+
+Al seleccionar cualquier cosa (mecha, edificio o unidad) aparece un
+**marcador ▼** sobre ella y el arsenal cede su lugar a un **menú
+contextual** con sus acciones. Todas las unidades tienen un botón de
+**AUTODESTRUCCIÓN ☠** (con confirmación): la onda expansiva daña a los
+bichos *y a tus propios aliados* — si la explosión destruye unidades
+vecinas, éstas **detonan en cadena**. Alinear generadores tiene sus
+riesgos... y sus usos desesperados.
+
+Notas de campaña: la **VIUDA** hace daño ×1.5 a voladores, y los drones
+de regalo dejan de llegar cuando ya tienes 4 activos.
+
 ### Especial: BOMBARDEO ☢
 
 Con `B` o el botón de mando ($250 + 2⚙, enfriamiento 45s) armas un

@@ -103,6 +103,8 @@
     S.giftT = D.DRONE_GIFT;    // cuenta atrás del dron de apoyo gratis
     S.bombCd = 0;              // enfriamiento del bombardeo
     S.bombs = [];              // bombardeos en caída
+    S.chainQ = [];             // detonaciones en cadena pendientes
+    S.confirmBoom = 0;         // temporizador de confirmación de autodestrucción
     S.aimingBomb = false;      // apuntando el especial
     S.hoverPx = null;          // posición exacta del ratón en el canvas
     S.placing = null;          // tipo de torre/edificio en colocación

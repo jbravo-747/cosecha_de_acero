@@ -124,7 +124,20 @@ js/game.js      — motor: estado, bucle, entidades, input, render
   ignorando blindaje en un radio de 70 px (solo bichos).
 - Cada **90 s** llega un **dron de apoyo gratis** al granero.
 
-## 11. Refactor: arquitectura modular ✔
+## 11. Consola contextual y autodestrucción ✔
+
+- Marcador ▼ animado sobre la entidad seleccionada.
+- El panel ARSENAL se convierte en **CONTROL: <unidad>** al seleccionar:
+  acciones contextuales (mejorar/reparar/modo, vender, autodestruir).
+- **Autodestrucción** en toda entidad (doble clic de confirmación, 3 s):
+  onda que daña bichos (ignora blindaje) y aliados por igual; los aliados
+  destruidos por la onda **detonan en cadena** (retardo 0.18 s por eslabón).
+  Daño: mecha 150+40/nivel (r62), generador 180 (r70), taller 160 (r70),
+  cargador 90 / dron 100 (r46).
+- Recomendaciones aplicadas: VIUDA con daño ×1.5 a voladores; el dron de
+  regalo respeta un tope de 4 drones activos.
+
+## 12. Refactor: arquitectura modular ✔
 
 `game.js` se partió en módulos IIFE comunicados por `window.G` (sin build,
 se conserva el doble clic en `index.html`): `core.js` (estado + helpers),

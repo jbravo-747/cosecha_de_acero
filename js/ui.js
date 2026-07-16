@@ -22,6 +22,9 @@
     parts: document.getElementById('parts'),
     pauseBtn: document.getElementById('pauseBtn'),
     bombBtn: document.getElementById('bombBtn'),
+    boomBtn: document.getElementById('boomBtn'),
+    ctxPanel: document.getElementById('ctxPanel'),
+    arsenalLabel: document.getElementById('arsenalLabel'),
     info: document.getElementById('info'),
     towerBtns: document.getElementById('towerBtns'),
     upBtn: document.getElementById('upBtn'),
@@ -128,6 +131,22 @@
         (S.phase !== 'build' && S.phase !== 'wave');
     }
     el.bombBtn.classList.toggle('aiming', S.aimingBomb);
+
+    // menú contextual: al seleccionar algo, el arsenal cede su lugar
+    var sel = S.selectedU || S.selectedB || S.selected;
+    el.towerBtns.classList.toggle('hidden', !!sel);
+    el.ctxPanel.classList.toggle('hidden', !sel);
+    if (sel) {
+      var selDef = S.selectedU ? D.UNITS[sel.type]
+        : S.selectedB ? D.BUILDINGS[sel.type] : D.TOWERS[sel.type];
+      el.arsenalLabel.innerHTML = '&#9670; CONTROL: ' + selDef.name + ' &#9670;';
+      el.boomBtn.innerHTML = S.confirmBoom > 0
+        ? '&#9760; ¿CONFIRMAR DETONACI&Oacute;N?'
+        : '&#9760; AUTODESTRUCCI&Oacute;N';
+      el.boomBtn.classList.toggle('confirm', S.confirmBoom > 0);
+    } else {
+      el.arsenalLabel.innerHTML = '&#9670; ARSENAL &#9670;';
+    }
 
     D.TOWER_ORDER.forEach(function (key) {
       var def = D.TOWERS[key], b = towerBtnEls[key];
@@ -285,6 +304,15 @@
     else if (k === 'b' || k === 'B') G.armBomb();
   });
   el.bombBtn.addEventListener('click', function () { G.armBomb(); });
+  el.boomBtn.addEventListener('click', function () {
+    if (!(S.selected || S.selectedB || S.selectedU)) return;
+    if (S.confirmBoom > 0) {
+      G.selfDestructSelected();
+    } else {
+      S.confirmBoom = 3;   // pide confirmación durante 3 segundos
+      AU.click();
+    }
+  });
 
   el.upBtn.addEventListener('click', function () {
     if (S.selectedU) G.toggleUnitMode();

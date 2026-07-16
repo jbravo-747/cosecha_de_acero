@@ -19,6 +19,7 @@
     S.selected = null;
     S.selectedB = null;
     S.selectedU = null;
+    S.confirmBoom = 0;
   }
 
   function startPlacing(key) {
@@ -211,6 +212,64 @@
     S.shake = Math.max(S.shake, 0.6);
     AU.cannon();
     AU.boom();
+  }
+
+  // ---------- autodestrucción con cadena ----------
+  function boomStats(o) {
+    var sd = D.SELF_DESTRUCT;
+    if (o.kind === 'tower') return { r: sd.tower.r, dmg: sd.tower.base + sd.tower.perLvl * (o.level - 1) };
+    return sd[o.type];
+  }
+
+  function removeEntity(o) {
+    var arr = o.kind === 'tower' ? S.towers : o.kind === 'bldg' ? S.buildings : S.units;
+    var i = arr.indexOf(o);
+    if (i !== -1) arr.splice(i, 1);
+    if (o.kind === 'tower' && o.incoming) o.incoming.target = null;
+    if (o.kind === 'unit' && o.target && o.target.incoming === o) o.target.incoming = null;
+    if (S.selected === o) S.selected = null;
+    if (S.selectedB === o) S.selectedB = null;
+    if (S.selectedU === o) S.selectedU = null;
+  }
+
+  // detona una entidad: onda que daña bichos y aliados por igual; los
+  // aliados que no la sobreviven se encadenan con un pequeño retardo
+  function detonateNow(o) {
+    removeEntity(o);
+    var bs = boomStats(o), j;
+    G.burst(o.x, o.y, '#e8912a', 22, 150);
+    G.burst(o.x, o.y, '#f2d94e', 12, 120);
+    G.burst(o.x, o.y, '#454c52', 12, 90);
+    S.decals.push({ x: o.x, y: o.y, life: 22, size: 12, rubble: true });
+    S.shake = Math.max(S.shake, 0.4);
+    G.floater(o.x, o.y - 12, '☠ AUTODESTRUCCIÓN', '#e05545');
+    AU.boom();
+    for (j = 0; j < S.enemies.length; j++) {
+      var e = S.enemies[j];
+      if (!e.dead && G.dist2(o.x, o.y, e.x, e.y) <= bs.r * bs.r) {
+        damageEnemy(e, bs.dmg + e.def.armor);   // la onda ignora blindaje
+      }
+    }
+    var targets = G.defenseTargets();
+    for (j = 0; j < targets.length; j++) {
+      var o2 = targets[j];
+      if (o2.chained || G.dist2(o.x, o.y, o2.x, o2.y) > bs.r * bs.r) continue;
+      o2.hp -= bs.dmg;
+      o2.flash = 0.2;
+      if (o2.hp <= 0) {
+        o2.chained = true;
+        S.chainQ.push({ o: o2, t: D.SELF_DESTRUCT.chainDelay });
+      }
+    }
+    G.recomputePower();
+  }
+
+  function selfDestructSelected() {
+    var o = S.selectedU || S.selectedB || S.selected;
+    if (!o) return;
+    clearSelection();
+    o.chained = true;
+    detonateNow(o);
   }
 
   function repairSelectedB() {
@@ -571,13 +630,28 @@
     // unidades de apoyo
     for (i = 0; i < S.units.length; i++) updateUnit(S.units[i], dt);
 
-    // dron de apoyo gratis cada cierto tiempo
+    // dron de apoyo gratis cada cierto tiempo (con tope de flota)
     S.giftT -= dt;
     if (S.giftT <= 0) {
       S.giftT = D.DRONE_GIFT;
-      S.units.push(G.makeUnit('drone', true));
-      G.floater(D.BARN_POS.x, D.BARN_POS.y - 16, '¡DRON DE APOYO GRATIS!', '#6ab0e8');
-      AU.coin();
+      var nDrones = 0;
+      for (i = 0; i < S.units.length; i++) if (S.units[i].type === 'drone') nDrones++;
+      if (nDrones < D.DRONE_CAP) {
+        S.units.push(G.makeUnit('drone', true));
+        G.floater(D.BARN_POS.x, D.BARN_POS.y - 16, '¡DRON DE APOYO GRATIS!', '#6ab0e8');
+        AU.coin();
+      }
+    }
+
+    // detonaciones en cadena pendientes
+    if (S.confirmBoom > 0) S.confirmBoom -= dt;
+    for (i = S.chainQ.length - 1; i >= 0; i--) {
+      S.chainQ[i].t -= dt;
+      if (S.chainQ[i].t <= 0) {
+        var co = S.chainQ.splice(i, 1)[0].o;
+        var carr = co.kind === 'tower' ? S.towers : co.kind === 'bldg' ? S.buildings : S.units;
+        if (carr.indexOf(co) !== -1) detonateNow(co);
+      }
     }
 
     // edificios: flash y torreta del taller
@@ -702,6 +776,7 @@
   G.upgradeShopTurret = upgradeShopTurret;
   G.armBomb = armBomb;
   G.dropBomb = dropBomb;
+  G.selfDestructSelected = selfDestructSelected;
   G.startWave = startWave;
   G.spawnEnemy = spawnEnemy;
   G.damageEnemy = damageEnemy;

@@ -414,6 +414,22 @@
       ctx.globalAlpha = 1;
     }
 
+    // marcador animado sobre la entidad seleccionada
+    var selObj = S.selectedU || S.selectedB || S.selected;
+    if (selObj) {
+      var mkY = selObj.y - (S.selectedB ? 32 : S.selectedU ? 20 : 26);
+      var bob = Math.sin(performance.now() / 170) * 2.5;
+      ctx.fillStyle = '#f2d94e';
+      ctx.strokeStyle = '#12100e';
+      ctx.beginPath();
+      ctx.moveTo(selObj.x - 6, mkY - 8 + bob);
+      ctx.lineTo(selObj.x + 6, mkY - 8 + bob);
+      ctx.lineTo(selObj.x, mkY + bob);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
+
     // textos flotantes
     ctx.font = 'bold 11px monospace';
     ctx.textAlign = 'center';
