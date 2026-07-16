@@ -202,6 +202,38 @@
     '......ddd.......'
   ];
 
+  // Detonador: garrapata hinchada de ácido volátil (el vientre pulsa)
+  var KAMI_A = [
+    '.....k....k.....',
+    '....k.dppd.k....',
+    '....dpoooopd....',
+    '...dpoOooOopd...',
+    '..kdpooooooopd..',
+    '..dpooffffoopd..',
+    '.kdpofOOOOfopdk.',
+    '..dpooffffoopd..',
+    '..kdpoooooopdk..',
+    '...dpoOooOopd...',
+    '....dpoooopd....',
+    '.....dpppd......',
+    '......ddd.......'
+  ];
+  var KAMI_B = [
+    '.....k....k.....',
+    '....k.dppd.k....',
+    '....dpoooopd....',
+    '...dpoyooyopd...',
+    '..kdpooooooopd..',
+    '..dpooyyyyoopd..',
+    '.kdpoyOyyOyopdk.',
+    '..dpooyyyyoopd..',
+    '..kdpoooooopdk..',
+    '...dpoyooyopd...',
+    '....dpoooopd....',
+    '.....dpppd......',
+    '......ddd.......'
+  ];
+
   var BOSS_A = [
     '........k......k........',
     '.......k.dppppd.k.......',
@@ -545,6 +577,7 @@
       wasp:    [makeSprite(WASP_A),   makeSprite(WASP_B)],
       spitter: [makeSprite(SPIT_A),   makeSprite(SPIT_B)],
       scarab:  [makeSprite(SCARAB_A), makeSprite(SCARAB_B)],
+      kamikaze: [makeSprite(KAMI_A),  makeSprite(KAMI_B)],
       boss:    [makeSprite(BOSS_A),   makeSprite(BOSS_B)]
     },
     mechs: {

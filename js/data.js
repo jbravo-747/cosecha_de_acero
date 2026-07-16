@@ -75,6 +75,12 @@
                drop: { chance: 0.3, n: 1 } },
     scarab:  { name: 'Escarabajo', hp: 300,  speed: 27, bounty: 34,  dmg: 3,  armor: 6, size: 9,  sprite: 'scarab',  bDmg: 12,
                behaviors: ['biter'], drop: { chance: 1, n: 1 } },
+    // carga contra la defensa y se inmola; también estalla si lo matan.
+    // Su onda daña a tus unidades y puede iniciar explosiones en cadena.
+    kamikaze:{ name: 'Detonador',  hp: 55,   speed: 70, bounty: 18,  dmg: 2,  armor: 0, size: 8,  sprite: 'kamikaze', bDmg: 0,
+               behaviors: ['kamikaze'],
+               boom: { r: 55, dmg: 70, detect: 110, fuse: 14 },
+               drop: { chance: 0.25, n: 1 } },
     boss:    { name: 'NODRIZA',    hp: 3400, speed: 15, bounty: 500, dmg: 20, armor: 8, size: 14, sprite: 'boss',    bDmg: 30,
                behaviors: ['biter', 'spawner', 'spit'],
                spit: { range: 115, cd: 2.8, dmg: 14, speed: 150 },
@@ -105,21 +111,26 @@
     /* 4 */ [{ t: 'spitter', n: 7, gap: 1.5, delay: 0 },
              { t: 'drone',   n: 8, gap: 0.7, delay: 4 }],
     /* 5 */ [{ t: 'wasp',    n: 12, gap: 0.6, delay: 0 },
-             { t: 'spitter', n: 6,  gap: 1.4, delay: 6 }],
+             { t: 'spitter', n: 6,  gap: 1.4, delay: 6 },
+             { t: 'kamikaze', n: 2, gap: 2.5, delay: 9 }],
     /* 6 */ [{ t: 'scarab', n: 2,  gap: 4.0, delay: 0 },
              { t: 'drone',  n: 14, gap: 0.6, delay: 2 }],
     /* 7 */ [{ t: 'scarab',  n: 4,  gap: 3.0, delay: 0 },
-             { t: 'spitter', n: 10, gap: 1.0, delay: 3 }],
+             { t: 'spitter', n: 10, gap: 1.0, delay: 3 },
+             { t: 'kamikaze', n: 3, gap: 2.0, delay: 7 }],
     /* 8 */ [{ t: 'drone', n: 22, gap: 0.45, delay: 0 },
              { t: 'wasp',  n: 8,  gap: 0.8,  delay: 6 },
-             { t: 'scarab', n: 2, gap: 5.0,  delay: 8 }],
+             { t: 'scarab', n: 2, gap: 5.0,  delay: 8 },
+             { t: 'kamikaze', n: 3, gap: 2.2, delay: 11 }],
     /* 9 */ [{ t: 'scarab',  n: 6,  gap: 2.6, delay: 0 },
              { t: 'wasp',    n: 12, gap: 0.55, delay: 4 },
-             { t: 'spitter', n: 10, gap: 1.0, delay: 8 }],
+             { t: 'spitter', n: 10, gap: 1.0, delay: 8 },
+             { t: 'kamikaze', n: 5, gap: 1.6, delay: 12 }],
     /*10 */ [{ t: 'boss',    n: 1,  gap: 0,   delay: 2 },
              { t: 'drone',   n: 12, gap: 1.1, delay: 6 },
              { t: 'wasp',    n: 8,  gap: 1.3, delay: 12 },
-             { t: 'scarab',  n: 3,  gap: 6.0, delay: 16 }]
+             { t: 'scarab',  n: 3,  gap: 6.0, delay: 16 },
+             { t: 'kamikaze', n: 4, gap: 3.0, delay: 20 }]
   ];
 
   function waveBonus(wave) { return 60 + 15 * wave; }

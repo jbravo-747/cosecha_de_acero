@@ -291,7 +291,7 @@
     }
 
     // enemigos
-    var drawScale = { drone: 1.5, wasp: 1.5, spitter: 1.8, scarab: 2, boss: 2 };
+    var drawScale = { drone: 1.5, wasp: 1.5, spitter: 1.8, scarab: 2, kamikaze: 1.7, boss: 2 };
     var bossAlive = null;
     for (i = 0; i < S.enemies.length; i++) {
       var e = S.enemies[i];
@@ -313,6 +313,13 @@
         ctx.strokeStyle = 'rgba(224, 85, 69, 0.7)';
         ctx.beginPath();
         ctx.arc(e.x, e.y, e.def.size + 6, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      // alarma del detonador en carga
+      if (e.chargeTarget) {
+        ctx.strokeStyle = (((e.animT * 7) | 0) % 2) ? '#e8912a' : '#f2d94e';
+        ctx.beginPath();
+        ctx.arc(e.x, e.y, e.def.size + 5, 0, Math.PI * 2);
         ctx.stroke();
       }
       // barra de vida

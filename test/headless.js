@@ -360,6 +360,30 @@ assert(victim.dead, 'la onda arrasa a los bichos cercanos');
 step(30);
 assert(S.buildings.indexOf(boomB) === -1, 'el generador vecino detona en cadena');
 
+console.log('— Detonador: el bicho kamikaze —');
+S.money += 500;
+const kGen = buildB('gen', 5, 4);
+const kami = G.spawnEnemy('kamikaze', 2, 0, kGen.x + 90, kGen.y);
+let charged = false;
+for (let i = 0; i < 5 * 60; i++) {
+  step(1);
+  if (kami.chargeTarget) charged = true;
+  if (kami.dead || S.enemies.indexOf(kami) === -1) break;
+}
+assert(charged, 'el Detonador carga contra la defensa cercana');
+assert(kami.dead || S.enemies.indexOf(kami) === -1, 'se inmola al alcanzarla');
+assert(kGen.hp === kGen.maxHp - D.ENEMIES.kamikaze.boom.dmg,
+  'su onda daña a la defensa (' + kGen.hp + '/' + kGen.maxHp + ')');
+const kGen2 = buildB('gen', 6, 4);
+kGen.hp = 60;                                   // dañado: la onda lo rematará
+const kami2 = G.spawnEnemy('kamikaze', 2, 0, kGen.x + 20, kGen.y);
+G.damageEnemy(kami2, 999);
+assert(kami2.dead, 'matarlo de cerca también lo detona');
+step(60);
+assert(S.buildings.indexOf(kGen) === -1 && S.buildings.indexOf(kGen2) === -1,
+  'su estallido remata unidades dañadas y desata la cadena');
+S.enemies.length = 0;
+
 console.log('— VIUDA: bonus antiaéreo —');
 const waspAir = G.spawnEnemy('wasp');
 waspAir.hp = 200;
@@ -399,7 +423,7 @@ S.towers.slice().forEach(t => {
 assert(S.towers.every(t => t.level === 3), 'todas las torres a nivel 3');
 const partsPreCampaign = S.parts;
 
-let sawBoss = false, sawElite = false, sawFlier = false, sawTowerHurt = false;
+let sawBoss = false, sawElite = false, sawFlier = false, sawTowerHurt = false, sawKami = false;
 while (S.phase === 'build' && S.wave < D.WAVES.length) {
   byId.startBtn.click();
   const w = S.wave;
@@ -409,12 +433,14 @@ while (S.phase === 'build' && S.wave < D.WAVES.length) {
     if (!sawElite && S.enemies.some(e => e.elite)) sawElite = true;
     if (!sawFlier && S.enemies.some(e => e.flying && e.path.length === 2)) sawFlier = true;
     if (!sawTowerHurt && S.towers.some(t => t.hp < t.maxHp)) sawTowerHurt = true;
+    if (!sawKami && S.enemies.some(e => e.type === 'kamikaze')) sawKami = true;
   }
   if (S.phase === 'wave') throw new Error('oleada ' + w + ' atascada');
   console.log('    oleada ' + w + ' superada · vidas ' + S.lives + ' · $' + S.money +
     ' · ⚙' + S.parts + ' · mechas ' + S.towers.length + ' · unidades ' + S.units.length);
 }
 assert(sawBoss, 'la Nodriza apareció en la oleada 10');
+assert(sawKami, 'los Detonadores atacaron en oleadas avanzadas');
 assert(sawElite, 'aparecieron variantes de élite en oleadas avanzadas');
 assert(sawFlier, 'las avispas tomaron el atajo aéreo');
 assert(sawTowerHurt, 'los bichos dañaron a los mechas (mordiscos / escupitajos)');
@@ -435,5 +461,12 @@ assert(S.phase === 'lost', 'sin defensa se pierde la granja (en la oleada ' + S.
 assert(S.lives === 0, 'las vidas llegan exactamente a 0');
 assert(S.buildings.some(b => b.hp < b.maxHp) || S.buildings.length < 2,
   'los bichos mordieron la base al pasar');
+
+console.log('— Nueva partida en caliente —');
+byId.newBtn.click();
+assert(S.phase === 'lost', 'el primer clic solo pide confirmación');
+byId.newBtn.click();
+assert(S.phase === 'build' && S.wave === 0 && S.money === D.START_MONEY &&
+  S.towers.length === 0 && S.units.length === 1, 'confirmar reinicia la partida al vuelo');
 
 console.log('\nTODO OK — ' + passed + ' aserciones superadas.');

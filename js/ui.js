@@ -23,6 +23,7 @@
     pauseBtn: document.getElementById('pauseBtn'),
     bombBtn: document.getElementById('bombBtn'),
     boomBtn: document.getElementById('boomBtn'),
+    newBtn: document.getElementById('newBtn'),
     ctxPanel: document.getElementById('ctxPanel'),
     arsenalLabel: document.getElementById('arsenalLabel'),
     info: document.getElementById('info'),
@@ -118,6 +119,7 @@
       el.startBtn.innerHTML = 'OLEADA EN CURSO...';
     }
     el.pauseBtn.innerHTML = S.paused ? '&#9654; SEGUIR [P]' : '&#10074;&#10074; PAUSA [P]';
+    if (G._newBtnLabel) G._newBtnLabel();
 
     // especial: bombardeo
     if (S.bombCd > 0) {
@@ -354,6 +356,27 @@
     el.endScreen.classList.add('hidden');
     AU.click();
   });
+
+  // nueva partida en caliente, con confirmación de 3 segundos
+  var confirmNewUntil = 0;
+  el.newBtn.addEventListener('click', function () {
+    if (S.phase === 'menu') return;
+    if (performance.now() < confirmNewUntil) {
+      confirmNewUntil = 0;
+      G.resetState();
+      S.phase = 'build';
+      el.endScreen.classList.add('hidden');
+      AU.horn();
+    } else {
+      confirmNewUntil = performance.now() + 3000;
+      AU.click();
+    }
+  });
+  G._newBtnLabel = function () {
+    el.newBtn.innerHTML = performance.now() < confirmNewUntil
+      ? '&#8635; ¿REINICIAR TODO?'
+      : '&#8635; NUEVA PARTIDA';
+  };
 
   G.updateUI = updateUI;
 })();

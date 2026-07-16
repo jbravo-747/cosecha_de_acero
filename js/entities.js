@@ -335,7 +335,7 @@
       wp: atWp !== undefined ? atWp : 1,
       dist: atDist !== undefined ? atDist : 0,
       slowT: 0, angle: 0, animT: Math.random(), aggroT: 0,
-      dead: false
+      chargeTarget: null, dead: false
     };
     // variantes de élite: más frecuentes y duras a mayor oleada
     if (type !== 'boss' && S.wave >= D.ELITE.fromWave) {
@@ -355,11 +355,33 @@
     return e;
   }
 
+  // explosión de un bicho kamikaze: daña a la defensa y puede encadenar
+  function enemyBoom(e) {
+    var bm = e.def.boom;
+    G.burst(e.x, e.y, '#e8912a', 18, 130);
+    G.burst(e.x, e.y, '#9ee34a', 10, 90);
+    S.decals.push({ x: e.x, y: e.y, life: 18, size: 10, rubble: true });
+    S.shake = Math.max(S.shake, 0.3);
+    AU.boom();
+    var targets = G.defenseTargets();
+    for (var j = 0; j < targets.length; j++) {
+      var o = targets[j];
+      if (o.chained || G.dist2(e.x, e.y, o.x, o.y) > bm.r * bm.r) continue;
+      o.hp -= bm.dmg;
+      o.flash = 0.2;
+      if (o.hp <= 0) {
+        o.chained = true;
+        S.chainQ.push({ o: o, t: D.SELF_DESTRUCT.chainDelay });
+      }
+    }
+  }
+
   function damageEnemy(e, dmg) {
     if (e.dead) return;
     e.hp -= Math.max(1, dmg - e.def.armor);
     if (e.hp <= 0) {
       e.dead = true;
+      if (e.def.boom) enemyBoom(e);   // matarlo de cerca también cuesta
       S.money += e.bounty;
       G.floater(e.x, e.y - 8, '+$' + e.bounty);
       // los bichos duros (y las élites) sueltan partes para el taller
@@ -576,14 +598,16 @@
       if (e.aggroT > 0) e.aggroT -= dt;
       e.animT += dt;
 
-      var wp = e.path[e.wp];
+      // los kamikazes cargan directo contra su objetivo; el resto sigue la ruta
+      var wp = e.chargeTarget || e.path[e.wp];
       if (wp) {
         var dx = wp.x - e.x, dy = wp.y - e.y;
         var d = Math.sqrt(dx * dx + dy * dy) || 0.001;
         var step = spd * dt;
         e.angle = Math.atan2(dy, dx);
         if (step >= d) {
-          e.x = wp.x; e.y = wp.y; e.wp++;
+          e.x = wp.x; e.y = wp.y;
+          if (!e.chargeTarget) e.wp++;
         } else {
           e.x += dx / d * step; e.y += dy / d * step;
         }
@@ -780,6 +804,7 @@
   G.startWave = startWave;
   G.spawnEnemy = spawnEnemy;
   G.damageEnemy = damageEnemy;
+  G.enemyBoom = enemyBoom;
   G.damageDefense = damageDefense;
   G.destroyBuilding = destroyBuilding;
   G.destroyTower = destroyTower;

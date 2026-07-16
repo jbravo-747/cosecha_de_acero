@@ -61,6 +61,35 @@
       }
     },
 
+    // carga contra la defensa cercana y se inmola (el Detonador)
+    kamikaze: {
+      init: function (e) { e.chargeTarget = null; },
+      update: function (e, dt) {
+        var bm = e.def.boom;
+        var tg = e.chargeTarget;
+        if (tg && (tg.hp <= 0 || G.defenseTargets().indexOf(tg) === -1)) {
+          tg = e.chargeTarget = null;
+        }
+        if (!tg) {
+          var targets = G.defenseTargets();
+          var bd = bm.detect * bm.detect;
+          for (var j = 0; j < targets.length; j++) {
+            var o = targets[j];
+            var d2 = G.dist2(e.x, e.y, o.x, o.y);
+            if (d2 <= bd) { bd = d2; tg = o; }
+          }
+          if (tg) e.chargeTarget = tg;
+        }
+        if (!tg) return;
+        e.aggroT = 2;   // que los mechas lo prioricen: es una amenaza
+        if (G.dist2(e.x, e.y, tg.x, tg.y) <= bm.fuse * bm.fuse) {
+          e.dead = true;   // se inmola: sin recompensa para el granjero
+          S.decals.push({ x: e.x, y: e.y, life: 12, size: e.def.size + 2 });
+          G.enemyBoom(e);
+        }
+      }
+    },
+
     // engendra bichos mientras avanza (la Nodriza)
     spawner: {
       init: function (e) { e.spawnT = 0; },

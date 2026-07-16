@@ -137,7 +137,17 @@ js/game.js      — motor: estado, bucle, entidades, input, render
 - Recomendaciones aplicadas: VIUDA con daño ×1.5 a voladores; el dron de
   regalo respeta un tope de 4 drones activos.
 
-## 12. Refactor: arquitectura modular ✔
+## 12. El Detonador y control de partida ✔
+
+- **Detonador** (kamikaze, oleadas 5+): hp 55, veloz; detecta defensa a
+  110 px, carga directo (anillo de alarma naranja) y se inmola a 14 px.
+  Su onda (r 55, 70 daño) golpea a la defensa y **remata unidades dañadas,
+  desatando la cadena**; matarlo de cerca también lo detona (con
+  recompensa). Suelta partes 25 %.
+- Botón **NUEVA PARTIDA** en el mando (confirmación de 3 s) para
+  reiniciar en caliente.
+
+## 13. Refactor: arquitectura modular ✔
 
 `game.js` se partió en módulos IIFE comunicados por `window.G` (sin build,
 se conserva el doble clic en `index.html`): `core.js` (estado + helpers),

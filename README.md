@@ -93,8 +93,11 @@ la oleada arranca sola. Desactivarlo antes con `Espacio` da un bono de
 ### Bichos
 
 Drones (enjambre), avispas (**voladoras: van directo al granero, sin seguir
-el camino**), escupidores (**atacan a distancia**), escarabajos blindados y
-la **NODRIZA**, que engendra drones y escupe. Desde la oleada 4 aparecen
+el camino**), escupidores (**atacan a distancia**), escarabajos blindados,
+**Detonadores** (kamikazes que cargan contra tu defensa y se inmolan — su
+onda daña a tus unidades y puede desatar tu propia explosión en cadena;
+matarlos de cerca también los detona) y la **NODRIZA**, que engendra
+drones y escupe. Desde la oleada 4 aparecen
 **variantes de élite** (aura roja): más grandes, con el doble de vida y
 botín; abundan más a cada oleada. Los bichos duros y las élites sueltan
 **partes ⚙** al morir.
