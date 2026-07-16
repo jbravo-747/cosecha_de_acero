@@ -38,7 +38,8 @@ python3 -m http.server 8080
   frena. **Dos pilones flanqueando el camino crean un campo de fuerza**
   que bloquea a los terrestres: tiene vida (80 × suma de niveles), lo
   muerden y escupen para romperlo, y se regenera en 12s si los pilones
-  siguen encendidos. Los voladores pasan por encima.
+  siguen encendidos. Los voladores pasan por encima, y ojo: los
+  escupidores priorizan derribar campos a distancia.
 - **BISONTE** ($180, 2 ⚡, paso 1) — cañón de área, 45 obuses.
 - **VIUDA** ($260, 2 ⚡, paso 3) — francotirador, 22 balas, ×1.5 a voladores.
 - **LEÑADOR** ($140, 1 ⚡, paso 2) — mecha del hacha: barre a **todos** los

@@ -37,7 +37,8 @@
       }
     },
 
-    // escupe ácido a distancia contra la defensa
+    // escupe ácido a distancia contra la defensa; los campos de fuerza
+    // son su objetivo prioritario (artillería anti-barrera)
     spit: {
       init: function (e) { e.spitCd = Math.random() * e.def.spit.cd; },
       update: function (e, dt) {
@@ -46,11 +47,18 @@
         var sp = e.def.spit;
         var targets = G.defenseTargets();
         var best = null, bd = sp.range * sp.range;
+        var bestField = null, bdF = sp.range * sp.range;
         for (var j = 0; j < targets.length; j++) {
           var o = targets[j];
           var d2 = G.dist2(e.x, e.y, o.x, o.y);
-          if (d2 <= bd) { bd = d2; best = o; }
+          if (d2 > sp.range * sp.range) continue;
+          if (o.kind === 'field') {
+            if (d2 <= bdF) { bdF = d2; bestField = o; }
+          } else if (d2 <= bd) {
+            bd = d2; best = o;
+          }
         }
+        best = bestField || best;
         if (!best) return;
         e.spitCd = sp.cd;
         e.aggroT = 2;

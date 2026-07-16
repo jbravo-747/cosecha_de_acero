@@ -279,6 +279,14 @@ fld.downT = 0.3;
 step(30);
 assert(fld.hp === fld.maxHp, 'los pilones regeneran el campo');
 S.enemies.length = 0;
+const spitBug = G.spawnEnemy('spitter', 2, 0, 90, 170);   // el pilón le queda más cerca
+spitBug.spitCd = 0;
+step(1);
+assert(S.eShots.length > 0 && S.eShots[0].target === fld,
+  'los escupidores priorizan derribar el campo a distancia');
+G.damageEnemy(spitBug, 9999);
+S.eShots.length = 0;
+S.enemies.length = 0;
 [[2, 4], [4, 4]].forEach(([c, r]) => { selectTile(c, r); byId.sellBtn.click(); });
 assert(S.fields.length === 0, 'sin pilones no hay campo');
 S.buildT = D.BUILD_TIME;

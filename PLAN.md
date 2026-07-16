@@ -163,6 +163,9 @@ js/game.js      — motor: estado, bucle, entidades, input, render
   (tope 36 %).
 - Selección de mecha: casillas alcanzables con pulso + flechas
   direccionales.
+- Contrapeso del muro: los **escupidores** (y la Nodriza) priorizan
+  derribar los campos de fuerza a distancia antes que a cualquier otro
+  objetivo en su rango.
 
 ## 14. Refactor: arquitectura modular ✔
 
