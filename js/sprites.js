@@ -326,6 +326,45 @@
   ];
 
   // ==========================================================================
+  // EDIFICIOS DE APOYO
+  // ==========================================================================
+
+  // Generador diésel: torre de acero con bobina amarilla encendida
+  var GEN = [
+    '.......kk.......',
+    '......kyyk......',
+    '.....kyooyk.....',
+    '....kyoyyoyk....',
+    '....kyoyyoyk....',
+    '.....kyooyk.....',
+    '....kgGGGGgk....',
+    '....kgGyyGgk....',
+    '....kgGyyGgk....',
+    '....kgGGGGgk....',
+    '...kggggggggk...',
+    '...kgGGooGGgk...',
+    '..kggggggggggk..',
+    '..kkkkkkkkkkkk..'
+  ];
+
+  // Taller de ensamblado: cobertizo de madera con portón y ventanas
+  var SHOP = [
+    '....kkkkkkkk....',
+    '...kggggggggk...',
+    '..kgGGGGGGGGgk..',
+    '.kGGGGGGGGGGGGk.',
+    '.kttttttttttttk.',
+    '.kttyyttttoottk.',
+    '.kttyyttttoottk.',
+    '.kttttkkkkttttk.',
+    '.kttttkGGkttttk.',
+    '.kttttkGgkttttk.',
+    '.kttttkGGkttttk.',
+    '.kTTTTkkkkTTTTk.',
+    '.kkkkkkkkkkkkkk.'
+  ];
+
+  // ==========================================================================
   // ESCENARIO
   // ==========================================================================
 
@@ -435,6 +474,10 @@
       cannon: makeSprite(MECH_CANNON),
       sniper: makeSprite(MECH_SNIPER),
       tesla:  makeSprite(TESLA)
+    },
+    buildings: {
+      gen:  makeSprite(GEN),
+      shop: makeSprite(SHOP)
     },
     barn: makeSprite(BARN),
     hole: makeSprite(HOLE),

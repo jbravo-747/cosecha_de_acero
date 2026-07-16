@@ -26,22 +26,22 @@
   // ---------- torres (mechas) ----------
   var TOWERS = {
     mg: {
-      name: 'COYOTE', cost: 100, range: 105, dmg: 8, rof: 0.16,
+      name: 'COYOTE', cost: 100, range: 105, dmg: 8, rof: 0.16, energy: 1,
       proj: 'bullet', projSpeed: 380,
       desc: 'Ametralladora ligera. Rápida y barata: ideal contra enjambres de drones.'
     },
     tesla: {
-      name: 'CERCA-9', cost: 150, range: 90, dmg: 15, rof: 0.85,
+      name: 'CERCA-9', cost: 150, range: 90, dmg: 15, rof: 0.85, energy: 1,
       proj: 'chain', chain: 3, slow: 0.5, slowDur: 1.4,
       desc: 'Pilón eléctrico de la cerca. La descarga salta entre bichos y los frena.'
     },
     cannon: {
-      name: 'BISONTE', cost: 180, range: 125, dmg: 42, rof: 1.5,
+      name: 'BISONTE', cost: 180, range: 125, dmg: 42, rof: 1.5, energy: 2,
       proj: 'shell', projSpeed: 240, splash: 42,
       desc: 'Cañón de asedio. Lento pero revienta grupos con daño en área.'
     },
     sniper: {
-      name: 'VIUDA', cost: 260, range: 215, dmg: 95, rof: 2.3,
+      name: 'VIUDA', cost: 260, range: 215, dmg: 95, rof: 2.3, energy: 2,
       proj: 'beam',
       desc: 'Rifle de larga distancia. Un tiro, un bicho grande menos.'
     }
@@ -54,13 +54,17 @@
   var SELL_FACTOR = 0.7;
 
   // ---------- enemigos ----------
+  // bDmg: daño por mordisco a edificios · drop: partes que suelta al morir
   var ENEMIES = {
-    drone:   { name: 'Dron',       hp: 30,   speed: 55, bounty: 8,   dmg: 1,  armor: 0, size: 7,  sprite: 'drone' },
-    wasp:    { name: 'Avispa',     hp: 24,   speed: 98, bounty: 10,  dmg: 1,  armor: 0, size: 6,  sprite: 'wasp' },
-    spitter: { name: 'Escupidor',  hp: 78,   speed: 44, bounty: 15,  dmg: 2,  armor: 0, size: 8,  sprite: 'spitter' },
-    scarab:  { name: 'Escarabajo', hp: 300,  speed: 27, bounty: 34,  dmg: 3,  armor: 6, size: 9,  sprite: 'scarab' },
-    boss:    { name: 'NODRIZA',    hp: 3400, speed: 15, bounty: 500, dmg: 20, armor: 8, size: 14, sprite: 'boss',
-               spawnEvery: 4.5, spawnType: 'drone', spawnCount: 2 }
+    drone:   { name: 'Dron',       hp: 30,   speed: 55, bounty: 8,   dmg: 1,  armor: 0, size: 7,  sprite: 'drone',   bDmg: 3 },
+    wasp:    { name: 'Avispa',     hp: 24,   speed: 98, bounty: 10,  dmg: 1,  armor: 0, size: 6,  sprite: 'wasp',    bDmg: 2 },
+    spitter: { name: 'Escupidor',  hp: 78,   speed: 44, bounty: 15,  dmg: 2,  armor: 0, size: 8,  sprite: 'spitter', bDmg: 6,
+               drop: { chance: 0.3, n: 1 } },
+    scarab:  { name: 'Escarabajo', hp: 300,  speed: 27, bounty: 34,  dmg: 3,  armor: 6, size: 9,  sprite: 'scarab',  bDmg: 12,
+               drop: { chance: 1, n: 1 } },
+    boss:    { name: 'NODRIZA',    hp: 3400, speed: 15, bounty: 500, dmg: 20, armor: 8, size: 14, sprite: 'boss',    bDmg: 30,
+               spawnEvery: 4.5, spawnType: 'drone', spawnCount: 2,
+               drop: { chance: 1, n: 10 } }
   };
 
   // escala de vida por oleada
@@ -95,6 +99,24 @@
 
   function waveBonus(wave) { return 60 + 15 * wave; }
 
+  // ---------- edificios de apoyo ----------
+  // Deben colocarse junto al camino (por eso los bichos pueden morderlos).
+  var BUILDINGS = {
+    gen:  { name: 'GENERADOR', cost: 120, hp: 180, energy: 4,
+            desc: 'Generador diésel: da 4 de energía para alimentar mechas. Debe ir junto al camino.' },
+    shop: { name: 'TALLER', cost: 200, hp: 220, energy: 0,
+            desc: 'Taller de ensamblado. Sin al menos uno en pie no se construyen ni mejoran mechas.' }
+  };
+  var BUILDING_ORDER = ['gen', 'shop'];
+  var START_BUILDINGS = [{ type: 'gen', c: 16, r: 10 }, { type: 'shop', c: 16, r: 4 }];
+
+  var BUILD_TIME = 30;      // seg de disruptor entre oleadas
+  var EARLY_BONUS = 2;      // $ por segundo restante al desactivar el disruptor antes
+  var ATTACK_RANGE = 48;    // px a los que un bicho muerde edificios al pasar
+  var ATTACK_CD = 1.1;      // seg entre mordiscos
+  var REPAIR_PER_HP = 0.5;  // $ por punto de vida reparado
+  var UP_PARTS = [1, 2];    // partes ⚙ para subir a nivel 2 y 3
+
   window.DATA = {
     COLS: COLS, ROWS: ROWS, TILE: TILE,
     PATH: PATH, BARN_TILES: BARN_TILES,
@@ -104,6 +126,10 @@
     UP_DMG: UP_DMG, UP_RANGE: UP_RANGE, UP_ROF: UP_ROF, SELL_FACTOR: SELL_FACTOR,
     ENEMIES: ENEMIES, hpScale: hpScale,
     WAVES: WAVES, waveBonus: waveBonus,
+    BUILDINGS: BUILDINGS, BUILDING_ORDER: BUILDING_ORDER, START_BUILDINGS: START_BUILDINGS,
+    BUILD_TIME: BUILD_TIME, EARLY_BONUS: EARLY_BONUS,
+    ATTACK_RANGE: ATTACK_RANGE, ATTACK_CD: ATTACK_CD,
+    REPAIR_PER_HP: REPAIR_PER_HP, UP_PARTS: UP_PARTS,
     START_MONEY: 320, START_LIVES: 20
   };
 })();

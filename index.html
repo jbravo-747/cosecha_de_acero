@@ -42,6 +42,8 @@
   .stats span b{color:var(--gold);}
   .stats span.lives b{color:var(--red);}
   .stats span.wave b{color:var(--green);}
+  .stats span.energy b{color:#6ab0e8;}
+  .stats span.parts b{color:#c65fd1;}
   .towers{display:grid; grid-template-columns:1fr 1fr; gap:7px;}
   .tbtn{
     background:var(--panel2); border:2px solid var(--line); border-radius:4px;
@@ -103,6 +105,9 @@
       <h2>COSECHA DE ACERO</h2>
       <p>Los bichos salieron del agujero otra vez y van directo al granero.
          Súbete al mecha, revisa la cerca y no dejes que crucen la propiedad.<br><br>
+         El <b>generador</b> alimenta a los mechas y el <b>taller</b> los ensambla:
+         están junto al camino y los bichos los morderán al pasar.
+         El <b>disruptor de portales</b> contiene cada oleada 30 segundos.<br><br>
          Sobrevive <b>10 oleadas</b>. En la última viene <b>la Nodriza</b>.</p>
       <button id="playBtn">ARRANCAR</button>
     </div>
@@ -121,21 +126,28 @@
       <span class="lives">&#9829; <b id="lives">0</b></span>
       <span class="wave">OLA <b id="wave">0/10</b></span>
     </div>
+    <div class="stats">
+      <span class="energy">&#9889; <b id="energy">0/0</b></span>
+      <span class="parts">&#9881; PARTES <b id="parts">0</b></span>
+    </div>
     <div class="towers" id="towerBtns"></div>
     <div id="info"><span class="desc">Elige un mecha (1-4) y col&oacute;calo en el pasto. Haz clic en un mecha colocado para mejorarlo.</span></div>
     <div class="row">
       <button class="act" id="upBtn" disabled>MEJORAR</button>
       <button class="act" id="sellBtn" disabled>VENDER</button>
     </div>
-    <button class="act" id="startBtn">&#9654; INICIAR OLEADA [Espacio]</button>
+    <button class="act" id="startBtn">&#9654; DESACTIVAR DISRUPTOR (30s) [Espacio]</button>
     <div class="row">
-      <button class="act" id="speedBtn">VELOCIDAD &times;1</button>
-      <button class="act" id="muteBtn">&#9835; SONIDO</button>
+      <button class="act" id="pauseBtn">&#10074;&#10074; PAUSA [P]</button>
+      <button class="act" id="speedBtn">&times;1</button>
+      <button class="act" id="muteBtn">&#9835;</button>
     </div>
     <div class="hint">
-      [1-4] elegir mecha &middot; [Esc] cancelar / deseleccionar<br>
-      [Espacio] oleada &middot; [P] pausa &middot; clic derecho cancela<br>
-      Vender devuelve el 70% de lo invertido.
+      [1-4] mechas &middot; [5] generador &middot; [6] taller<br>
+      [Espacio] desactivar disruptor &middot; [P] pausa &middot; [Esc] cancelar<br>
+      El disruptor contiene el portal 30s; desactivarlo antes da $.<br>
+      Los bichos muerden generadores y taller al pasar: def&iacute;endelos.<br>
+      Escupidores, escarabajos y la Nodriza sueltan partes &#9881;.
     </div>
   </div>
 </div>

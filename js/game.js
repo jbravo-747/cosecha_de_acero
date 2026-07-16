@@ -39,15 +39,27 @@
 
   // ---------- estado ----------
   var S = {};
+  function makeBuilding(type, c, r) {
+    var def = D.BUILDINGS[type];
+    return {
+      type: type, c: c, r: r,
+      x: c * TILE + TILE / 2, y: r * TILE + TILE / 2,
+      hp: def.hp, maxHp: def.hp, invested: def.cost, flash: 0
+    };
+  }
   function resetState() {
     S.phase = 'menu';          // menu | build | wave | won | lost
     S.money = D.START_MONEY;
     S.lives = D.START_LIVES;
+    S.parts = 0;               // partes ⚙ para mejorar mechas
     S.wave = 0;
     S.speed = 1;
     S.paused = false;
     S.enemies = [];
     S.towers = [];
+    S.buildings = D.START_BUILDINGS.map(function (b) {
+      return makeBuilding(b.type, b.c, b.r);
+    });
     S.projectiles = [];
     S.effects = [];            // rayos, trazadoras
     S.particles = [];
@@ -55,11 +67,34 @@
     S.decals = [];
     S.spawnQueue = [];
     S.waveT = 0;
-    S.placing = null;          // tipo de torre en colocación
+    S.buildT = D.BUILD_TIME;   // cuenta atrás del disruptor de portales
+    S.placing = null;          // tipo de torre/edificio en colocación
     S.selected = null;         // torre seleccionada
+    S.selectedB = null;        // edificio seleccionado
     S.hover = null;            // {c, r}
     S.hurtFlash = 0;
     S.shake = 0;
+    recomputePower();
+  }
+  // ---------- energía ----------
+  function shopAlive() {
+    for (var i = 0; i < S.buildings.length; i++) {
+      if (S.buildings[i].type === 'shop') return true;
+    }
+    return false;
+  }
+  function recomputePower() {
+    var cap = 0, used = 0, i;
+    for (i = 0; i < S.buildings.length; i++) {
+      cap += D.BUILDINGS[S.buildings[i].type].energy;
+    }
+    // si cae la capacidad, los últimos mechas construidos quedan sin energía
+    for (i = 0; i < S.towers.length; i++) {
+      used += D.TOWERS[S.towers[i].type].energy;
+      S.towers[i].offline = used > cap;
+    }
+    S.energyCap = cap;
+    S.energyUsed = used;
   }
   resetState();
 
@@ -99,6 +134,9 @@
     money: document.getElementById('money'),
     lives: document.getElementById('lives'),
     wave: document.getElementById('wave'),
+    energy: document.getElementById('energy'),
+    parts: document.getElementById('parts'),
+    pauseBtn: document.getElementById('pauseBtn'),
     info: document.getElementById('info'),
     towerBtns: document.getElementById('towerBtns'),
     upBtn: document.getElementById('upBtn'),
@@ -122,25 +160,30 @@
     g.drawImage(SP.mechs.mg, 0, 4, 48, 39);
   })();
 
-  // botones de torre
+  // botones de torre y de edificio
   var towerBtnEls = {};
-  D.TOWER_ORDER.forEach(function (key, i) {
-    var def = D.TOWERS[key];
+  function makeBtn(key, def, sprite, hotkey) {
     var b = document.createElement('button');
     b.className = 'tbtn';
     var mini = document.createElement('canvas');
     mini.width = 16; mini.height = 16;
     var mg = mini.getContext('2d');
     mg.imageSmoothingEnabled = false;
-    mg.drawImage(SP.mechs[key], 0, 1, 16, 14);
+    mg.drawImage(sprite, 0, 1, 16, 14);
     b.appendChild(mini);
     var lbl = document.createElement('div');
     lbl.innerHTML = def.name + '<br><span class="cost">$' + def.cost +
-      '</span> <span class="key">[' + (i + 1) + ']</span>';
+      '</span> <span class="key">[' + hotkey + ']</span>';
     b.appendChild(lbl);
     b.addEventListener('click', function () { startPlacing(key); });
     el.towerBtns.appendChild(b);
     towerBtnEls[key] = b;
+  }
+  D.TOWER_ORDER.forEach(function (key, i) {
+    makeBtn(key, D.TOWERS[key], SP.mechs[key], i + 1);
+  });
+  D.BUILDING_ORDER.forEach(function (key, i) {
+    makeBtn(key, D.BUILDINGS[key], SP.buildings[key], i + 5);
   });
 
   // ---------- helpers ----------
@@ -153,11 +196,28 @@
     return null;
   }
 
+  function buildingAt(c, r) {
+    for (var i = 0; i < S.buildings.length; i++) {
+      if (S.buildings[i].c === c && S.buildings[i].r === r) return S.buildings[i];
+    }
+    return null;
+  }
+
   function canBuild(c, r) {
     if (c < 0 || r < 0 || c >= COLS || r >= ROWS) return false;
     if (blocked[c + ',' + r]) return false;
-    if (towerAt(c, r)) return false;
+    if (towerAt(c, r) || buildingAt(c, r)) return false;
     return true;
+  }
+
+  // los edificios deben ir pegados al camino (ahí los muerden los bichos)
+  function nearPath(c, r) {
+    for (var dc = -1; dc <= 1; dc++) {
+      for (var dr = -1; dr <= 1; dr++) {
+        if (pathCells[(c + dc) + ',' + (r + dr)]) return true;
+      }
+    }
+    return false;
   }
 
   function towerStats(t) {
@@ -193,40 +253,71 @@
   }
 
   // ---------- colocación / selección ----------
+  function isBldgKey(key) { return !!D.BUILDINGS[key]; }
+
   function startPlacing(key) {
     if (S.phase !== 'build' && S.phase !== 'wave') return;
-    if (S.money < D.TOWERS[key].cost) { AU.click(); return; }
+    var def = isBldgKey(key) ? D.BUILDINGS[key] : D.TOWERS[key];
+    if (S.money < def.cost) { AU.click(); return; }
+    if (!isBldgKey(key)) {
+      if (!shopAlive()) {
+        floater(W / 2, H / 2, 'NECESITAS UN TALLER EN PIE', '#e05545');
+        AU.click(); return;
+      }
+      if (S.energyUsed + def.energy > S.energyCap) {
+        floater(W / 2, H / 2, 'SIN ENERGÍA: CONSTRUYE UN GENERADOR', '#6ab0e8');
+        AU.click(); return;
+      }
+    }
     S.placing = (S.placing === key) ? null : key;
     S.selected = null;
+    S.selectedB = null;
     AU.click();
   }
 
   function cancelActions() {
     S.placing = null;
     S.selected = null;
+    S.selectedB = null;
   }
 
   function tryBuild(c, r) {
+    if (isBldgKey(S.placing)) {
+      var bdef = D.BUILDINGS[S.placing];
+      if (!canBuild(c, r) || !nearPath(c, r) || S.money < bdef.cost) return;
+      S.money -= bdef.cost;
+      S.buildings.push(makeBuilding(S.placing, c, r));
+      floater(c * TILE + TILE / 2, r * TILE, '-$' + bdef.cost, '#e05545');
+      AU.build();
+      recomputePower();
+      if (S.money < bdef.cost) S.placing = null;
+      return;
+    }
     var def = D.TOWERS[S.placing];
     if (!canBuild(c, r) || S.money < def.cost) return;
+    if (!shopAlive() || S.energyUsed + def.energy > S.energyCap) return;
     S.money -= def.cost;
     S.towers.push({
       type: S.placing, c: c, r: r,
       x: c * TILE + TILE / 2, y: r * TILE + TILE / 2,
       level: 1, invested: def.cost, cd: 0, angle: -Math.PI / 2,
-      flash: 0
+      flash: 0, offline: false
     });
+    recomputePower();
     floater(c * TILE + TILE / 2, r * TILE, '-$' + def.cost, '#e05545');
     AU.build();
     if (S.money < def.cost) S.placing = null;
   }
 
+  function upgradeParts(t) { return D.UP_PARTS[t.level - 1] || 0; }
+
   function upgradeSelected() {
     var t = S.selected;
-    if (!t || t.level >= D.MAX_LEVEL) return;
-    var cost = upgradeCost(t);
-    if (S.money < cost) return;
+    if (!t || t.level >= D.MAX_LEVEL || !shopAlive()) return;
+    var cost = upgradeCost(t), parts = upgradeParts(t);
+    if (S.money < cost || S.parts < parts) return;
     S.money -= cost;
+    S.parts -= parts;
     t.invested += cost;
     t.level++;
     burst(t.x, t.y, '#f2d94e', 12, 60);
@@ -240,14 +331,48 @@
     var refund = Math.round(t.invested * D.SELL_FACTOR);
     S.money += refund;
     S.towers.splice(S.towers.indexOf(t), 1);
+    recomputePower();
     floater(t.x, t.y, '+$' + refund, '#f2d94e');
     S.selected = null;
     AU.sell();
   }
 
+  function repairCost(b) { return Math.ceil((b.maxHp - b.hp) * D.REPAIR_PER_HP); }
+
+  function repairSelectedB() {
+    var b = S.selectedB;
+    if (!b || b.hp >= b.maxHp) return;
+    var cost = repairCost(b);
+    if (S.money < cost) return;
+    S.money -= cost;
+    b.hp = b.maxHp;
+    floater(b.x, b.y - 10, 'REPARADO', '#8ac94a');
+    AU.build();
+  }
+
+  function sellSelectedB() {
+    var b = S.selectedB;
+    if (!b) return;
+    var refund = Math.round(b.invested * D.SELL_FACTOR);
+    S.money += refund;
+    S.buildings.splice(S.buildings.indexOf(b), 1);
+    recomputePower();
+    floater(b.x, b.y, '+$' + refund, '#f2d94e');
+    S.selectedB = null;
+    AU.sell();
+  }
+
   // ---------- oleadas ----------
-  function startWave() {
+  function startWave(manual) {
     if (S.phase !== 'build' || S.wave >= D.WAVES.length) return;
+    if (manual && S.buildT > 0) {
+      var bonus = Math.round(S.buildT * D.EARLY_BONUS);
+      if (bonus > 0) {
+        S.money += bonus;
+        floater(W / 2, H / 2 - 56, 'DISRUPTOR DESACTIVADO +$' + bonus);
+      }
+    }
+    S.buildT = 0;
     S.wave++;
     S.phase = 'wave';
     S.waveT = 0;
@@ -274,7 +399,7 @@
       wp: atWp !== undefined ? atWp : 1,
       dist: atDist !== undefined ? atDist : 0,
       slowT: 0, angle: 0, animT: Math.random(),
-      spawnT: 0, dead: false
+      spawnT: 0, atkCd: Math.random() * D.ATTACK_CD, dead: false
     };
     S.enemies.push(e);
     return e;
@@ -287,6 +412,12 @@
       e.dead = true;
       S.money += e.def.bounty;
       floater(e.x, e.y - 8, '+$' + e.def.bounty);
+      // los bichos duros sueltan partes para el taller
+      if (e.def.drop && Math.random() < e.def.drop.chance) {
+        S.parts += e.def.drop.n;
+        floater(e.x, e.y - 20, '+' + e.def.drop.n + ' ⚙', '#c65fd1');
+        burst(e.x, e.y, '#c65fd1', 6, 70);
+      }
       burst(e.x, e.y, '#9ee34a', e.type === 'boss' ? 40 : 10, e.type === 'boss' ? 160 : 90);
       burst(e.x, e.y, '#52276b', 6, 60);
       S.decals.push({ x: e.x, y: e.y, life: 12, size: e.def.size + 2 });
@@ -294,6 +425,18 @@
       if (e.type === 'boss') { S.shake = 0.5; AU.boom(); }
       AU.squish();
     }
+  }
+
+  function destroyBuilding(b) {
+    S.buildings.splice(S.buildings.indexOf(b), 1);
+    if (S.selectedB === b) S.selectedB = null;
+    burst(b.x, b.y, '#e8912a', 18, 120);
+    burst(b.x, b.y, '#454c52', 12, 90);
+    S.decals.push({ x: b.x, y: b.y, life: 20, size: 10, rubble: true });
+    S.shake = Math.max(S.shake, 0.3);
+    floater(b.x, b.y - 12, '¡' + D.BUILDINGS[b.type].name + ' DESTRUIDO!', '#e05545');
+    AU.boom();
+    recomputePower();
   }
 
   // ---------- disparo de torres ----------
@@ -357,6 +500,15 @@
   function update(dt) {
     var i, j;
 
+    // disruptor de portales: cuenta atrás entre oleadas
+    if (S.phase === 'build' && S.wave < D.WAVES.length) {
+      S.buildT -= dt;
+      if (S.buildT <= 0) {
+        floater(W / 2, H / 2 - 56, '¡EL PORTAL SE ABRIÓ!', '#c65fd1');
+        startWave(false);
+      }
+    }
+
     // spawner
     if (S.phase === 'wave') {
       S.waveT += dt;
@@ -396,6 +548,25 @@
         if (S.lives <= 0) { S.lives = 0; endGame(false); return; }
         continue;
       }
+      // mordiscos a edificios cercanos al pasar
+      e.atkCd -= dt;
+      if (e.atkCd <= 0 && S.buildings.length) {
+        var bBest = null, bD2 = D.ATTACK_RANGE * D.ATTACK_RANGE;
+        for (j = 0; j < S.buildings.length; j++) {
+          var bb = S.buildings[j];
+          var d2b = dist2(e.x, e.y, bb.x, bb.y);
+          if (d2b <= bD2) { bD2 = d2b; bBest = bb; }
+        }
+        if (bBest) {
+          e.atkCd = D.ATTACK_CD;
+          bBest.hp -= e.def.bDmg;
+          bBest.flash = 0.15;
+          burst(bBest.x, bBest.y - 8, '#9ee34a', 4, 60);
+          AU.squish();
+          if (bBest.hp <= 0) destroyBuilding(bBest);
+        }
+      }
+
       // la nodriza engendra drones
       if (e.def.spawnEvery) {
         e.spawnT += dt;
@@ -415,7 +586,13 @@
       var t = S.towers[i];
       if (t.flash > 0) t.flash -= dt;
       t.cd -= dt;
+      if (t.offline) continue;   // sin energía no dispara
       if (t.cd <= 0) fireTower(t, towerStats(t));
+    }
+
+    // flash de edificios golpeados
+    for (i = 0; i < S.buildings.length; i++) {
+      if (S.buildings[i].flash > 0) S.buildings[i].flash -= dt;
     }
 
     // proyectiles
@@ -475,6 +652,7 @@
     if (S.phase === 'wave' && !S.spawnQueue.length && !S.enemies.length) {
       if (S.wave >= D.WAVES.length) { endGame(true); return; }
       S.phase = 'build';
+      S.buildT = D.BUILD_TIME;   // el disruptor vuelve a contener el portal
       var bonus = D.waveBonus(S.wave);
       S.money += bonus;
       floater(W / 2, H / 2 - 30, 'OLEADA SUPERADA  +$' + bonus, '#8ac94a');
@@ -548,27 +726,46 @@
 
     var i;
 
-    // manchas de bicho
+    // manchas de bicho y escombros
     for (i = 0; i < S.decals.length; i++) {
       var dc = S.decals[i];
       ctx.globalAlpha = Math.min(0.45, dc.life / 8);
-      ctx.fillStyle = '#5f9926';
+      ctx.fillStyle = dc.rubble ? '#454c52' : '#5f9926';
       ctx.beginPath();
       ctx.arc(dc.x, dc.y, dc.size, 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.globalAlpha = 1;
 
+    // al colocar un edificio, se iluminan los tiles válidos junto al camino
+    if (S.placing && isBldgKey(S.placing)) {
+      ctx.globalAlpha = 0.14;
+      ctx.fillStyle = '#6ab0e8';
+      for (var vr = 0; vr < ROWS; vr++) {
+        for (var vc = 0; vc < COLS; vc++) {
+          if (canBuild(vc, vr) && nearPath(vc, vr)) {
+            ctx.fillRect(vc * TILE + 1, vr * TILE + 1, TILE - 2, TILE - 2);
+          }
+        }
+      }
+      ctx.globalAlpha = 1;
+    }
+
     // rango de torre seleccionada / en colocación
     var rangeShow = null;
     if (S.selected) {
       rangeShow = { x: S.selected.x, y: S.selected.y, r: towerStats(S.selected).range, ok: true };
-    } else if (S.placing && S.hover) {
+    } else if (S.placing && S.hover && !isBldgKey(S.placing)) {
       var hdef = D.TOWERS[S.placing];
       rangeShow = {
         x: S.hover.c * TILE + TILE / 2, y: S.hover.r * TILE + TILE / 2,
         r: hdef.range, ok: canBuild(S.hover.c, S.hover.r)
       };
+    } else if (S.placing && S.hover) {
+      // marco del tile para edificios
+      var okB = canBuild(S.hover.c, S.hover.r) && nearPath(S.hover.c, S.hover.r);
+      ctx.strokeStyle = okB ? '#9ee34a' : '#e05545';
+      ctx.strokeRect(S.hover.c * TILE + 1.5, S.hover.r * TILE + 1.5, TILE - 3, TILE - 3);
     }
     if (rangeShow) {
       ctx.globalAlpha = 0.14;
@@ -580,11 +777,43 @@
       ctx.globalAlpha = 1;
     }
 
+    // edificios de apoyo
+    for (i = 0; i < S.buildings.length; i++) {
+      var b = S.buildings[i];
+      var bspr = SP.buildings[b.type];
+      if (b.flash > 0) {
+        ctx.globalAlpha = 0.6 + 0.4 * Math.random();  // parpadea al recibir daño
+      }
+      ctx.drawImage(bspr, b.x - 16, b.r * TILE + TILE - 2 - bspr.height * 2, 32, bspr.height * 2);
+      ctx.globalAlpha = 1;
+      // barra de vida del edificio
+      if (b.hp < b.maxHp) {
+        var bhw = 22;
+        ctx.fillStyle = '#12100e';
+        ctx.fillRect(b.x - bhw / 2 - 1, b.r * TILE - 6, bhw + 2, 4);
+        ctx.fillStyle = b.hp / b.maxHp > 0.4 ? '#8ac94a' : '#e05545';
+        ctx.fillRect(b.x - bhw / 2, b.r * TILE - 5, bhw * Math.max(0, b.hp / b.maxHp), 2);
+      }
+      if (b === S.selectedB) {
+        ctx.strokeStyle = '#f2d94e';
+        ctx.strokeRect(b.c * TILE + 1.5, b.r * TILE + 1.5, TILE - 3, TILE - 3);
+      }
+    }
+
     // torres
     for (i = 0; i < S.towers.length; i++) {
       var t = S.towers[i];
       var spr = SP.mechs[t.type];
+      if (t.offline) ctx.globalAlpha = 0.45;
       ctx.drawImage(spr, t.x - 16, t.r * TILE + TILE - 2 - spr.height * 2, 32, spr.height * 2);
+      ctx.globalAlpha = 1;
+      if (t.offline) {
+        ctx.font = 'bold 9px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#e05545';
+        ctx.fillText('SIN ⚡', t.x, t.y - 20);
+        ctx.textAlign = 'left';
+      }
       drawGun(t);
       // pips de nivel
       for (var lv = 1; lv < t.level; lv++) {
@@ -675,7 +904,7 @@
 
     // fantasma de colocación
     if (S.placing && S.hover) {
-      var gs = SP.mechs[S.placing];
+      var gs = isBldgKey(S.placing) ? SP.buildings[S.placing] : SP.mechs[S.placing];
       ctx.globalAlpha = 0.6;
       ctx.drawImage(gs, S.hover.c * TILE, S.hover.r * TILE + TILE - 2 - gs.height * 2,
         32, gs.height * 2);
@@ -709,11 +938,13 @@
       ctx.fillText('NODRIZA', W / 2, 33);
     }
 
-    // aviso de fase de construcción
-    if (S.phase === 'build' && S.wave > 0) {
+    // aviso del disruptor durante la fase de construcción
+    if (S.phase === 'build' && S.wave < D.WAVES.length) {
+      var secs = Math.max(0, Math.ceil(S.buildT));
       ctx.font = 'bold 11px monospace';
-      ctx.fillStyle = 'rgba(232,224,204,.85)';
-      ctx.fillText('Prepara tus mechas y pulsa Espacio', W / 2, H - 10);
+      ctx.fillStyle = secs <= 5 ? '#e05545' : 'rgba(232,224,204,.85)';
+      ctx.fillText('DISRUPTOR ACTIVO — el portal se abre en ' + secs +
+        's · [Espacio] lo desactiva ya', W / 2, H - 10);
     }
     ctx.textAlign = 'left';
 
@@ -744,39 +975,81 @@
     el.money.textContent = S.money;
     el.lives.textContent = S.lives;
     el.wave.textContent = S.wave + '/' + D.WAVES.length;
+    el.energy.textContent = S.energyUsed + '/' + S.energyCap;
+    el.parts.textContent = S.parts;
     el.startBtn.disabled = S.phase !== 'build';
+    if (S.phase === 'build' && S.wave < D.WAVES.length) {
+      el.startBtn.innerHTML = '&#9654; DESACTIVAR DISRUPTOR (' +
+        Math.max(0, Math.ceil(S.buildT)) + 's) [Espacio]';
+    } else if (S.phase === 'wave') {
+      el.startBtn.innerHTML = 'OLEADA EN CURSO...';
+    }
+    el.pauseBtn.innerHTML = S.paused ? '&#9654; SEGUIR [P]' : '&#10074;&#10074; PAUSA [P]';
 
     D.TOWER_ORDER.forEach(function (key) {
+      var def = D.TOWERS[key], b = towerBtnEls[key];
+      b.classList.toggle('sel', S.placing === key);
+      b.classList.toggle('poor', S.money < def.cost || !shopAlive() ||
+        S.energyUsed + def.energy > S.energyCap);
+    });
+    D.BUILDING_ORDER.forEach(function (key) {
       var b = towerBtnEls[key];
       b.classList.toggle('sel', S.placing === key);
-      b.classList.toggle('poor', S.money < D.TOWERS[key].cost);
+      b.classList.toggle('poor', S.money < D.BUILDINGS[key].cost);
     });
 
-    if (S.selected) {
+    if (S.selectedB) {
+      var bl = S.selectedB, bdef = D.BUILDINGS[bl.type];
+      var intact = bl.hp >= bl.maxHp;
+      el.info.innerHTML =
+        '<span class="name">' + bdef.name + '</span> — vida <b>' + Math.max(0, Math.ceil(bl.hp)) +
+        '/' + bl.maxHp + '</b>' +
+        (bdef.energy ? '<br>Energía: <b>+' + bdef.energy + ' ⚡</b>' : '<br>Permite ensamblar y mejorar mechas.') +
+        '<br><span class="desc">' + bdef.desc + '</span>';
+      el.upBtn.disabled = intact || S.money < repairCost(bl);
+      el.upBtn.textContent = intact ? 'INTACTO' : 'REPARAR $' + repairCost(bl);
+      el.sellBtn.disabled = false;
+      el.sellBtn.textContent = 'VENDER $' + Math.round(bl.invested * D.SELL_FACTOR);
+    } else if (S.selected) {
       var t = S.selected, def = D.TOWERS[t.type], st = towerStats(t);
       var maxed = t.level >= D.MAX_LEVEL;
+      var uParts = upgradeParts(t);
       el.info.innerHTML =
         '<span class="name">' + def.name + '</span> — nivel ' + t.level + '/' + D.MAX_LEVEL +
+        (t.offline ? ' <span style="color:var(--red)">SIN ⚡</span>' : '') +
         '<br>Daño: <b>' + st.dmg + '</b> &middot; Rango: <b>' + st.range + '</b>' +
         '<br>Cadencia: <b>' + st.rof.toFixed(2) + 's</b>' +
         (def.chain ? ' &middot; Saltos: <b>' + st.chain + '</b>' : '') +
         (def.splash ? ' &middot; &Aacute;rea: <b>' + st.splash + '</b>' : '') +
         '<br><span class="desc">' + def.desc + '</span>';
-      el.upBtn.disabled = maxed || S.money < upgradeCost(t);
-      el.upBtn.textContent = maxed ? 'NIVEL MÁX.' : 'MEJORAR $' + upgradeCost(t);
+      el.upBtn.disabled = maxed || S.money < upgradeCost(t) || S.parts < uParts || !shopAlive();
+      el.upBtn.textContent = maxed ? 'NIVEL MÁX.'
+        : 'MEJORAR $' + upgradeCost(t) + ' + ' + uParts + '⚙';
       el.sellBtn.disabled = false;
       el.sellBtn.textContent = 'VENDER $' + Math.round(t.invested * D.SELL_FACTOR);
+    } else if (S.placing && isBldgKey(S.placing)) {
+      var pbdef = D.BUILDINGS[S.placing];
+      el.info.innerHTML =
+        '<span class="name">' + pbdef.name + '</span> — $' + pbdef.cost +
+        '<br>Vida: <b>' + pbdef.hp + '</b>' +
+        (pbdef.energy ? ' &middot; Energía: <b>+' + pbdef.energy + ' ⚡</b>' : '') +
+        '<br><span class="desc">' + pbdef.desc + ' Col&oacute;calo en un tile iluminado.</span>';
+      el.upBtn.disabled = true; el.upBtn.textContent = 'MEJORAR';
+      el.sellBtn.disabled = true; el.sellBtn.textContent = 'VENDER';
     } else if (S.placing) {
       var pdef = D.TOWERS[S.placing];
       el.info.innerHTML =
         '<span class="name">' + pdef.name + '</span> — $' + pdef.cost +
-        '<br>Daño: <b>' + pdef.dmg + '</b> &middot; Rango: <b>' + pdef.range + '</b>' +
+        '<br>Daño: <b>' + pdef.dmg + '</b> &middot; Rango: <b>' + pdef.range +
+        '</b> &middot; Consumo: <b>' + pdef.energy + ' ⚡</b>' +
         '<br><span class="desc">' + pdef.desc + ' Haz clic en el pasto para colocar.</span>';
       el.upBtn.disabled = true; el.upBtn.textContent = 'MEJORAR';
       el.sellBtn.disabled = true; el.sellBtn.textContent = 'VENDER';
     } else {
-      el.info.innerHTML = '<span class="desc">Elige un mecha (1-4) y col&oacute;calo en el pasto. ' +
-        'Haz clic en un mecha colocado para mejorarlo o venderlo.</span>';
+      el.info.innerHTML = '<span class="desc">Mechas [1-4] y edificios [5-6]. ' +
+        'Los generadores dan energ&iacute;a ⚡ y el taller permite ensamblar; ' +
+        'def&iacute;endelos: los bichos los muerden al pasar. ' +
+        'Los bichos duros sueltan partes ⚙ para mejorar.</span>';
       el.upBtn.disabled = true; el.upBtn.textContent = 'MEJORAR';
       el.sellBtn.disabled = true; el.sellBtn.textContent = 'VENDER';
     }
@@ -803,8 +1076,10 @@
     var c = (p.x / TILE) | 0, r = (p.y / TILE) | 0;
     if (S.placing) { tryBuild(c, r); return; }
     var t = towerAt(c, r);
+    var b = t ? null : buildingAt(c, r);
     S.selected = t || null;
-    if (t) AU.click();
+    S.selectedB = b || null;
+    if (t || b) AU.click();
   });
 
   canvas.addEventListener('contextmenu', function (ev) {
@@ -815,18 +1090,27 @@
   document.addEventListener('keydown', function (ev) {
     if (S.phase === 'menu') return;
     var k = ev.key;
-    if (k === ' ') { ev.preventDefault(); startWave(); }
+    if (k === ' ') { ev.preventDefault(); startWave(true); }
     else if (k === 'Escape') cancelActions();
     else if (k === 'p' || k === 'P') S.paused = !S.paused;
     else if (k >= '1' && k <= '4') startPlacing(D.TOWER_ORDER[+k - 1]);
+    else if (k === '5' || k === '6') startPlacing(D.BUILDING_ORDER[+k - 5]);
   });
 
-  el.upBtn.addEventListener('click', upgradeSelected);
-  el.sellBtn.addEventListener('click', sellSelected);
-  el.startBtn.addEventListener('click', startWave);
+  el.upBtn.addEventListener('click', function () {
+    if (S.selectedB) repairSelectedB(); else upgradeSelected();
+  });
+  el.sellBtn.addEventListener('click', function () {
+    if (S.selectedB) sellSelectedB(); else sellSelected();
+  });
+  el.startBtn.addEventListener('click', function () { startWave(true); });
+  el.pauseBtn.addEventListener('click', function () {
+    S.paused = !S.paused;
+    AU.click();
+  });
   el.speedBtn.addEventListener('click', function () {
     S.speed = S.speed === 1 ? 2 : 1;
-    el.speedBtn.innerHTML = 'VELOCIDAD &times;' + S.speed;
+    el.speedBtn.innerHTML = '&times;' + S.speed;
     AU.click();
   });
   el.muteBtn.addEventListener('click', function () {

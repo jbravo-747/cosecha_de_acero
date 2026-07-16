@@ -76,3 +76,23 @@ js/game.js      — motor: estado, bucle, entidades, input, render
 5. Economía, mejoras, venta, jefe, victoria/derrota. ✔
 6. Audio, partículas, pulido, pantalla de título. ✔
 7. Verificación en navegador y commit. ✔
+
+## 8. Expansión: infraestructura de la granja ✔
+
+- **GENERADOR** ($120, 180 vida): cada uno da **4 ⚡**; los mechas consumen
+  energía (COYOTE/CERCA-9: 1 ⚡, BISONTE/VIUDA: 2 ⚡). Sin energía libre no se
+  ensamblan mechas; si cae un generador, los últimos mechas quedan **SIN ⚡**
+  (dejan de disparar) hasta recuperar capacidad.
+- **TALLER** ($200, 220 vida): sin al menos uno en pie no se construyen ni
+  mejoran mechas.
+- Ambos deben colocarse **junto al camino** y los bichos los **muerden al
+  pasar** (rango 48 px, mordisco cada 1.1 s). Se pueden **reparar**
+  ($0.5/punto de vida) y vender. Se arranca con uno de cada, cerca del granero.
+- **Disruptor de portales**: contiene el portal **30 s** entre oleadas; al
+  agotarse la oleada arranca sola. Desactivarlo antes ([Espacio]) lanza la
+  oleada y paga **+$2 por segundo restante**.
+- **Partes ⚙**: escupidores (30 %), escarabajos (100 %) y la Nodriza (10 ⚙)
+  las sueltan al morir. Mejorar a nivel 2 cuesta 1 ⚙ y a nivel 3 cuesta 2 ⚙
+  (además del dinero).
+- **Pausa**: botón dedicado en el panel además de la tecla [P]; congela
+  oleada, cuenta atrás y bichos.

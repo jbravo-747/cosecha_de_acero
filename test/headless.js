@@ -88,7 +88,15 @@ function build(type, c, r) {
   if (!t) throw new Error('no se pudo construir ' + type + ' en ' + c + ',' + r);
   return t;
 }
-function selectTower(c, r) { key('Escape'); canvasClick(c, r); }
+function buildB(type, c, r) {
+  key('Escape');
+  key(String(D.BUILDING_ORDER.indexOf(type) + 5));
+  canvasClick(c, r);
+  const b = S.buildings.find(b => b.c === c && b.r === r);
+  if (!b) throw new Error('no se pudo construir ' + type + ' en ' + c + ',' + r);
+  return b;
+}
+function selectTile(c, r) { key('Escape'); canvasClick(c, r); }
 function runUntilBuildPhase(maxSeconds) {
   const cap = Math.ceil(maxSeconds * 60);
   for (let i = 0; i < cap; i++) {
@@ -111,8 +119,17 @@ console.log('— Arranque —');
 byId.playBtn.click();
 assert(S.phase === 'build', 'al pulsar ARRANCAR entra en fase de construcción');
 assert(S.money === D.START_MONEY && S.lives === D.START_LIVES, 'dinero y vidas iniciales correctos');
+assert(S.buildings.length === 2, 'arranca con generador y taller pre-colocados');
+assert(S.energyCap === D.BUILDINGS.gen.energy, 'la capacidad inicial de energía la da el generador');
+assert(S.parts === 0 && S.buildT === D.BUILD_TIME, 'sin partes y disruptor cargado a ' + D.BUILD_TIME + 's');
 
-console.log('— Colocación —');
+console.log('— Disruptor de portales: apertura automática —');
+step(Math.ceil((D.BUILD_TIME + 1) * 60));
+assert(S.phase === 'wave' && S.wave === 1, 'al agotarse el disruptor el portal se abre solo');
+byId.restartBtn.click();
+assert(S.phase === 'build' && S.wave === 0 && S.buildT === D.BUILD_TIME, 'reinicio recarga el disruptor');
+
+console.log('— Colocación de mechas —');
 build('mg', 2, 2);
 assert(S.money === D.START_MONEY - 100, 'construir descuenta el costo');
 const before = S.towers.length;
@@ -121,13 +138,44 @@ assert(S.towers.length === before, 'no se puede construir sobre el camino');
 key('1'); canvasClick(2, 2);
 assert(S.towers.length === before, 'no se puede construir sobre otra torre');
 
-console.log('— Oleada 1 con defensa —');
+console.log('— Edificios: generador junto al camino —');
+buildB('gen', 4, 2);
+assert(S.energyCap === D.BUILDINGS.gen.energy * 2, 'cada generador suma capacidad de energía');
+const bCount = S.buildings.length;
+key('5'); canvasClick(10, 4); // lejos del camino
+assert(S.buildings.length === bCount, 'los edificios solo se colocan junto al camino');
+key('Escape');
+
+console.log('— Energía: los mechas necesitan generadores —');
+S.money += 2000;
 build('mg', 4, 4);
-const moneyBefore = S.money;
+build('cannon', 1, 5);
+build('sniper', 1, 6);
+build('cannon', 1, 7);
+assert(S.energyUsed === 8 && S.energyCap === 8, 'consumo al tope de capacidad (8/8)');
+const tCount = S.towers.length;
+key('1'); canvasClick(1, 8);
+assert(S.towers.length === tCount, 'sin energía libre no se ensamblan más mechas');
+[[1, 5], [1, 6], [1, 7]].forEach(([c, r]) => { selectTile(c, r); byId.sellBtn.click(); });
+assert(S.energyUsed === 2, 'vender mechas libera energía');
+
+console.log('— Disruptor manual: bono por desactivarlo antes —');
+const moneyPreWave = S.money;
 byId.startBtn.click();
-assert(S.phase === 'wave' && S.wave === 1, 'la oleada 1 arranca');
+assert(S.phase === 'wave' && S.wave === 1, 'desactivar el disruptor lanza la oleada');
+assert(S.money === moneyPreWave + Math.round(D.BUILD_TIME * D.EARLY_BONUS),
+  'desactivarlo con tiempo restante paga el bono');
+
+console.log('— Oleada 1: movimiento y pausa —');
 let maxEnemies = 0, sawMovement = false, spawnX = null;
-for (let i = 0; i < 240; i++) { // 4s muestreando
+step(60);
+key('p');
+const pausedT = S.waveT, pausedEnemies = S.enemies.map(e => e.x + ',' + e.y).join('|');
+step(60);
+assert(S.waveT === pausedT, 'en pausa el tiempo de oleada se congela');
+assert(S.enemies.map(e => e.x + ',' + e.y).join('|') === pausedEnemies, 'en pausa los bichos no se mueven');
+key('p');
+for (let i = 0; i < 240; i++) {
   step(1);
   maxEnemies = Math.max(maxEnemies, S.enemies.length);
   const e = S.enemies[0];
@@ -140,26 +188,64 @@ assert(maxEnemies > 0, 'los bichos aparecen por el agujero');
 assert(sawMovement, 'los bichos avanzan por el camino');
 runUntilBuildPhase(120);
 assert(S.phase === 'build', 'la oleada 1 termina y vuelve la fase de construcción');
-assert(S.money > moneyBefore, 'los bichos muertos y el bono de oleada pagan (=$' + S.money + ')');
+assert(S.buildT === D.BUILD_TIME, 'el disruptor se recarga al terminar la oleada');
+assert(S.money > moneyPreWave, 'los bichos muertos, el bono de oleada y el disruptor pagan (=$' + S.money + ')');
 assert(S.lives === D.START_LIVES, 'con 2 COYOTES no se escapa ningún dron en la oleada 1');
 
-console.log('— Mejora y venta —');
+console.log('— Reparación de edificios —');
+const genB = S.buildings.find(b => b.type === 'gen' && b.c === 4);
+genB.hp -= 50;
+selectTile(4, 2);
+assert(S.selectedB === genB, 'clic sobre un edificio lo selecciona');
+const repCost = Math.ceil(50 * D.REPAIR_PER_HP);
+const moneyPreRep = S.money;
+byId.upBtn.click();
+assert(genB.hp === genB.maxHp && S.money === moneyPreRep - repCost, 'reparar restaura la vida y cobra $' + repCost);
+
+console.log('— Mejora con partes y venta —');
 S.money += 1000;
-selectTower(2, 2);
+S.parts = 10;
+selectTile(2, 2);
 assert(S.selected && S.selected.c === 2, 'clic sobre un mecha lo selecciona');
-const dmgBefore = S.selected.level;
+const lvlBefore = S.selected.level;
 byId.upBtn.click(); byId.upBtn.click();
-assert(S.selected.level === dmgBefore + 2, 'mejora hasta nivel 3');
+assert(S.selected.level === lvlBefore + 2, 'mejora hasta nivel 3');
+assert(S.parts === 10 - D.UP_PARTS[0] - D.UP_PARTS[1], 'cada mejora consume partes ⚙ (quedan ' + S.parts + ')');
 byId.upBtn.click();
 assert(S.selected.level === 3, 'no mejora más allá del nivel máximo');
+S.parts = 0;
+selectTile(4, 4);
+byId.upBtn.click();
+assert(S.selected.level === 1, 'sin partes no hay mejora');
 const moneyPreSell = S.money;
+selectTile(2, 2);
 const invested = S.selected.invested;
 byId.sellBtn.click();
 assert(S.money === moneyPreSell + Math.round(invested * D.SELL_FACTOR), 'vender devuelve el 70%');
 assert(!S.towers.find(t => t.c === 2 && t.r === 2), 'la torre vendida desaparece');
 
+console.log('— Taller de ensamblado obligatorio —');
+selectTile(16, 4);
+assert(S.selectedB && S.selectedB.type === 'shop', 'el taller pre-colocado se selecciona');
+byId.sellBtn.click();
+assert(!S.buildings.find(b => b.type === 'shop'), 'el taller vendido desaparece');
+const tPreShop = S.towers.length;
+key('1'); canvasClick(6, 2);
+assert(S.towers.length === tPreShop, 'sin taller no se ensamblan mechas');
+S.money += 300;
+buildB('shop', 16, 4);
+build('mg', 6, 2);
+assert(S.towers.length === tPreShop + 1, 'con taller nuevo se vuelve a ensamblar');
+selectTile(6, 2); byId.sellBtn.click();
+
 console.log('— Campaña completa hasta la Nodriza —');
-S.money += 5000;
+S.money += 7000;
+S.parts = 40;
+// energía para 10 mechas (14 ⚡): generadores junto al camino en zonas defendidas
+buildB('gen', 9, 5);
+buildB('gen', 12, 4);
+buildB('gen', 14, 7);
+buildB('gen', 16, 7);
 // defensa en los cuellos del recorrido
 build('mg', 2, 2);
 build('tesla', 4, 7);
@@ -173,10 +259,11 @@ build('tesla', 16, 6);
 build('sniper', 15, 5);
 // mejora todo a nivel 3
 S.towers.slice().forEach(t => {
-  selectTower(t.c, t.r);
+  selectTile(t.c, t.r);
   byId.upBtn.click(); byId.upBtn.click();
 });
 assert(S.towers.every(t => t.level === 3), 'todas las torres a nivel 3');
+const partsPreCampaign = S.parts;
 
 let sawBoss = false;
 while (S.phase === 'build' && S.wave < D.WAVES.length) {
@@ -187,17 +274,18 @@ while (S.phase === 'build' && S.wave < D.WAVES.length) {
     if (S.enemies.some(e => e.type === 'boss')) sawBoss = true;
   }
   if (S.phase === 'wave') throw new Error('oleada ' + w + ' atascada');
-  console.log('    oleada ' + w + ' superada · vidas ' + S.lives + ' · $' + S.money);
+  console.log('    oleada ' + w + ' superada · vidas ' + S.lives + ' · $' + S.money +
+    ' · ⚙' + S.parts + ' · edificios ' + S.buildings.length);
 }
 assert(sawBoss, 'la Nodriza apareció en la oleada 10');
 assert(S.phase === 'won', 'campaña completa: fase final = ' + S.phase);
 assert(S.lives > 0, 'victoria con vidas restantes (' + S.lives + ')');
+assert(S.parts > partsPreCampaign, 'los bichos duros soltaron partes ⚙ (' + partsPreCampaign + ' → ' + S.parts + ')');
 
-console.log('— Derrota por fugas —');
-// reinicio limpio
+console.log('— Derrota por fugas y mordiscos —');
 byId.restartBtn.click();
-assert(S.phase === 'build' && S.wave === 0 && S.towers.length === 0, 'reinicio limpia el estado');
-// sin torres, dejar pasar oleadas hasta perder
+assert(S.phase === 'build' && S.wave === 0 && S.towers.length === 0 &&
+  S.buildings.length === 2 && S.parts === 0, 'reinicio limpia todo el estado');
 let guard = 0;
 while (S.phase === 'build' && guard++ < D.WAVES.length) {
   byId.startBtn.click();
@@ -205,5 +293,7 @@ while (S.phase === 'build' && guard++ < D.WAVES.length) {
 }
 assert(S.phase === 'lost', 'sin defensa se pierde la granja (en la oleada ' + S.wave + ')');
 assert(S.lives === 0, 'las vidas llegan exactamente a 0');
+assert(S.buildings.some(b => b.hp < b.maxHp) || S.buildings.length < 2,
+  'los bichos mordieron los edificios al pasar');
 
 console.log('\nTODO OK — ' + passed + ' aserciones superadas.');

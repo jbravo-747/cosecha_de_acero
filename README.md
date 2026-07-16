@@ -22,25 +22,44 @@ python3 -m http.server 8080
 | Tecla / acción | Efecto |
 |---|---|
 | `1`–`4` o clic en tarjeta | Elegir mecha para colocar |
-| Clic en el pasto | Colocar el mecha |
-| Clic en mecha colocado | Seleccionar (mejorar / vender) |
+| `5` / `6` | Generador de energía / Taller de ensamblado |
+| Clic en el pasto | Colocar el mecha o edificio |
+| Clic en mecha / edificio | Seleccionar (mejorar / reparar / vender) |
 | `Esc` / clic derecho | Cancelar / deseleccionar |
-| `Espacio` | Iniciar oleada |
-| `P` | Pausa |
+| `Espacio` | Desactivar el disruptor de portales (lanza la oleada) |
+| `P` o botón PAUSA | Pausa |
 
 ### Mechas
 
-- **COYOTE** ($100) — ametralladora rápida, anti-enjambre.
-- **CERCA-9** ($150) — pilón tesla: la descarga salta entre bichos y los frena.
-- **BISONTE** ($180) — cañón con daño en área.
-- **VIUDA** ($260) — francotirador de largo alcance.
+- **COYOTE** ($100, 1 ⚡) — ametralladora rápida, anti-enjambre.
+- **CERCA-9** ($150, 1 ⚡) — pilón tesla: la descarga salta entre bichos y los frena.
+- **BISONTE** ($180, 2 ⚡) — cañón con daño en área.
+- **VIUDA** ($260, 2 ⚡) — francotirador de largo alcance.
 
-Cada uno mejora hasta nivel 3 y se vende al 70% de lo invertido.
+Cada uno mejora hasta nivel 3 (cuesta dinero **y partes ⚙**) y se vende al
+70% de lo invertido.
+
+### Infraestructura
+
+- **GENERADOR** ($120) — da 4 ⚡ para alimentar mechas. Si cae, los últimos
+  mechas quedan sin energía y dejan de disparar.
+- **TALLER** ($200) — sin al menos uno en pie no se ensamblan ni mejoran mechas.
+
+Ambos van **junto al camino** y los bichos los **muerden al pasar**:
+defiéndelos, repáralos o reconstrúyelos.
+
+### Disruptor de portales
+
+Entre oleadas el disruptor contiene el portal **30 segundos**; al agotarse,
+la oleada arranca sola. Desactivarlo antes con `Espacio` da un bono de
+**+$2 por segundo restante**.
 
 ### Bichos
 
 Drones (enjambre), avispas (veloces), escupidores, escarabajos blindados y
-la **NODRIZA**, que engendra drones mientras avanza.
+la **NODRIZA**, que engendra drones mientras avanza. Los duros sueltan
+**partes ⚙** al morir: escupidores (30%), escarabajos (siempre) y la
+Nodriza (10 ⚙).
 
 ## Tecnología
 
