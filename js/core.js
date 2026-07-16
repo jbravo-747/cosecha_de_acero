@@ -44,6 +44,8 @@
 
   G.wpPix = wpPix;
   G.pathCells = pathCells;
+  // ruta directa de los voladores: del agujero al granero, sin seguir el camino
+  G.flyPath = [wpPix[0], { x: D.BARN_POS.x, y: D.BARN_POS.y + 16 }];
 
   // ---------- estado ----------
   var S = {};
@@ -53,9 +55,25 @@
   function makeBuilding(type, c, r) {
     var def = D.BUILDINGS[type];
     return {
-      type: type, c: c, r: r,
+      kind: 'bldg', type: type, c: c, r: r,
       x: c * TILE + TILE / 2, y: r * TILE + TILE / 2,
       hp: def.hp, maxHp: def.hp, invested: def.cost, flash: 0
+    };
+  }
+
+  function makeUnit(type, free) {
+    var def = D.UNITS[type];
+    return {
+      kind: 'unit', type: type,
+      x: D.BARN_POS.x + (Math.random() * 12 - 6),
+      y: D.BARN_POS.y + (Math.random() * 12 - 6),
+      hp: def.hp, maxHp: def.hp,
+      invested: free ? 0 : def.cost,
+      mode: 'reload',            // dron: reload | attack
+      state: 'idle',             // idle | go | load | back | restock
+      target: null, post: null,
+      ammo: def.ammo || 0, cd: 0, t: 0,
+      animT: Math.random(), flash: 0
     };
   }
 
@@ -72,7 +90,9 @@
     S.buildings = D.START_BUILDINGS.map(function (b) {
       return makeBuilding(b.type, b.c, b.r);
     });
+    S.units = D.START_UNITS.map(function (t) { return makeUnit(t, true); });
     S.projectiles = [];
+    S.eShots = [];             // proyectiles enemigos (escupitajos)
     S.effects = [];            // rayos, trazadoras
     S.particles = [];
     S.floaters = [];
@@ -83,6 +103,7 @@
     S.placing = null;          // tipo de torre/edificio en colocación
     S.selected = null;         // torre seleccionada
     S.selectedB = null;        // edificio seleccionado
+    S.selectedU = null;        // unidad seleccionada
     S.hover = null;            // {c, r}
     S.hurtFlash = 0;
     S.shake = 0;
@@ -97,15 +118,31 @@
     return false;
   }
 
+  // La energía es espacial: cada generador alimenta hasta 4 ⚡ de mechas
+  // dentro de su radio powerRange. Un mecha lejos de todo generador (o cuya
+  // capacidad cercana esté agotada) queda sin energía y no dispara.
   function recomputePower() {
-    var cap = 0, used = 0, i;
+    var cap = 0, used = 0, i, j;
+    var gens = [];
     for (i = 0; i < S.buildings.length; i++) {
-      cap += D.BUILDINGS[S.buildings[i].type].energy;
+      var b = S.buildings[i];
+      var e = D.BUILDINGS[b.type].energy;
+      cap += e;
+      if (e > 0) gens.push({ b: b, free: e });
     }
-    // si cae la capacidad, los últimos mechas construidos quedan sin energía
     for (i = 0; i < S.towers.length; i++) {
-      used += D.TOWERS[S.towers[i].type].energy;
-      S.towers[i].offline = used > cap;
+      var t = S.towers[i], need = D.TOWERS[t.type].energy;
+      used += need;
+      t.offline = true;
+      for (j = 0; j < gens.length; j++) {
+        var g = gens[j];
+        var r = D.BUILDINGS.gen.powerRange;
+        if (g.free >= need && dist2(t.x, t.y, g.b.x, g.b.y) <= r * r) {
+          g.free -= need;
+          t.offline = false;
+          break;
+        }
+      }
     }
     S.energyCap = cap;
     S.energyUsed = used;
@@ -155,8 +192,30 @@
       range: def.range + D.UP_RANGE * lvl,
       rof: def.rof * Math.pow(D.UP_ROF, lvl),
       chain: (def.chain || 0) + lvl,
-      splash: (def.splash || 0) + 8 * lvl
+      splash: (def.splash || 0) + 8 * lvl,
+      maxAmmo: def.ammo * t.level,
+      maxHp: Math.round(def.hp * Math.pow(1.25, lvl))
     };
+  }
+
+  // distancia de ajedrez entre tiles (movimiento de los mechas)
+  function chebyshev(c1, r1, c2, r2) {
+    return Math.max(Math.abs(c1 - c2), Math.abs(r1 - r2));
+  }
+
+  // todo lo que los bichos pueden atacar: edificios, mechas y unidades
+  function defenseTargets() {
+    return S.buildings.concat(S.towers, S.units);
+  }
+
+  // unidad a menos de `rad` px de un punto (para seleccionarlas con clic)
+  function unitNear(x, y, rad) {
+    var best = null, bd = rad * rad;
+    for (var i = 0; i < S.units.length; i++) {
+      var d2 = dist2(x, y, S.units[i].x, S.units[i].y);
+      if (d2 <= bd) { bd = d2; best = S.units[i]; }
+    }
+    return best;
   }
 
   function upgradeCost(t) {
@@ -184,6 +243,10 @@
   }
 
   G.makeBuilding = makeBuilding;
+  G.makeUnit = makeUnit;
+  G.chebyshev = chebyshev;
+  G.defenseTargets = defenseTargets;
+  G.unitNear = unitNear;
   G.resetState = resetState;
   G.shopAlive = shopAlive;
   G.recomputePower = recomputePower;

@@ -326,6 +326,84 @@
   ];
 
   // ==========================================================================
+  // UNIDADES DE APOYO
+  // ==========================================================================
+
+  // Cargador: peón con cajas de munición (dos frames de caminata)
+  var CARRIER_A = [
+    '....kkkk....',
+    '...kssssk...',
+    '...kskskk...',
+    '....ksss....',
+    '.kkkboobkkk.',
+    'kttkboobkttk',
+    'kttkboobkttk',
+    '.kkbboobbkk.',
+    '...kbbbbk...',
+    '...kbkkbk...',
+    '..kbk..kbk..',
+    '..kk....kk..'
+  ];
+  var CARRIER_B = [
+    '....kkkk....',
+    '...kssssk...',
+    '...kskskk...',
+    '....ksss....',
+    '.kkkboobkkk.',
+    'kttkboobkttk',
+    'kttkboobkttk',
+    '.kkbboobbkk.',
+    '...kbbbbk...',
+    '...kbkkbk...',
+    '...kbkkbk...',
+    '...kk..kk...'
+  ];
+
+  // Dron aliado: cuadricóptero (dos frames de rotor)
+  var ALLY_DRONE_A = [
+    'k..........k',
+    'kgk......kgk',
+    '.kgkkkkkkgk.',
+    '..kgGGGGgk..',
+    '..kGyyGGGk..',
+    '..kgGGGGgk..',
+    '...kgkkgk...',
+    '....k..k....'
+  ];
+  var ALLY_DRONE_B = [
+    '..k......k..',
+    '.kgk....kgk.',
+    '.kgkkkkkkgk.',
+    '..kgGGGGgk..',
+    '..kGyyGGGk..',
+    '..kgGGGGgk..',
+    '...kgkkgk...',
+    '....k..k....'
+  ];
+
+  // Variantes visuales por nivel: hombreras de acero (nivel 2) y astas +
+  // placas doradas (nivel 3) pintadas sobre el sprite base.
+  function mechLevel(base, lvl) {
+    var c = document.createElement('canvas');
+    c.width = base.width; c.height = base.height;
+    var g = c.getContext('2d');
+    g.drawImage(base, 0, 0);
+    var h = base.height, w = base.width;
+    if (lvl >= 2) {
+      g.fillStyle = '#454c52';
+      g.fillRect(0, h - 7, 2, 3); g.fillRect(w - 2, h - 7, 2, 3);
+      g.fillStyle = '#8fb0c9';
+      g.fillRect(0, h - 7, 2, 1); g.fillRect(w - 2, h - 7, 2, 1);
+    }
+    if (lvl >= 3) {
+      g.fillStyle = '#f2d94e';
+      g.fillRect(2, 0, 2, 2); g.fillRect(w - 4, 0, 2, 2);
+      g.fillRect(0, h - 8, 2, 1); g.fillRect(w - 2, h - 8, 2, 1);
+    }
+    return c;
+  }
+
+  // ==========================================================================
   // EDIFICIOS DE APOYO
   // ==========================================================================
 
@@ -479,6 +557,10 @@
       gen:  makeSprite(GEN),
       shop: makeSprite(SHOP)
     },
+    units: {
+      carrier: [makeSprite(CARRIER_A), makeSprite(CARRIER_B)],
+      drone:   [makeSprite(ALLY_DRONE_A), makeSprite(ALLY_DRONE_B)]
+    },
     barn: makeSprite(BARN),
     hole: makeSprite(HOLE),
     rock: makeSprite(ROCK),
@@ -499,6 +581,13 @@
     PAL: PAL,
     makeSprite: makeSprite
   };
+
+  // sprites por nivel de cada mecha: [nivel 1, nivel 2, nivel 3]
+  SPRITES.mechLevels = {};
+  Object.keys(SPRITES.mechs).forEach(function (k) {
+    var base = SPRITES.mechs[k];
+    SPRITES.mechLevels[k] = [base, mechLevel(base, 2), mechLevel(base, 3)];
+  });
 
   window.SPRITES = SPRITES;
 })();

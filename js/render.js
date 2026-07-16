@@ -43,6 +43,15 @@
     g.drawImage(SP.hole, -24, 3 * TILE - 10, SP.hole.width * 2, SP.hole.height * 2);
     // granero (este)
     g.drawImage(SP.barn, 574, 4 * TILE + 4, SP.barn.width * 2, SP.barn.height * 2);
+    // cuadrícula tenue sobre el mapa
+    g.strokeStyle = 'rgba(18, 16, 14, 0.13)';
+    g.lineWidth = 1;
+    for (var gc = 1; gc < COLS; gc++) {
+      g.beginPath(); g.moveTo(gc * TILE + 0.5, 0); g.lineTo(gc * TILE + 0.5, H); g.stroke();
+    }
+    for (var gr = 1; gr < ROWS; gr++) {
+      g.beginPath(); g.moveTo(0, gr * TILE + 0.5); g.lineTo(W, gr * TILE + 0.5); g.stroke();
+    }
   })();
 
   // ---------- piezas ----------
@@ -105,14 +114,36 @@
     }
     ctx.globalAlpha = 1;
 
-    // al colocar un edificio, se iluminan los tiles válidos junto al camino
-    if (S.placing && G.isBldgKey(S.placing)) {
-      ctx.globalAlpha = 0.14;
+    // radio de energía: al colocar un generador o tenerlo seleccionado
+    var showGenRange = null;
+    if (S.placing === 'gen' && S.hover) {
+      showGenRange = { x: S.hover.c * TILE + TILE / 2, y: S.hover.r * TILE + TILE / 2 };
+    } else if (S.selectedB && S.selectedB.type === 'gen') {
+      showGenRange = S.selectedB;
+    }
+    if (showGenRange) {
+      ctx.globalAlpha = 0.1;
       ctx.fillStyle = '#6ab0e8';
-      for (var vr = 0; vr < ROWS; vr++) {
-        for (var vc = 0; vc < COLS; vc++) {
-          if (G.canBuild(vc, vr) && G.nearPath(vc, vr)) {
-            ctx.fillRect(vc * TILE + 1, vr * TILE + 1, TILE - 2, TILE - 2);
+      ctx.beginPath();
+      ctx.arc(showGenRange.x, showGenRange.y, D.BUILDINGS.gen.powerRange, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 0.5;
+      ctx.strokeStyle = '#6ab0e8';
+      ctx.beginPath();
+      ctx.arc(showGenRange.x, showGenRange.y, D.BUILDINGS.gen.powerRange, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+
+    // tiles de desplazamiento del mecha seleccionado (movimiento tipo ajedrez)
+    if (S.selected && !S.selected.moving && S.selected.moveCd <= 0) {
+      var mt = S.selected, mdef = D.TOWERS[mt.type];
+      ctx.globalAlpha = 0.16;
+      ctx.fillStyle = '#f2d94e';
+      for (var mr = mt.r - mdef.move; mr <= mt.r + mdef.move; mr++) {
+        for (var mc = mt.c - mdef.move; mc <= mt.c + mdef.move; mc++) {
+          if (G.canBuild(mc, mr)) {
+            ctx.fillRect(mc * TILE + 1, mr * TILE + 1, TILE - 2, TILE - 2);
           }
         }
       }
@@ -131,7 +162,7 @@
       };
     } else if (S.placing && S.hover) {
       // marco del tile para edificios
-      var okB = G.canBuild(S.hover.c, S.hover.r) && G.nearPath(S.hover.c, S.hover.r);
+      var okB = G.canBuild(S.hover.c, S.hover.r);
       ctx.strokeStyle = okB ? '#9ee34a' : '#e05545';
       ctx.strokeRect(S.hover.c * TILE + 1.5, S.hover.r * TILE + 1.5, TILE - 3, TILE - 3);
     }
@@ -168,27 +199,43 @@
       }
     }
 
-    // torres
+    // torres (el sprite cambia con el nivel)
     for (i = 0; i < S.towers.length; i++) {
       var t = S.towers[i];
-      var spr = SP.mechs[t.type];
-      if (t.offline) ctx.globalAlpha = 0.45;
-      ctx.drawImage(spr, t.x - 16, t.r * TILE + TILE - 2 - spr.height * 2, 32, spr.height * 2);
+      var spr = SP.mechLevels[t.type][t.level - 1];
+      var sy = t.moving ? t.y + TILE / 2 - 2 - spr.height * 2 +
+        Math.sin(t.x * 0.4) * 1.5 : t.r * TILE + TILE - 2 - spr.height * 2;
+      if (t.offline || t.flash > 0) ctx.globalAlpha = t.flash > 0 ? 0.75 : 0.45;
+      ctx.drawImage(spr, t.x - 16, sy, 32, spr.height * 2);
       ctx.globalAlpha = 1;
-      if (t.offline) {
+      if (t.offline && !t.moving) {
         ctx.font = 'bold 9px monospace';
         ctx.textAlign = 'center';
         ctx.fillStyle = '#e05545';
         ctx.fillText('SIN ⚡', t.x, t.y - 20);
         ctx.textAlign = 'left';
       }
-      drawGun(t);
-      // pips de nivel
-      for (var lv = 1; lv < t.level; lv++) {
+      if (!t.moving) drawGun(t);
+      // barras: vida (si está dañado) y munición (si no está llena)
+      var stBar = G.towerStats(t);
+      if (t.hp < t.maxHp) {
+        ctx.fillStyle = '#12100e';
+        ctx.fillRect(t.x - 12, t.y - 18, 24, 3);
+        ctx.fillStyle = t.hp / t.maxHp > 0.4 ? '#8ac94a' : '#e05545';
+        ctx.fillRect(t.x - 11, t.y - 17, 22 * Math.max(0, t.hp / t.maxHp), 1);
+      }
+      if (t.ammo < stBar.maxAmmo) {
+        ctx.fillStyle = '#12100e';
+        ctx.fillRect(t.x - 12, t.y - 14, 24, 3);
         ctx.fillStyle = '#f2d94e';
-        ctx.fillRect(t.x - 14 + (lv - 1) * 6, t.y + 11, 4, 4);
-        ctx.strokeStyle = '#12100e';
-        ctx.strokeRect(t.x - 14 + (lv - 1) * 6 - 0.5, t.y + 10.5, 5, 5);
+        ctx.fillRect(t.x - 11, t.y - 13, 22 * (t.ammo / stBar.maxAmmo), 1);
+      }
+      if (t.ammo <= 0) {
+        ctx.font = 'bold 9px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#f2d94e';
+        ctx.fillText('¡RECARGA!', t.x, t.y - 24);
+        ctx.textAlign = 'left';
       }
       if (t === S.selected) {
         ctx.strokeStyle = '#f2d94e';
@@ -203,6 +250,31 @@
       }
     }
 
+    // unidades de apoyo
+    for (i = 0; i < S.units.length; i++) {
+      var u = S.units[i];
+      var uframes = SP.units[u.type];
+      var ufr = uframes[((u.animT * 6) | 0) % 2];
+      var uw = ufr.width * 1.5, uh = ufr.height * 1.5;
+      if (u.flash > 0) ctx.globalAlpha = 0.6 + 0.4 * Math.random();
+      ctx.drawImage(ufr, u.x - uw / 2, u.y - uh / 2 - (u.type === 'drone' ? 6 : 0), uw, uh);
+      ctx.globalAlpha = 1;
+      if (u.hp < u.maxHp) {
+        ctx.fillStyle = '#12100e';
+        ctx.fillRect(u.x - 9, u.y - uh / 2 - 10, 18, 3);
+        ctx.fillStyle = u.hp / u.maxHp > 0.4 ? '#8ac94a' : '#e05545';
+        ctx.fillRect(u.x - 8, u.y - uh / 2 - 9, 16 * Math.max(0, u.hp / u.maxHp), 1);
+      }
+      if (u.type === 'drone' && u.mode === 'attack') {
+        ctx.fillStyle = '#e05545';
+        ctx.fillRect(u.x - 1, u.y - uh / 2 - 12, 3, 3);
+      }
+      if (u === S.selectedU) {
+        ctx.strokeStyle = '#f2d94e';
+        ctx.beginPath(); ctx.arc(u.x, u.y - 4, 13, 0, Math.PI * 2); ctx.stroke();
+      }
+    }
+
     // enemigos
     var drawScale = { drone: 1.5, wasp: 1.5, spitter: 1.8, scarab: 2, boss: 2 };
     var bossAlive = null;
@@ -212,6 +284,8 @@
       var fr = frames[((e.animT * 8) | 0) % 2];
       var sc = drawScale[e.type];
       var dw = fr.width * sc, dh = fr.height * sc;
+      if (e.elite) sc *= 1.2;
+      dw = fr.width * sc; dh = fr.height * sc;
       ctx.save();
       ctx.translate(e.x, e.y);
       ctx.rotate(e.angle + Math.PI / 2);
@@ -219,6 +293,13 @@
       ctx.drawImage(fr, -dw / 2, -dh / 2, dw, dh);
       ctx.restore();
       ctx.globalAlpha = 1;
+      // aura roja de las variantes de élite
+      if (e.elite) {
+        ctx.strokeStyle = 'rgba(224, 85, 69, 0.7)';
+        ctx.beginPath();
+        ctx.arc(e.x, e.y, e.def.size + 6, 0, Math.PI * 2);
+        ctx.stroke();
+      }
       // barra de vida
       if (e.hp < e.maxHp && e.type !== 'boss') {
         var bw = 16;
@@ -242,6 +323,15 @@
         ctx.fillStyle = '#f2d94e';
         ctx.fillRect(p.x - 1.5, p.y - 1.5, 3, 3);
       }
+    }
+
+    // escupitajos enemigos (ácido)
+    for (i = 0; i < S.eShots.length; i++) {
+      var q = S.eShots[i];
+      ctx.fillStyle = '#9ee34a';
+      ctx.beginPath(); ctx.arc(q.x, q.y, 2.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#5f9926';
+      ctx.fillRect(q.x - 1, q.y - 1, 1, 1);
     }
 
     // efectos (rayos y trazadoras)

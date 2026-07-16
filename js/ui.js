@@ -44,9 +44,9 @@
     g.drawImage(SP.mechs.mg, 0, 4, 48, 39);
   })();
 
-  // botones de torre y de edificio
+  // botones de torre, edificio y unidad
   var towerBtnEls = {};
-  function makeBtn(key, def, sprite, hotkey) {
+  function makeBtn(key, def, sprite, hotkey, onClick) {
     var b = document.createElement('button');
     b.className = 'tbtn';
     var mini = document.createElement('canvas');
@@ -59,15 +59,21 @@
     lbl.innerHTML = def.name + '<br><span class="cost">$' + def.cost +
       '</span> <span class="key">[' + hotkey + ']</span>';
     b.appendChild(lbl);
-    b.addEventListener('click', function () { G.startPlacing(key); });
+    b.addEventListener('click', onClick);
     el.towerBtns.appendChild(b);
     towerBtnEls[key] = b;
   }
   D.TOWER_ORDER.forEach(function (key, i) {
-    makeBtn(key, D.TOWERS[key], SP.mechs[key], i + 1);
+    makeBtn(key, D.TOWERS[key], SP.mechs[key], i + 1,
+      function () { G.startPlacing(key); });
   });
   D.BUILDING_ORDER.forEach(function (key, i) {
-    makeBtn(key, D.BUILDINGS[key], SP.buildings[key], i + 5);
+    makeBtn(key, D.BUILDINGS[key], SP.buildings[key], i + 5,
+      function () { G.startPlacing(key); });
+  });
+  D.UNIT_ORDER.forEach(function (key, i) {
+    makeBtn(key, D.UNITS[key], SP.units[key][0], i + 7,
+      function () { G.buyUnit(key); });
   });
 
   // ---------- pantallas de fin (sincronizadas con S.phase) ----------
@@ -120,8 +126,27 @@
       b.classList.toggle('sel', S.placing === key);
       b.classList.toggle('poor', S.money < D.BUILDINGS[key].cost);
     });
+    D.UNIT_ORDER.forEach(function (key) {
+      towerBtnEls[key].classList.toggle('poor', S.money < D.UNITS[key].cost);
+    });
 
-    if (S.selectedB) {
+    if (S.selectedU) {
+      var un = S.selectedU, udef = D.UNITS[un.type];
+      el.info.innerHTML =
+        '<span class="name">' + udef.name + '</span> — vida <b>' + Math.max(0, Math.ceil(un.hp)) +
+        '/' + un.maxHp + '</b>' +
+        (un.type === 'drone'
+          ? '<br>Modo: <b>' + (un.mode === 'attack' ? 'ATAQUE' : 'RECARGA') + '</b>' +
+            (un.mode === 'attack' ? ' &middot; Munici&oacute;n: <b>' + un.ammo + '</b>' +
+              '<br><span class="desc">Haz clic en el mapa para reposicionarlo.</span>' : '')
+          : '') +
+        '<br><span class="desc">' + udef.desc + '</span>';
+      el.upBtn.disabled = un.type !== 'drone';
+      el.upBtn.textContent = un.type === 'drone'
+        ? 'MODO: ' + (un.mode === 'attack' ? 'RECARGA' : 'ATAQUE') : 'MEJORAR';
+      el.sellBtn.disabled = false;
+      el.sellBtn.textContent = 'VENDER $' + Math.round(un.invested * D.SELL_FACTOR);
+    } else if (S.selectedB) {
       var bl = S.selectedB, bdef = D.BUILDINGS[bl.type];
       var intact = bl.hp >= bl.maxHp;
       el.info.innerHTML =
@@ -141,10 +166,12 @@
         '<span class="name">' + def.name + '</span> — nivel ' + t.level + '/' + D.MAX_LEVEL +
         (t.offline ? ' <span style="color:var(--red)">SIN ⚡</span>' : '') +
         '<br>Daño: <b>' + st.dmg + '</b> &middot; Rango: <b>' + st.range + '</b>' +
-        '<br>Cadencia: <b>' + st.rof.toFixed(2) + 's</b>' +
-        (def.chain ? ' &middot; Saltos: <b>' + st.chain + '</b>' : '') +
-        (def.splash ? ' &middot; &Aacute;rea: <b>' + st.splash + '</b>' : '') +
-        '<br><span class="desc">' + def.desc + '</span>';
+        ' &middot; Vida: <b>' + Math.max(0, Math.ceil(t.hp)) + '/' + t.maxHp + '</b>' +
+        '<br>Munici&oacute;n: <b>' + t.ammo + '/' + st.maxAmmo + '</b>' +
+        ' &middot; Paso: <b>' + def.move + '</b>' +
+        (t.moveCd > 0 ? ' (' + Math.ceil(t.moveCd) + 's)' : '') +
+        '<br><span class="desc">' + def.desc +
+        ' Clic en un tile iluminado para moverlo.</span>';
       el.upBtn.disabled = maxed || S.money < G.upgradeCost(t) || S.parts < uParts || !G.shopAlive();
       el.upBtn.textContent = maxed ? 'NIVEL MÁX.'
         : 'MEJORAR $' + G.upgradeCost(t) + ' + ' + uParts + '⚙';
@@ -169,10 +196,10 @@
       el.upBtn.disabled = true; el.upBtn.textContent = 'MEJORAR';
       el.sellBtn.disabled = true; el.sellBtn.textContent = 'VENDER';
     } else {
-      el.info.innerHTML = '<span class="desc">Mechas [1-4] y edificios [5-6]. ' +
-        'Los generadores dan energ&iacute;a ⚡ y el taller permite ensamblar; ' +
-        'def&iacute;endelos: los bichos los muerden al pasar. ' +
-        'Los bichos duros sueltan partes ⚙ para mejorar.</span>';
+      el.info.innerHTML = '<span class="desc">Mechas [1-4], edificios [5-6] y unidades [7-8]. ' +
+        'Los mechas gastan munici&oacute;n: el CARGADOR y el DRON la reponen desde el granero. ' +
+        'Los generadores alimentan a los mechas cercanos ⚡. ' +
+        'Selecciona un mecha y haz clic en un tile iluminado para moverlo.</span>';
       el.upBtn.disabled = true; el.upBtn.textContent = 'MEJORAR';
       el.sellBtn.disabled = true; el.sellBtn.textContent = 'VENDER';
     }
@@ -198,11 +225,22 @@
     var p = canvasPos(ev);
     var c = (p.x / TILE) | 0, r = (p.y / TILE) | 0;
     if (S.placing) { G.tryBuild(c, r); return; }
-    var t = G.towerAt(c, r);
-    var b = t ? null : G.buildingAt(c, r);
+    // orden de movimiento al mecha seleccionado (tiles iluminados)
+    if (S.selected && G.tryMove(S.selected, c, r)) return;
+    // reposicionar al dron de ataque seleccionado (vuela a donde sea)
+    if (S.selectedU && S.selectedU.type === 'drone' && S.selectedU.mode === 'attack' &&
+        !G.unitNear(p.x, p.y, 18)) {
+      S.selectedU.post = { x: p.x, y: p.y };
+      AU.click();
+      return;
+    }
+    var u = G.unitNear(p.x, p.y, 18);
+    var t = u ? null : G.towerAt(c, r);
+    var b = u || t ? null : G.buildingAt(c, r);
+    S.selectedU = u || null;
     S.selected = t || null;
     S.selectedB = b || null;
-    if (t || b) AU.click();
+    if (u || t || b) AU.click();
   });
 
   canvas.addEventListener('contextmenu', function (ev) {
@@ -218,13 +256,18 @@
     else if (k === 'p' || k === 'P') S.paused = !S.paused;
     else if (k >= '1' && k <= '4') G.startPlacing(D.TOWER_ORDER[+k - 1]);
     else if (k === '5' || k === '6') G.startPlacing(D.BUILDING_ORDER[+k - 5]);
+    else if (k === '7' || k === '8') G.buyUnit(D.UNIT_ORDER[+k - 7]);
   });
 
   el.upBtn.addEventListener('click', function () {
-    if (S.selectedB) G.repairSelectedB(); else G.upgradeSelected();
+    if (S.selectedU) G.toggleUnitMode();
+    else if (S.selectedB) G.repairSelectedB();
+    else G.upgradeSelected();
   });
   el.sellBtn.addEventListener('click', function () {
-    if (S.selectedB) G.sellSelectedB(); else G.sellSelected();
+    if (S.selectedU) G.sellSelectedU();
+    else if (S.selectedB) G.sellSelectedB();
+    else G.sellSelected();
   });
   el.startBtn.addEventListener('click', function () { G.startWave(true); });
   el.pauseBtn.addEventListener('click', function () {

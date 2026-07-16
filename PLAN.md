@@ -97,7 +97,23 @@ js/game.js      — motor: estado, bucle, entidades, input, render
 - **Pausa**: botón dedicado en el panel además de la tecla [P]; congela
   oleada, cuenta atrás y bichos.
 
-## 9. Refactor: arquitectura modular ✔
+## 9. Expansión: guerra de desgaste ✔
+
+- **Munición**: cada disparo gasta balas (capacidad × nivel). El **CARGADOR**
+  ($90, a pie) y el **DRON** ($140, volador, con el que empieza la partida)
+  las reponen desde el granero; el dron alterna modo RECARGA/ATAQUE.
+- **Mechas móviles y mortales**: tienen vida, se mueven como piezas de
+  ajedrez (paso por tipo, enfriamiento 4 s) y cambian de sprite al subir de
+  nivel. Los bichos muerden y escupen a toda la defensa; los mechas
+  priorizan a los bichos que atacan a tus unidades.
+- **Energía espacial**: cada generador alimenta 4 ⚡ solo dentro de su radio
+  (110 px). Mover un mecha fuera de cobertura lo apaga.
+- **Bichos**: avispas voladoras van directo al granero; escupidores y
+  Nodriza atacan a distancia; élites (aura roja, ×2.2 vida) desde la
+  oleada 4, más frecuentes a cada oleada.
+- **Cuadrícula tenue** horneada sobre el mapa.
+
+## 10. Refactor: arquitectura modular ✔
 
 `game.js` se partió en módulos IIFE comunicados por `window.G` (sin build,
 se conserva el doble clic en `index.html`): `core.js` (estado + helpers),

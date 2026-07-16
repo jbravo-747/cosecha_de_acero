@@ -23,30 +23,44 @@ python3 -m http.server 8080
 |---|---|
 | `1`–`4` o clic en tarjeta | Elegir mecha para colocar |
 | `5` / `6` | Generador de energía / Taller de ensamblado |
+| `7` / `8` | Reclutar CARGADOR / DRON (salen del granero) |
 | Clic en el pasto | Colocar el mecha o edificio |
-| Clic en mecha / edificio | Seleccionar (mejorar / reparar / vender) |
+| Clic en mecha / edificio / unidad | Seleccionar |
+| Mecha seleccionado + clic en tile iluminado | **Moverlo** (paso tipo ajedrez) |
 | `Esc` / clic derecho | Cancelar / deseleccionar |
 | `Espacio` | Desactivar el disruptor de portales (lanza la oleada) |
 | `P` o botón PAUSA | Pausa |
 
-### Mechas
+### Mechas (unidades móviles con vida y munición)
 
-- **COYOTE** ($100, 1 ⚡) — ametralladora rápida, anti-enjambre.
-- **CERCA-9** ($150, 1 ⚡) — pilón tesla: la descarga salta entre bichos y los frena.
-- **BISONTE** ($180, 2 ⚡) — cañón con daño en área.
-- **VIUDA** ($260, 2 ⚡) — francotirador de largo alcance.
+- **COYOTE** ($100, 1 ⚡, paso 2) — ametralladora rápida, 200 balas.
+- **CERCA-9** ($150, 1 ⚡, paso 1) — pilón tesla: salta entre bichos y los frena.
+- **BISONTE** ($180, 2 ⚡, paso 1) — cañón de área, 45 obuses.
+- **VIUDA** ($260, 2 ⚡, paso 3) — francotirador, 22 balas.
 
-Cada uno mejora hasta nivel 3 (cuesta dinero **y partes ⚙**) y se vende al
-70% de lo invertido.
+Cada disparo gasta munición; sin balas el mecha calla hasta que lo
+reabastezcan. Se **mueven** como piezas de ajedrez (su "paso" en tiles, con
+enfriamiento) y **cambian de aspecto** al subir de nivel: hombreras de acero
+a nivel 2, astas doradas a nivel 3. Mejorar cuesta dinero **y partes ⚙** y
+entrega el mecha reparado y recargado.
+
+### Unidades de apoyo
+
+- **CARGADOR** ($90) — peón que lleva munición del granero a los mechas y
+  vuelve por más. Los mechas cubren su ruta: priorizan a los bichos que
+  atacan a tu gente.
+- **DRON** ($140) — vuela sobre cualquier tile. Alterna entre modo
+  **RECARGA** (reabastece mechas) y modo **ATAQUE** (métralla ligera,
+  reposicionable con un clic). **La partida empieza con uno.**
 
 ### Infraestructura
 
-- **GENERADOR** ($120) — da 4 ⚡ para alimentar mechas. Si cae, los últimos
-  mechas quedan sin energía y dejan de disparar.
+- **GENERADOR** ($120) — alimenta con 4 ⚡ a los mechas **dentro de su
+  radio**. Un mecha lejos de todo generador queda SIN ⚡ y no dispara.
 - **TALLER** ($200) — sin al menos uno en pie no se ensamblan ni mejoran mechas.
 
-Ambos van **junto al camino** y los bichos los **muerden al pasar**:
-defiéndelos, repáralos o reconstrúyelos.
+Los bichos **muerden y escupen** a todo: mechas, unidades y edificios.
+Repara, reconstruye y reposiciona.
 
 ### Disruptor de portales
 
@@ -56,10 +70,12 @@ la oleada arranca sola. Desactivarlo antes con `Espacio` da un bono de
 
 ### Bichos
 
-Drones (enjambre), avispas (veloces), escupidores, escarabajos blindados y
-la **NODRIZA**, que engendra drones mientras avanza. Los duros sueltan
-**partes ⚙** al morir: escupidores (30%), escarabajos (siempre) y la
-Nodriza (10 ⚙).
+Drones (enjambre), avispas (**voladoras: van directo al granero, sin seguir
+el camino**), escupidores (**atacan a distancia**), escarabajos blindados y
+la **NODRIZA**, que engendra drones y escupe. Desde la oleada 4 aparecen
+**variantes de élite** (aura roja): más grandes, con el doble de vida y
+botín; abundan más a cada oleada. Los bichos duros y las élites sueltan
+**partes ⚙** al morir.
 
 ## Tecnología
 

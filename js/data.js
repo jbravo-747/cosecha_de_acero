@@ -24,24 +24,30 @@
   var FENCES = [[16, 0], [17, 0], [16, 11], [17, 11]];
 
   // ---------- torres (mechas) ----------
+  // hp: vida del mecha · ammo: cargador base (crece con nivel) · move: tiles
+  // de desplazamiento por orden (como en ajedrez, distancia Chebyshev)
   var TOWERS = {
     mg: {
       name: 'COYOTE', cost: 100, range: 105, dmg: 8, rof: 0.16, energy: 1,
+      hp: 160, ammo: 200, move: 2,
       proj: 'bullet', projSpeed: 380,
       desc: 'Ametralladora ligera. Rápida y barata: ideal contra enjambres de drones.'
     },
     tesla: {
       name: 'CERCA-9', cost: 150, range: 90, dmg: 15, rof: 0.85, energy: 1,
+      hp: 180, ammo: 70, move: 1,
       proj: 'chain', chain: 3, slow: 0.5, slowDur: 1.4,
       desc: 'Pilón eléctrico de la cerca. La descarga salta entre bichos y los frena.'
     },
     cannon: {
       name: 'BISONTE', cost: 180, range: 125, dmg: 42, rof: 1.5, energy: 2,
+      hp: 200, ammo: 45, move: 1,
       proj: 'shell', projSpeed: 240, splash: 42,
       desc: 'Cañón de asedio. Lento pero revienta grupos con daño en área.'
     },
     sniper: {
       name: 'VIUDA', cost: 260, range: 215, dmg: 95, rof: 2.3, energy: 2,
+      hp: 130, ammo: 22, move: 3,
       proj: 'beam',
       desc: 'Rifle de larga distancia. Un tiro, un bicho grande menos.'
     }
@@ -54,21 +60,36 @@
   var SELL_FACTOR = 0.7;
 
   // ---------- enemigos ----------
-  // bDmg: daño por mordisco a edificios · drop: partes que suelta al morir
+  // bDmg: daño por mordisco a mechas/unidades/edificios · drop: partes al morir
   // behaviors: comportamientos componibles definidos en behaviors.js
+  // flying: vuela recto del agujero al granero, sin seguir el camino
+  // spit: ataque a distancia contra la defensa
   var ENEMIES = {
     drone:   { name: 'Dron',       hp: 30,   speed: 55, bounty: 8,   dmg: 1,  armor: 0, size: 7,  sprite: 'drone',   bDmg: 3,
                behaviors: ['biter'] },
     wasp:    { name: 'Avispa',     hp: 24,   speed: 98, bounty: 10,  dmg: 1,  armor: 0, size: 6,  sprite: 'wasp',    bDmg: 2,
-               behaviors: ['biter'] },
+               flying: true, behaviors: ['biter'] },
     spitter: { name: 'Escupidor',  hp: 78,   speed: 44, bounty: 15,  dmg: 2,  armor: 0, size: 8,  sprite: 'spitter', bDmg: 6,
-               behaviors: ['biter'], drop: { chance: 0.3, n: 1 } },
+               behaviors: ['biter', 'spit'],
+               spit: { range: 95, cd: 2.2, dmg: 8, speed: 150 },
+               drop: { chance: 0.3, n: 1 } },
     scarab:  { name: 'Escarabajo', hp: 300,  speed: 27, bounty: 34,  dmg: 3,  armor: 6, size: 9,  sprite: 'scarab',  bDmg: 12,
                behaviors: ['biter'], drop: { chance: 1, n: 1 } },
     boss:    { name: 'NODRIZA',    hp: 3400, speed: 15, bounty: 500, dmg: 20, armor: 8, size: 14, sprite: 'boss',    bDmg: 30,
-               behaviors: ['biter', 'spawner'],
+               behaviors: ['biter', 'spawner', 'spit'],
+               spit: { range: 115, cd: 2.8, dmg: 14, speed: 150 },
                spawnEvery: 4.5, spawnType: 'drone', spawnCount: 2,
                drop: { chance: 1, n: 10 } }
+  };
+
+  // variantes de élite: bichos más resistentes que aparecen (y abundan)
+  // conforme sube la oleada
+  var ELITE = {
+    fromWave: 4,       // primera oleada con élites
+    chance: 0.06,      // probabilidad extra por oleada desde fromWave
+    chanceMax: 0.5,
+    hpMul: 2.2, bountyMul: 2,
+    dropChance: 0.5    // las élites sueltan partes con esta probabilidad
   };
 
   // escala de vida por oleada
@@ -104,22 +125,36 @@
   function waveBonus(wave) { return 60 + 15 * wave; }
 
   // ---------- edificios de apoyo ----------
-  // Deben colocarse junto al camino (por eso los bichos pueden morderlos).
   var BUILDINGS = {
-    gen:  { name: 'GENERADOR', cost: 120, hp: 180, energy: 4,
-            desc: 'Generador diésel: da 4 de energía para alimentar mechas. Debe ir junto al camino.' },
+    gen:  { name: 'GENERADOR', cost: 120, hp: 180, energy: 4, powerRange: 110,
+            desc: 'Generador diésel: alimenta con 4 ⚡ a los mechas dentro de su radio.' },
     shop: { name: 'TALLER', cost: 200, hp: 220, energy: 0,
             desc: 'Taller de ensamblado. Sin al menos uno en pie no se construyen ni mejoran mechas.' }
   };
   var BUILDING_ORDER = ['gen', 'shop'];
   var START_BUILDINGS = [{ type: 'gen', c: 16, r: 10 }, { type: 'shop', c: 16, r: 4 }];
 
+  // ---------- unidades de apoyo ----------
+  var UNITS = {
+    carrier: { name: 'CARGADOR', cost: 90, hp: 60, speed: 46, flying: false,
+               desc: 'Peón de granja: lleva munición del granero a los mechas y vuelve por más. Los mechas lo cubren si está en su rango.' },
+    drone:   { name: 'DRON', cost: 140, hp: 70, speed: 72, flying: true,
+               ammo: 50, atkRange: 75, atkDmg: 5, atkRof: 0.35,
+               desc: 'Dron de apoyo: alterna entre RECARGAR mechas y ATACAR bichos. Vuela sobre cualquier tile, incluido el camino.' }
+  };
+  var UNIT_ORDER = ['carrier', 'drone'];
+  var START_UNITS = ['drone'];          // la partida empieza con un dron
+  var BARN_POS = { x: 600, y: 160 };    // puerta del granero (base logística)
+
   var BUILD_TIME = 30;      // seg de disruptor entre oleadas
   var EARLY_BONUS = 2;      // $ por segundo restante al desactivar el disruptor antes
-  var ATTACK_RANGE = 48;    // px a los que un bicho muerde edificios al pasar
+  var ATTACK_RANGE = 48;    // px a los que un bicho muerde a la defensa al pasar
   var ATTACK_CD = 1.1;      // seg entre mordiscos
   var REPAIR_PER_HP = 0.5;  // $ por punto de vida reparado
   var UP_PARTS = [1, 2];    // partes ⚙ para subir a nivel 2 y 3
+  var MOVE_CD = 4;          // seg de enfriamiento tras mover un mecha
+  var RELOAD_TIME = 0.8;    // seg que tarda una unidad en recargar un mecha
+  var AMMO_LOW = 0.6;       // umbral (fracción) para pedir recarga
 
   window.DATA = {
     COLS: COLS, ROWS: ROWS, TILE: TILE,
@@ -128,12 +163,14 @@
     TOWERS: TOWERS, TOWER_ORDER: TOWER_ORDER,
     MAX_LEVEL: MAX_LEVEL, UP_COST_FACTOR: UP_COST_FACTOR,
     UP_DMG: UP_DMG, UP_RANGE: UP_RANGE, UP_ROF: UP_ROF, SELL_FACTOR: SELL_FACTOR,
-    ENEMIES: ENEMIES, hpScale: hpScale,
+    ENEMIES: ENEMIES, hpScale: hpScale, ELITE: ELITE,
     WAVES: WAVES, waveBonus: waveBonus,
     BUILDINGS: BUILDINGS, BUILDING_ORDER: BUILDING_ORDER, START_BUILDINGS: START_BUILDINGS,
+    UNITS: UNITS, UNIT_ORDER: UNIT_ORDER, START_UNITS: START_UNITS, BARN_POS: BARN_POS,
     BUILD_TIME: BUILD_TIME, EARLY_BONUS: EARLY_BONUS,
     ATTACK_RANGE: ATTACK_RANGE, ATTACK_CD: ATTACK_CD,
     REPAIR_PER_HP: REPAIR_PER_HP, UP_PARTS: UP_PARTS,
+    MOVE_CD: MOVE_CD, RELOAD_TIME: RELOAD_TIME, AMMO_LOW: AMMO_LOW,
     START_MONEY: 320, START_LIVES: 20
   };
 })();

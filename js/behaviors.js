@@ -15,25 +15,49 @@
   // init(e): al aparecer · update(e, dt): cada frame mientras vive
   G.ENEMY_BEHAVIORS = {
 
-    // muerde edificios cercanos al pasar
+    // muerde lo que tenga cerca al pasar: edificios, mechas y unidades
     biter: {
       init: function (e) { e.atkCd = Math.random() * D.ATTACK_CD; },
       update: function (e, dt) {
         e.atkCd -= dt;
-        if (e.atkCd > 0 || !S.buildings.length) return;
+        if (e.atkCd > 0) return;
+        var targets = G.defenseTargets();
         var best = null, bd = D.ATTACK_RANGE * D.ATTACK_RANGE;
-        for (var j = 0; j < S.buildings.length; j++) {
-          var b = S.buildings[j];
-          var d2 = G.dist2(e.x, e.y, b.x, b.y);
-          if (d2 <= bd) { bd = d2; best = b; }
+        for (var j = 0; j < targets.length; j++) {
+          var o = targets[j];
+          var d2 = G.dist2(e.x, e.y, o.x, o.y);
+          if (d2 <= bd) { bd = d2; best = o; }
         }
         if (!best) return;
         e.atkCd = D.ATTACK_CD;
-        best.hp -= e.def.bDmg;
-        best.flash = 0.15;
+        e.aggroT = 2;            // los mechas priorizan a quien ataca
         G.burst(best.x, best.y - 8, '#9ee34a', 4, 60);
         AU.squish();
-        if (best.hp <= 0) G.destroyBuilding(best);
+        G.damageDefense(best, e.def.bDmg);
+      }
+    },
+
+    // escupe ácido a distancia contra la defensa
+    spit: {
+      init: function (e) { e.spitCd = Math.random() * e.def.spit.cd; },
+      update: function (e, dt) {
+        e.spitCd -= dt;
+        if (e.spitCd > 0) return;
+        var sp = e.def.spit;
+        var targets = G.defenseTargets();
+        var best = null, bd = sp.range * sp.range;
+        for (var j = 0; j < targets.length; j++) {
+          var o = targets[j];
+          var d2 = G.dist2(e.x, e.y, o.x, o.y);
+          if (d2 <= bd) { bd = d2; best = o; }
+        }
+        if (!best) return;
+        e.spitCd = sp.cd;
+        e.aggroT = 2;
+        S.eShots.push({
+          x: e.x, y: e.y, target: best, lx: best.x, ly: best.y,
+          speed: sp.speed, dmg: sp.dmg
+        });
       }
     },
 

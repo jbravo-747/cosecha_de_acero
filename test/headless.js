@@ -63,7 +63,7 @@ global.window = global;
   eval(src); // eslint-disable-line no-eval
 });
 
-const S = global.GAME, D = global.DATA;
+const S = global.GAME, D = global.DATA, G = global.G;
 const canvasEl = byId.game;
 
 // ---------- helpers de simulación ----------
@@ -76,10 +76,10 @@ function step(frames) {
   }
 }
 function key(k) { (docListeners.keydown || []).forEach(f => f({ key: k, preventDefault() {} })); }
-function canvasClick(c, r) {
-  (canvasEl.listeners.click || []).forEach(f =>
-    f({ clientX: c * 32 + 16, clientY: r * 32 + 16 }));
+function canvasClickPx(x, y) {
+  (canvasEl.listeners.click || []).forEach(f => f({ clientX: x, clientY: y }));
 }
+function canvasClick(c, r) { canvasClickPx(c * 32 + 16, r * 32 + 16); }
 function build(type, c, r) {
   key('Escape');
   key(String(D.TOWER_ORDER.indexOf(type) + 1));
@@ -120,7 +120,8 @@ byId.playBtn.click();
 assert(S.phase === 'build', 'al pulsar ARRANCAR entra en fase de construcción');
 assert(S.money === D.START_MONEY && S.lives === D.START_LIVES, 'dinero y vidas iniciales correctos');
 assert(S.buildings.length === 2, 'arranca con generador y taller pre-colocados');
-assert(S.energyCap === D.BUILDINGS.gen.energy, 'la capacidad inicial de energía la da el generador');
+assert(S.units.length === 1 && S.units[0].type === 'drone' && S.units[0].mode === 'reload',
+  'la partida empieza con un dron de apoyo en modo recarga');
 assert(S.parts === 0 && S.buildT === D.BUILD_TIME, 'sin partes y disruptor cargado a ' + D.BUILD_TIME + 's');
 
 console.log('— Disruptor de portales: apertura automática —');
@@ -138,26 +139,33 @@ assert(S.towers.length === before, 'no se puede construir sobre el camino');
 key('1'); canvasClick(2, 2);
 assert(S.towers.length === before, 'no se puede construir sobre otra torre');
 
-console.log('— Edificios: generador junto al camino —');
+console.log('— Energía por rango: generadores cerca de los mechas —');
+assert(S.towers[0].offline, 'un mecha lejos de todo generador queda SIN ⚡');
 buildB('gen', 4, 2);
-assert(S.energyCap === D.BUILDINGS.gen.energy * 2, 'cada generador suma capacidad de energía');
-const bCount = S.buildings.length;
-key('5'); canvasClick(10, 4); // lejos del camino
-assert(S.buildings.length === bCount, 'los edificios solo se colocan junto al camino');
-key('Escape');
-
-console.log('— Energía: los mechas necesitan generadores —');
+assert(!S.towers[0].offline, 'con un generador en rango el mecha se enciende');
 S.money += 2000;
 build('mg', 4, 4);
+assert(!S.towers[1].offline, 'el generador alimenta a todos los mechas de su radio');
 build('cannon', 1, 5);
+assert(S.towers.find(t => t.c === 1 && t.r === 5).offline,
+  'fuera del radio de todo generador no hay energía');
 build('sniper', 1, 6);
 build('cannon', 1, 7);
-assert(S.energyUsed === 8 && S.energyCap === 8, 'consumo al tope de capacidad (8/8)');
+assert(S.energyUsed === 8 && S.energyCap === 8, 'consumo al tope de capacidad global (8/8)');
 const tCount = S.towers.length;
 key('1'); canvasClick(1, 8);
-assert(S.towers.length === tCount, 'sin energía libre no se ensamblan más mechas');
+assert(S.towers.length === tCount, 'sin capacidad de energía no se ensamblan más mechas');
 [[1, 5], [1, 6], [1, 7]].forEach(([c, r]) => { selectTile(c, r); byId.sellBtn.click(); });
 assert(S.energyUsed === 2, 'vender mechas libera energía');
+
+console.log('— Dron: alternar entre recarga y ataque —');
+canvasClickPx(S.units[0].x, S.units[0].y);
+assert(S.selectedU === S.units[0], 'clic sobre una unidad la selecciona');
+byId.upBtn.click();
+assert(S.units[0].mode === 'attack', 'el dron cambia a modo ATAQUE');
+byId.upBtn.click();
+assert(S.units[0].mode === 'reload', 'y vuelve a modo RECARGA');
+key('Escape');
 
 console.log('— Disruptor manual: bono por desactivarlo antes —');
 const moneyPreWave = S.money;
@@ -166,7 +174,7 @@ assert(S.phase === 'wave' && S.wave === 1, 'desactivar el disruptor lanza la ole
 assert(S.money === moneyPreWave + Math.round(D.BUILD_TIME * D.EARLY_BONUS),
   'desactivarlo con tiempo restante paga el bono');
 
-console.log('— Oleada 1: movimiento y pausa —');
+console.log('— Oleada 1: movimiento, munición y pausa —');
 let maxEnemies = 0, sawMovement = false, spawnX = null;
 step(60);
 key('p');
@@ -191,6 +199,44 @@ assert(S.phase === 'build', 'la oleada 1 termina y vuelve la fase de construcci�
 assert(S.buildT === D.BUILD_TIME, 'el disruptor se recarga al terminar la oleada');
 assert(S.money > moneyPreWave, 'los bichos muertos, el bono de oleada y el disruptor pagan (=$' + S.money + ')');
 assert(S.lives === D.START_LIVES, 'con 2 COYOTES no se escapa ningún dron en la oleada 1');
+assert(S.towers.some(t => t.ammo < G.towerStats(t).maxAmmo), 'disparar consume munición');
+
+console.log('— Logística: el cargador repone munición —');
+S.buildT = 99999;                       // congela el disruptor durante la prueba
+key('7');                               // comprar CARGADOR
+assert(S.units.some(u => u.type === 'carrier'), 'el cargador se recluta en el granero');
+const hungry = S.towers.find(t => t.c === 4 && t.r === 4);
+hungry.ammo = 1;
+let refilled = false;
+for (let i = 0; i < 40 * 60 && !refilled; i++) {
+  step(1);
+  refilled = hungry.ammo >= G.towerStats(hungry).maxAmmo;
+}
+assert(refilled, 'una unidad llevó munición del granero al mecha');
+for (let i = 0; i < 20 * 60; i++) {     // deja que las unidades vuelvan a base
+  step(1);
+  if (S.units.every(u => u.state === 'idle')) break;
+}
+
+console.log('— Mechas móviles: desplazamiento tipo ajedrez —');
+selectTile(4, 4);
+assert(S.selected === hungry, 'clic sobre un mecha lo selecciona');
+canvasClick(9, 9);                      // a 5 tiles: fuera de su paso (2)
+assert(hungry.c === 4 && !hungry.moving, 'no puede moverse más allá de su paso');
+selectTile(4, 4);                       // el clic inválido deselecciona
+canvasClick(5, 5);                      // a 1 tile: válido
+assert(hungry.c === 5 && hungry.r === 5 && hungry.moving, 'orden de movimiento válida: reserva el tile');
+for (let i = 0; i < 10 * 60 && hungry.moving; i++) step(1);
+assert(!hungry.moving && hungry.moveCd > 0, 'al llegar queda en enfriamiento de movimiento');
+selectTile(5, 5);
+canvasClick(6, 6);
+assert(hungry.c === 5, 'en enfriamiento no acepta otra orden');
+S.buildT = D.BUILD_TIME;
+
+console.log('— Voladores: las avispas van directo al granero —');
+const waspTest = G.spawnEnemy('wasp');
+assert(waspTest.flying && waspTest.path.length === 2, 'la avispa vuela recto, sin seguir el camino');
+S.enemies.pop();
 
 console.log('— Reparación de edificios —');
 const genB = S.buildings.find(b => b.type === 'gen' && b.c === 4);
@@ -206,15 +252,17 @@ console.log('— Mejora con partes y venta —');
 S.money += 1000;
 S.parts = 10;
 selectTile(2, 2);
-assert(S.selected && S.selected.c === 2, 'clic sobre un mecha lo selecciona');
-const lvlBefore = S.selected.level;
+const mech22 = S.selected;
+const lvlBefore = mech22.level;
 byId.upBtn.click(); byId.upBtn.click();
-assert(S.selected.level === lvlBefore + 2, 'mejora hasta nivel 3');
+assert(mech22.level === lvlBefore + 2, 'mejora hasta nivel 3');
 assert(S.parts === 10 - D.UP_PARTS[0] - D.UP_PARTS[1], 'cada mejora consume partes ⚙ (quedan ' + S.parts + ')');
+assert(mech22.ammo === G.towerStats(mech22).maxAmmo && mech22.hp === mech22.maxHp,
+  'el taller entrega el mecha mejorado reparado y con munición llena');
 byId.upBtn.click();
-assert(S.selected.level === 3, 'no mejora más allá del nivel máximo');
+assert(mech22.level === 3, 'no mejora más allá del nivel máximo');
 S.parts = 0;
-selectTile(4, 4);
+selectTile(5, 5);
 byId.upBtn.click();
 assert(S.selected.level === 1, 'sin partes no hay mejora');
 const moneyPreSell = S.money;
@@ -239,13 +287,16 @@ assert(S.towers.length === tPreShop + 1, 'con taller nuevo se vuelve a ensamblar
 selectTile(6, 2); byId.sellBtn.click();
 
 console.log('— Campaña completa hasta la Nodriza —');
-S.money += 7000;
+S.money += 9000;
 S.parts = 40;
-// energía para 10 mechas (14 ⚡): generadores junto al camino en zonas defendidas
-buildB('gen', 9, 5);
+// generadores cubriendo cada nido de defensa (energía por rango)
+buildB('gen', 2, 5);
+buildB('gen', 9, 4);
 buildB('gen', 12, 4);
-buildB('gen', 14, 7);
-buildB('gen', 16, 7);
+buildB('gen', 15, 7);
+buildB('gen', 14, 5);
+// logística de munición: cargadores + el dron inicial en modo recarga
+key('7'); key('7'); key('7'); key('7');
 // defensa en los cuellos del recorrido
 build('mg', 2, 2);
 build('tesla', 4, 7);
@@ -257,6 +308,7 @@ build('cannon', 14, 8);
 build('mg', 16, 8);
 build('tesla', 16, 6);
 build('sniper', 15, 5);
+assert(S.towers.every(t => !t.offline), 'todos los mechas quedaron dentro del radio de un generador');
 // mejora todo a nivel 3
 S.towers.slice().forEach(t => {
   selectTile(t.c, t.r);
@@ -265,19 +317,25 @@ S.towers.slice().forEach(t => {
 assert(S.towers.every(t => t.level === 3), 'todas las torres a nivel 3');
 const partsPreCampaign = S.parts;
 
-let sawBoss = false;
+let sawBoss = false, sawElite = false, sawFlier = false, sawTowerHurt = false;
 while (S.phase === 'build' && S.wave < D.WAVES.length) {
   byId.startBtn.click();
   const w = S.wave;
   for (let i = 0; i < 300 * 60 && S.phase === 'wave'; i++) {
     step(1);
-    if (S.enemies.some(e => e.type === 'boss')) sawBoss = true;
+    if (!sawBoss && S.enemies.some(e => e.type === 'boss')) sawBoss = true;
+    if (!sawElite && S.enemies.some(e => e.elite)) sawElite = true;
+    if (!sawFlier && S.enemies.some(e => e.flying && e.path.length === 2)) sawFlier = true;
+    if (!sawTowerHurt && S.towers.some(t => t.hp < t.maxHp)) sawTowerHurt = true;
   }
   if (S.phase === 'wave') throw new Error('oleada ' + w + ' atascada');
   console.log('    oleada ' + w + ' superada · vidas ' + S.lives + ' · $' + S.money +
-    ' · ⚙' + S.parts + ' · edificios ' + S.buildings.length);
+    ' · ⚙' + S.parts + ' · mechas ' + S.towers.length + ' · unidades ' + S.units.length);
 }
 assert(sawBoss, 'la Nodriza apareció en la oleada 10');
+assert(sawElite, 'aparecieron variantes de élite en oleadas avanzadas');
+assert(sawFlier, 'las avispas tomaron el atajo aéreo');
+assert(sawTowerHurt, 'los bichos dañaron a los mechas (mordiscos / escupitajos)');
 assert(S.phase === 'won', 'campaña completa: fase final = ' + S.phase);
 assert(S.lives > 0, 'victoria con vidas restantes (' + S.lives + ')');
 assert(S.parts > partsPreCampaign, 'los bichos duros soltaron partes ⚙ (' + partsPreCampaign + ' → ' + S.parts + ')');
@@ -285,7 +343,7 @@ assert(S.parts > partsPreCampaign, 'los bichos duros soltaron partes ⚙ (' + pa
 console.log('— Derrota por fugas y mordiscos —');
 byId.restartBtn.click();
 assert(S.phase === 'build' && S.wave === 0 && S.towers.length === 0 &&
-  S.buildings.length === 2 && S.parts === 0, 'reinicio limpia todo el estado');
+  S.buildings.length === 2 && S.units.length === 1 && S.parts === 0, 'reinicio limpia todo el estado');
 let guard = 0;
 while (S.phase === 'build' && guard++ < D.WAVES.length) {
   byId.startBtn.click();
@@ -294,6 +352,6 @@ while (S.phase === 'build' && guard++ < D.WAVES.length) {
 assert(S.phase === 'lost', 'sin defensa se pierde la granja (en la oleada ' + S.wave + ')');
 assert(S.lives === 0, 'las vidas llegan exactamente a 0');
 assert(S.buildings.some(b => b.hp < b.maxHp) || S.buildings.length < 2,
-  'los bichos mordieron los edificios al pasar');
+  'los bichos mordieron la base al pasar');
 
 console.log('\nTODO OK — ' + passed + ' aserciones superadas.');
