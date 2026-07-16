@@ -58,7 +58,7 @@ global.requestAnimationFrame = cb => { rafCb = cb; };
 global.window = global;
 
 // ---------- carga del juego real ----------
-['sprites', 'data', 'audio', 'game'].forEach(name => {
+['sprites', 'data', 'audio', 'core', 'behaviors', 'entities', 'render', 'ui', 'main'].forEach(name => {
   const src = fs.readFileSync(path.join(__dirname, '..', 'js', name + '.js'), 'utf8');
   eval(src); // eslint-disable-line no-eval
 });

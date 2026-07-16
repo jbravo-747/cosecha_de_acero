@@ -96,3 +96,14 @@ js/game.js      — motor: estado, bucle, entidades, input, render
   (además del dinero).
 - **Pausa**: botón dedicado en el panel además de la tecla [P]; congela
   oleada, cuenta atrás y bichos.
+
+## 9. Refactor: arquitectura modular ✔
+
+`game.js` se partió en módulos IIFE comunicados por `window.G` (sin build,
+se conserva el doble clic en `index.html`): `core.js` (estado + helpers),
+`behaviors.js` (tablas `ENEMY_BEHAVIORS` y `WEAPONS` componibles),
+`entities.js` (motor), `render.js`, `ui.js` y `main.js`. Los enemigos
+declaran sus comportamientos en `data.js` (`behaviors: ['biter', 'spawner']`)
+y las armas se resuelven por `proj` en la tabla `WEAPONS`; añadir tipos
+nuevos ya no toca el motor. Las pantallas de fin se sincronizan con
+`S.phase` desde la UI (el motor no conoce el DOM).

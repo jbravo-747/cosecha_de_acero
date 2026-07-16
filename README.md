@@ -67,12 +67,24 @@ HTML5 Canvas + JavaScript vanilla, cero dependencias. Pixel art definido como
 matrices de caracteres (`js/sprites.js`), tiles procedurales con RNG con
 semilla, y efectos de sonido sintetizados con WebAudio (`js/audio.js`).
 
+Arquitectura modular sin build: cada archivo es un IIFE y los módulos se
+comunican por el espacio compartido `window.G`, en orden de carga:
+
 ```
-index.html      layout, panel de UI, overlays
-js/sprites.js   paleta + sprites + tiles
-js/data.js      balance: torres, enemigos, oleadas, mapa
-js/audio.js     sintetizador de efectos
-js/game.js      motor del juego
+index.html        layout, panel de UI, overlays
+js/sprites.js     paleta + sprites + tiles
+js/data.js        balance: torres, enemigos, oleadas, edificios, mapa
+js/audio.js       sintetizador de efectos
+js/core.js        estado, camino, helpers compartidos (G)
+js/behaviors.js   comportamientos de enemigos y armas (tablas componibles)
+js/entities.js    motor: colocación, oleadas, daño, update()
+js/render.js      fondo pre-horneado + dibujado del frame
+js/ui.js          panel lateral, overlays e input
+js/main.js        bucle principal
 ```
+
+Para añadir un enemigo o arma nueva: define sus datos en `data.js` y, si
+necesita lógica propia, una entrada en las tablas de `behaviors.js`
+(`ENEMY_BEHAVIORS` / `WEAPONS`) — el motor no se toca.
 
 El diseño completo está en [PLAN.md](PLAN.md).

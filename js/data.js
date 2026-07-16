@@ -55,14 +55,18 @@
 
   // ---------- enemigos ----------
   // bDmg: daño por mordisco a edificios · drop: partes que suelta al morir
+  // behaviors: comportamientos componibles definidos en behaviors.js
   var ENEMIES = {
-    drone:   { name: 'Dron',       hp: 30,   speed: 55, bounty: 8,   dmg: 1,  armor: 0, size: 7,  sprite: 'drone',   bDmg: 3 },
-    wasp:    { name: 'Avispa',     hp: 24,   speed: 98, bounty: 10,  dmg: 1,  armor: 0, size: 6,  sprite: 'wasp',    bDmg: 2 },
+    drone:   { name: 'Dron',       hp: 30,   speed: 55, bounty: 8,   dmg: 1,  armor: 0, size: 7,  sprite: 'drone',   bDmg: 3,
+               behaviors: ['biter'] },
+    wasp:    { name: 'Avispa',     hp: 24,   speed: 98, bounty: 10,  dmg: 1,  armor: 0, size: 6,  sprite: 'wasp',    bDmg: 2,
+               behaviors: ['biter'] },
     spitter: { name: 'Escupidor',  hp: 78,   speed: 44, bounty: 15,  dmg: 2,  armor: 0, size: 8,  sprite: 'spitter', bDmg: 6,
-               drop: { chance: 0.3, n: 1 } },
+               behaviors: ['biter'], drop: { chance: 0.3, n: 1 } },
     scarab:  { name: 'Escarabajo', hp: 300,  speed: 27, bounty: 34,  dmg: 3,  armor: 6, size: 9,  sprite: 'scarab',  bDmg: 12,
-               drop: { chance: 1, n: 1 } },
+               behaviors: ['biter'], drop: { chance: 1, n: 1 } },
     boss:    { name: 'NODRIZA',    hp: 3400, speed: 15, bounty: 500, dmg: 20, armor: 8, size: 14, sprite: 'boss',    bDmg: 30,
+               behaviors: ['biter', 'spawner'],
                spawnEvery: 4.5, spawnType: 'drone', spawnCount: 2,
                drop: { chance: 1, n: 10 } }
   };
