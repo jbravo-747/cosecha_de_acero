@@ -57,7 +57,7 @@
     return {
       kind: 'bldg', type: type, c: c, r: r,
       x: c * TILE + TILE / 2, y: r * TILE + TILE / 2,
-      hp: def.hp, maxHp: def.hp, invested: def.cost, flash: 0
+      hp: def.hp, maxHp: def.hp, invested: def.cost, flash: 0, sy: 1
     };
   }
 
@@ -73,7 +73,7 @@
       state: 'idle',             // idle | go | load | back | restock
       target: null, post: null,
       ammo: def.ammo || 0, cd: 0, t: 0,
-      animT: Math.random(), flash: 0
+      animT: Math.random(), flash: 0, sy: 1
     };
   }
 
@@ -93,7 +93,8 @@
     S.units = D.START_UNITS.map(function (t) { return makeUnit(t, true); });
     S.projectiles = [];
     S.eShots = [];             // proyectiles enemigos (escupitajos)
-    S.effects = [];            // rayos, trazadoras
+    S.effects = [];            // rayos, trazadoras, anillos, cadáveres
+    S.tweens = [];             // animaciones en curso (anim.js)
     S.particles = [];
     S.floaters = [];
     S.decals = [];

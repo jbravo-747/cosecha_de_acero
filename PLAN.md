@@ -167,7 +167,25 @@ js/game.js      — motor: estado, bucle, entidades, input, render
   derribar los campos de fuerza a distancia antes que a cualquier otro
   objetivo en su rango.
 
-## 14. Refactor: arquitectura modular ✔
+## 14. Sistema de animaciones ✔
+
+`js/anim.js`: motor de tweens (`G.tween(obj, prop, from, to, dur, ease)`
+con easing linear/outQuad/outBack) que avanza con el reloj del juego (la
+pausa lo congela), más efectos empaquetados en `G.fx`:
+
+- `pop(o)` — despliegue: mechas, edificios y unidades brotan del suelo
+  con rebote (tween de `sy` con outBack) y polvo.
+- `ring(x, y, r, color)` — anillo de onda expansiva: visualiza el radio
+  real de bombardeos, autodestrucciones y kamikazes; también celebra
+  mejoras, recargas, reparaciones y drones de regalo, y avisa fugas al
+  granero y campos rotos.
+- `die(e)` — cadáver del bicho: el sprite se encoge y desvanece donde cayó.
+
+Detalles de vida: respiración idle de los mechas, retroceso al disparar,
+polvo bajo las pisadas al moverse, vaivén de vuelo del dron y pulso
+púrpura del portal mientras siga escupiendo bichos.
+
+## 15. Refactor: arquitectura modular ✔
 
 `game.js` se partió en módulos IIFE comunicados por `window.G` (sin build,
 se conserva el doble clic en `index.html`): `core.js` (estado + helpers),

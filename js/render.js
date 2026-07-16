@@ -103,6 +103,17 @@
 
     var i;
 
+    // el portal pulsa mientras siga escupiendo bichos
+    if (S.phase === 'wave' && S.spawnQueue.length) {
+      var pp = 12 + 4 * Math.sin(performance.now() / 110);
+      ctx.globalAlpha = 0.5 + 0.3 * Math.sin(performance.now() / 70);
+      ctx.strokeStyle = '#c65fd1';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(8, 110, pp, 0, Math.PI * 2); ctx.stroke();
+      ctx.lineWidth = 1;
+      ctx.globalAlpha = 1;
+    }
+
     // manchas de bicho y escombros
     for (i = 0; i < S.decals.length; i++) {
       var dc = S.decals[i];
@@ -192,10 +203,13 @@
     for (i = 0; i < S.buildings.length; i++) {
       var b = S.buildings[i];
       var bspr = SP.buildings[b.type];
+      var bh2 = bspr.height * 2;
+      var bscl = b.sy === undefined ? 1 : Math.max(0, b.sy);
       if (b.flash > 0) {
         ctx.globalAlpha = 0.6 + 0.4 * Math.random();  // parpadea al recibir daño
       }
-      ctx.drawImage(bspr, b.x - 16, b.r * TILE + TILE - 2 - bspr.height * 2, 32, bspr.height * 2);
+      ctx.drawImage(bspr, b.x - 16,
+        b.r * TILE + TILE - 2 - bh2 + bh2 * (1 - bscl), 32, bh2 * bscl);
       ctx.globalAlpha = 1;
       // barra de vida del edificio
       if (b.hp < b.maxHp) {
@@ -226,14 +240,20 @@
       }
     }
 
-    // torres (el sprite cambia con el nivel)
+    // torres (el sprite cambia con el nivel; despliegue, idle y retroceso)
     for (i = 0; i < S.towers.length; i++) {
       var t = S.towers[i];
       var spr = SP.mechLevels[t.type][t.level - 1];
-      var sy = t.moving ? t.y + TILE / 2 - 2 - spr.height * 2 +
-        Math.sin(t.x * 0.4) * 1.5 : t.r * TILE + TILE - 2 - spr.height * 2;
+      var h2 = spr.height * 2;
+      var scl = t.sy === undefined ? 1 : Math.max(0, t.sy);
+      var idle = (!t.moving && scl === 1)
+        ? Math.sin(performance.now() / 420 + t.c * 1.3) * 1 : 0;
+      var rx = t.flash > 0 ? -Math.cos(t.angle) * 1.5 : 0;   // retroceso
+      var baseY = t.moving
+        ? t.y + TILE / 2 - 2 - h2 + Math.sin(t.x * 0.4) * 1.5
+        : t.r * TILE + TILE - 2 - h2;
       if (t.offline || t.flash > 0) ctx.globalAlpha = t.flash > 0 ? 0.75 : 0.45;
-      ctx.drawImage(spr, t.x - 16, sy, 32, spr.height * 2);
+      ctx.drawImage(spr, t.x - 16 + rx, baseY + h2 * (1 - scl) + idle, 32, h2 * scl);
       ctx.globalAlpha = 1;
       if (t.offline && !t.moving) {
         ctx.font = 'bold 9px monospace';
@@ -304,9 +324,12 @@
       var u = S.units[i];
       var uframes = SP.units[u.type];
       var ufr = uframes[((u.animT * 6) | 0) % 2];
-      var uw = ufr.width * 1.5, uh = ufr.height * 1.5;
+      var uscl = u.sy === undefined ? 1 : Math.max(0.05, u.sy);
+      var uw = ufr.width * 1.5 * uscl, uh = ufr.height * 1.5 * uscl;
+      var hover = u.type === 'drone'
+        ? Math.sin(performance.now() / 280 + u.x * 0.05) * 1.5 - 6 : 0;
       if (u.flash > 0) ctx.globalAlpha = 0.6 + 0.4 * Math.random();
-      ctx.drawImage(ufr, u.x - uw / 2, u.y - uh / 2 - (u.type === 'drone' ? 6 : 0), uw, uh);
+      ctx.drawImage(ufr, u.x - uw / 2, u.y - uh / 2 + hover, uw, uh);
       ctx.globalAlpha = 1;
       if (u.hp < u.maxHp) {
         ctx.fillStyle = '#12100e';
@@ -435,6 +458,26 @@
         ctx.beginPath(); ctx.arc(fx.x, fx.y, fx.r, fx.a - 0.8, fx.a + 0.8); ctx.stroke();
         ctx.strokeStyle = '#f2d94e'; ctx.lineWidth = 1;
         ctx.beginPath(); ctx.arc(fx.x, fx.y, fx.r - 3, fx.a - 0.6, fx.a + 0.6); ctx.stroke();
+      } else if (fx.kind === 'ring') {
+        // anillo de onda expansiva
+        var rp = 1 - fx.life / fx.max;
+        ctx.strokeStyle = fx.color; ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(fx.x, fx.y, fx.r0 + (fx.r1 - fx.r0) * rp, 0, Math.PI * 2);
+        ctx.stroke();
+      } else if (fx.kind === 'die') {
+        // cadáver que se encoge y desvanece
+        var dp = fx.life / fx.max;
+        var dframes = SP.enemies[fx.spr];
+        var dfr = dframes[0];
+        var dsc = (drawScale[fx.type] || 1.5) * (fx.elite ? 1.2 : 1) * (0.35 + 0.65 * dp);
+        ctx.save();
+        ctx.translate(fx.x, fx.y);
+        ctx.rotate(fx.angle + Math.PI / 2);
+        ctx.globalAlpha = dp * 0.9;
+        ctx.drawImage(dfr, -dfr.width * dsc / 2, -dfr.height * dsc * dp / 2,
+          dfr.width * dsc, dfr.height * dsc * dp);
+        ctx.restore();
       } else {
         ctx.strokeStyle = '#f2d94e'; ctx.lineWidth = 1.5;
         ctx.beginPath(); ctx.moveTo(fx.x1, fx.y1); ctx.lineTo(fx.x2, fx.y2); ctx.stroke();

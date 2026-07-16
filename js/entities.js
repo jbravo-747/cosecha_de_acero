@@ -53,7 +53,10 @@
       var bdef = D.BUILDINGS[S.placing];
       if (!G.canBuild(c, r) || S.money < bdef.cost) return;
       S.money -= bdef.cost;
-      S.buildings.push(G.makeBuilding(S.placing, c, r));
+      var nb = G.makeBuilding(S.placing, c, r);
+      S.buildings.push(nb);
+      G.fx.pop(nb);
+      G.burst(nb.x, nb.y + 8, '#9a7a44', 8, 55);
       G.floater(c * TILE + TILE / 2, r * TILE, '-$' + bdef.cost, '#e05545');
       AU.build();
       G.recomputePower();
@@ -64,14 +67,17 @@
     if (!G.canBuild(c, r) || S.money < def.cost) return;
     if (!G.shopAlive() || S.energyUsed + def.energy > S.energyCap) return;
     S.money -= def.cost;
-    S.towers.push({
+    var nt = {
       kind: 'tower', type: S.placing, c: c, r: r,
       x: c * TILE + TILE / 2, y: r * TILE + TILE / 2,
       level: 1, invested: def.cost, cd: 0, angle: -Math.PI / 2,
       hp: def.hp, maxHp: def.hp, ammo: def.ammo,
       moving: false, moveCd: 0, tx: 0, ty: 0, incoming: null,
-      flash: 0, offline: false
-    });
+      flash: 0, offline: false, sy: 1
+    };
+    S.towers.push(nt);
+    G.fx.pop(nt);
+    G.burst(nt.x, nt.y + 8, '#9a7a44', 8, 55);
     G.recomputePower();
     G.floater(c * TILE + TILE / 2, r * TILE, '-$' + def.cost, '#e05545');
     AU.build();
@@ -99,7 +105,9 @@
     var def = D.UNITS[key];
     if (S.money < def.cost) { AU.click(); return; }
     S.money -= def.cost;
-    S.units.push(G.makeUnit(key, false));
+    var nu = G.makeUnit(key, false);
+    S.units.push(nu);
+    G.fx.pop(nu);
     G.floater(D.BARN_POS.x, D.BARN_POS.y - 14, def.name + ' LISTO', '#8ac94a');
     AU.build();
   }
@@ -143,6 +151,7 @@
     t.ammo = st.maxAmmo;        // y con el cargador lleno
     G.recomputePower();         // los campos escalan con el nivel del pilón
     G.burst(t.x, t.y, '#f2d94e', 12, 60);
+    G.fx.ring(t.x, t.y - 6, 26, '#f2d94e');
     G.floater(t.x, t.y - 10, 'NIVEL ' + t.level, '#8ac94a');
     AU.build();
   }
@@ -201,6 +210,7 @@
   }
 
   function explodeBomb(bm) {
+    G.fx.ring(bm.x, bm.y, D.BOMB.radius, '#e8912a', 0.55);
     for (var j = 0; j < S.enemies.length; j++) {
       var o = S.enemies[j];
       if (!o.dead && G.dist2(bm.x, bm.y, o.x, o.y) <= D.BOMB.radius * D.BOMB.radius) {
@@ -239,6 +249,7 @@
   function detonateNow(o) {
     removeEntity(o);
     var bs = boomStats(o), j;
+    G.fx.ring(o.x, o.y, bs.r, '#e8912a', 0.5);
     G.burst(o.x, o.y, '#e8912a', 22, 150);
     G.burst(o.x, o.y, '#f2d94e', 12, 120);
     G.burst(o.x, o.y, '#454c52', 12, 90);
@@ -362,6 +373,7 @@
   // explosión de un bicho kamikaze: daña a la defensa y puede encadenar
   function enemyBoom(e) {
     var bm = e.def.boom;
+    G.fx.ring(e.x, e.y, bm.r, '#e8912a', 0.45);
     G.burst(e.x, e.y, '#e8912a', 18, 130);
     G.burst(e.x, e.y, '#9ee34a', 10, 90);
     S.decals.push({ x: e.x, y: e.y, life: 18, size: 10, rubble: true });
@@ -387,6 +399,7 @@
     e.hp -= Math.max(1, dmg - e.def.armor);
     if (e.hp <= 0) {
       e.dead = true;
+      G.fx.die(e);                    // el cadáver se desvanece donde cayó
       if (e.def.boom) enemyBoom(e);   // matarlo de cerca también cuesta
       S.money += e.bounty;
       G.floater(e.x, e.y - 8, '+$' + e.bounty);
@@ -416,6 +429,7 @@
       // el campo se rompe pero los pilones lo regeneran
       o.hp = 0;
       o.downT = D.FIELD.regen;
+      G.fx.ring(o.x, o.y, 34, '#6ab0e8', 0.4);
       G.burst(o.x, o.y, '#6ab0e8', 14, 110);
       G.floater(o.x, o.y - 10, '¡CAMPO ROTO!', '#6ab0e8');
       AU.zap();
@@ -552,6 +566,7 @@
           tg2.ammo = G.towerStats(tg2).maxAmmo;
           tg2.hp = tg2.maxHp;              // servicio completo: también repara
           tg2.incoming = null;
+          G.fx.ring(tg2.x, tg2.y - 6, 18, repaired ? '#8ac94a' : '#f2d94e', 0.3);
           G.floater(tg2.x, tg2.y - 16, repaired ? '+MUNICIÓN +REPARADO' : '+MUNICIÓN', '#f2d94e');
           AU.coin();
         }
@@ -660,6 +675,7 @@
       if (e.wp >= e.path.length) {
         // llegó al granero
         S.lives -= e.def.dmg;
+        G.fx.ring(D.BARN_POS.x, D.BARN_POS.y + 16, 30, '#e05545', 0.5);
         S.hurtFlash = 0.35;
         S.shake = Math.max(S.shake, 0.2);
         S.enemies.splice(i, 1);
@@ -683,6 +699,11 @@
       if (t.flash > 0) t.flash -= dt;
       t.cd -= dt;
       if (t.moving) {
+        t.dustT = (t.dustT || 0) - dt;
+        if (t.dustT <= 0) {      // polvo bajo las pisadas
+          t.dustT = 0.13;
+          G.burst(t.x, t.y + 12, '#9a7a44', 2, 28);
+        }
         if (moveTo(t, t.tx, t.ty, MOVE_SPEED, dt)) {
           t.moving = false;
           t.moveCd = D.MOVE_CD;
@@ -719,7 +740,10 @@
       var nDrones = 0;
       for (i = 0; i < S.units.length; i++) if (S.units[i].type === 'drone') nDrones++;
       if (nDrones < D.DRONE_CAP) {
-        S.units.push(G.makeUnit('drone', true));
+        var gu = G.makeUnit('drone', true);
+        S.units.push(gu);
+        G.fx.pop(gu);
+        G.fx.ring(D.BARN_POS.x, D.BARN_POS.y, 24, '#6ab0e8', 0.5);
         G.floater(D.BARN_POS.x, D.BARN_POS.y - 16, '¡DRON DE APOYO GRATIS!', '#6ab0e8');
         AU.coin();
       }
@@ -804,6 +828,9 @@
         q.y += qdy / qd * qs;
       }
     }
+
+    // animaciones (tweens)
+    G.updateTweens(dt);
 
     // efectos / partículas / flotantes / manchas
     for (i = S.effects.length - 1; i >= 0; i--) {

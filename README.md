@@ -122,15 +122,16 @@ Arquitectura modular sin build: cada archivo es un IIFE y los módulos se
 comunican por el espacio compartido `window.G`, en orden de carga:
 
 ```
-index.html        layout, panel de UI, overlays
+index.html        layout, HUD, consola de mando, overlays
 js/sprites.js     paleta + sprites + tiles
 js/data.js        balance: torres, enemigos, oleadas, edificios, mapa
 js/audio.js       sintetizador de efectos
-js/core.js        estado, camino, helpers compartidos (G)
+js/core.js        estado, camino, energía, campos, helpers compartidos (G)
+js/anim.js        motor de tweens + efectos (despliegue, anillos, cadáveres)
 js/behaviors.js   comportamientos de enemigos y armas (tablas componibles)
-js/entities.js    motor: colocación, oleadas, daño, update()
+js/entities.js    motor: colocación, oleadas, daño, unidades, update()
 js/render.js      fondo pre-horneado + dibujado del frame
-js/ui.js          panel lateral, overlays e input
+js/ui.js          HUD, consola contextual e input
 js/main.js        bucle principal
 ```
 

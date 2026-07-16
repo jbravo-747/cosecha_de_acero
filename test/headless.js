@@ -58,7 +58,7 @@ global.requestAnimationFrame = cb => { rafCb = cb; };
 global.window = global;
 
 // ---------- carga del juego real ----------
-['sprites', 'data', 'audio', 'core', 'behaviors', 'entities', 'render', 'ui', 'main'].forEach(name => {
+['sprites', 'data', 'audio', 'core', 'anim', 'behaviors', 'entities', 'render', 'ui', 'main'].forEach(name => {
   const src = fs.readFileSync(path.join(__dirname, '..', 'js', name + '.js'), 'utf8');
   eval(src); // eslint-disable-line no-eval
 });
@@ -289,6 +289,16 @@ S.eShots.length = 0;
 S.enemies.length = 0;
 [[2, 4], [4, 4]].forEach(([c, r]) => { selectTile(c, r); byId.sellBtn.click(); });
 assert(S.fields.length === 0, 'sin pilones no hay campo');
+
+console.log('— Sistema de animaciones (tweens) —');
+const twObj = { v: 0 };
+G.tween(twObj, 'v', 0, 10, 0.5, 'linear');
+step(15);   // 0.25s de los 0.5s
+assert(twObj.v > 3 && twObj.v < 8, 'el tween interpola en el tiempo (' + twObj.v.toFixed(1) + ')');
+step(30);
+assert(twObj.v === 10, 'el tween aterriza exacto en el destino');
+assert(S.towers.every(t => t.sy === 1),
+  'los mechas terminan su animación de despliegue en escala 1');
 S.buildT = D.BUILD_TIME;
 
 console.log('— Voladores: las avispas van directo al granero —');
