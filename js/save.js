@@ -37,7 +37,8 @@
       units: S.units.map(function (u) {
         return { type: u.type, mode: u.mode, invested: u.invested,
           ammo: u.ammo, hp: Math.round(u.hp) };
-      })
+      }),
+      mines: S.mines.map(function (m) { return { c: m.c, r: m.r }; })
     };
     try { store.setItem(KEY, JSON.stringify(data)); } catch (e) {}
   }
@@ -95,6 +96,10 @@
         moving: false, moveCd: 0, tx: 0, ty: 0, incoming: null,
         flash: 0, offline: false, sy: 1
       };
+    });
+    S.mines = (d.mines || []).map(function (m) {
+      return { c: m.c, r: m.r, x: m.c * TILE + TILE / 2, y: m.r * TILE + TILE / 2,
+        t: Math.random() * 2 };
     });
     S.phase = 'build';
     S.buildT = D.BUILD_TIME;

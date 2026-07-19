@@ -287,7 +287,20 @@ NUEVA PARTIDA lo borran. Tolerante a localStorage bloqueado.
   30%→50%, kamikaze 25%→40%, escarabajo suelta 2, élites 50%→75%, y
   **+1 ⚙ garantizada al superar cada oleada** (chatarra recuperada).
 
-## 23. Refactor: arquitectura modular ✔
+## 23. Identidad visual, Nodriza pausada y minas ✔
+
+- **Un color por mecha** (remapa de paleta en `makeSprite`): COYOTE
+  arena, CERCA-9 azul acero, BISONTE marrón, VIUDA carbón, LEÑADOR
+  verde y SEGADOR turquesa — distinguibles al vistazo.
+- **Nodriza más lenta** (15 → 11 px/s): la pelea final es un asedio con
+  tiempo real de hacerle daño, no un sprint imparable.
+- **MINA** ($40, tecla M): consumible que se entierra **sobre el
+  camino** (tile de camino libre, máx. 8 activas); estalla bajo el
+  primer terrestre que la pisa — 90 de daño en radio 36 ignorando
+  blindaje; los voladores no la activan. El modo colocación permite
+  sembrar varias seguidas y se guardan en la partida.
+
+## 24. Refactor: arquitectura modular ✔
 
 `game.js` se partió en módulos IIFE comunicados por `window.G` (sin build,
 se conserva el doble clic en `index.html`): `core.js` (estado + helpers),

@@ -98,6 +98,8 @@
     makeBtn('unit', key, D.UNITS[key], SP.units[key][0], ['9', '0'][i],
       function () { G.buyUnit(key); });
   });
+  makeBtn('mine', 'mine', D.MINE, SP.mine, 'M',
+    function () { G.startPlacing('mine'); });
 
   // ficha técnica de una tarjeta del arsenal (se muestra en el monitor)
   function cardInfo(kind, key) {
@@ -123,6 +125,14 @@
           : ' &middot; Descuento de mejora: <b>' + Math.round(D.SHOP_DISCOUNT * 100) +
             '%</b> por taller extra') +
         '<br><span class="desc">' + bd.desc + '</span>';
+    }
+    if (kind === 'mine') {
+      var md = D.MINE;
+      return '<span class="name">' + md.name + '</span> — $' + md.cost +
+        '<br>Daño: <b>' + md.dmg + '</b> (ignora blindaje) &middot; Radio: <b>' +
+        md.radius + '</b><br>Solo terrestres &middot; M&aacute;x. activas: <b>' +
+        md.max + '</b>' +
+        '<br><span class="desc">' + md.desc + '</span>';
     }
     var ud = D.UNITS[key];
     return '<span class="name">' + ud.name + '</span> — $' + ud.cost +
@@ -362,6 +372,9 @@
     D.UNIT_ORDER.forEach(function (key) {
       towerBtnEls[key].classList.toggle('poor', S.money < D.UNITS[key].cost);
     });
+    towerBtnEls.mine.classList.toggle('sel', S.placing === 'mine');
+    towerBtnEls.mine.classList.toggle('poor',
+      S.money < D.MINE.cost || S.mines.length >= D.MINE.max);
 
     if (S.selectedU) {
       var un = S.selectedU, udef = D.UNITS[un.type];
@@ -437,6 +450,11 @@
       el.upBtn.disabled = bmax || S.money < blv.cost || S.parts < blv.parts;
       el.upBtn.textContent = bmax ? 'NIVEL MÁX.'
         : 'REFORZAR $' + blv.cost + ' + ' + blv.parts + '⚙';
+      el.sellBtn.disabled = true; el.sellBtn.textContent = 'VENDER';
+    } else if (S.placing === 'mine') {
+      el.info.innerHTML = cardInfo('mine', 'mine') +
+        '<br><span class="desc">Haz clic en un tile del camino para enterrarla.</span>';
+      el.upBtn.disabled = true; el.upBtn.textContent = 'MEJORAR';
       el.sellBtn.disabled = true; el.sellBtn.textContent = 'VENDER';
     } else if (S.placing && G.isBldgKey(S.placing)) {
       var pbdef = D.BUILDINGS[S.placing];
@@ -588,6 +606,7 @@
     else if (k >= '1' && k <= '6') G.startPlacing(D.TOWER_ORDER[+k - 1]);
     else if (k === '7' || k === '8') G.startPlacing(D.BUILDING_ORDER[+k - 7]);
     else if (k === '9' || k === '0') G.buyUnit(D.UNIT_ORDER[k === '9' ? 0 : 1]);
+    else if (k === 'm' || k === 'M') G.startPlacing('mine');
     else if (k === 'b' || k === 'B') G.armBomb();
   });
   el.bombBtn.addEventListener('click', function () { G.armBomb(); });

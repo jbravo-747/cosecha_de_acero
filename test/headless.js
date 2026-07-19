@@ -652,6 +652,30 @@ key('h');
 assert(byId.helpScreen.classList.contains('hidden') && !S.paused,
   'cerrar las instrucciones reanuda el juego');
 
+console.log('— Minas terrestres —');
+byId.newBtn.click(); byId.newBtn.click();   // partida limpia
+S.money = 500;
+key('m');
+canvasClick(2, 3);                          // (2,3) es camino
+assert(S.mines.length === 1 && S.money === 500 - D.MINE.cost,
+  'la mina se entierra en el camino y cuesta $' + D.MINE.cost);
+canvasClick(2, 2);                          // pasto: rechazada
+assert(S.mines.length === 1, 'fuera del camino no se puede enterrar');
+canvasClick(2, 3);                          // tile ya minado: rechazada
+assert(S.mines.length === 1, 'no se apilan dos minas en el mismo tile');
+key('Escape');
+const flier = G.spawnEnemy('wasp', 1, 0, S.mines[0].x, S.mines[0].y);
+step(30);
+assert(S.mines.length === 1, 'los voladores no la activan');
+flier.dead = true; S.enemies.length = 0;
+const stomper = G.spawnEnemy('scarab', 1, 0, S.mines[0].x - 30, S.mines[0].y);
+const stompHp = stomper.hp;
+for (let i = 0; i < 10 * 60 && S.mines.length; i++) step(1);
+assert(S.mines.length === 0, 'el terrestre la pisa y detona');
+assert(stomper.dead || stomper.hp <= stompHp - D.MINE.dmg,
+  'el estallido ignora el blindaje del escarabajo');
+S.enemies.length = 0;
+
 console.log('— Cadenas contenidas: la onda enemiga remata pero no arrasa —');
 byId.newBtn.click(); byId.newBtn.click();   // partida limpia
 S.money += 2000;

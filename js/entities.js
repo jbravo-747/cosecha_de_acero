@@ -25,6 +25,15 @@
 
   function startPlacing(key) {
     if (S.phase !== 'build' && S.phase !== 'wave') return;
+    if (key === 'mine') {
+      if (S.money < D.MINE.cost || S.mines.length >= D.MINE.max) {
+        AU.click(); return;
+      }
+      S.placing = (S.placing === 'mine') ? null : 'mine';
+      clearSelection();
+      AU.click();
+      return;
+    }
     var def = G.isBldgKey(key) ? D.BUILDINGS[key] : D.TOWERS[key];
     if (S.money < def.cost) { AU.click(); return; }
     if (!G.isBldgKey(key)) {
@@ -50,6 +59,18 @@
   }
 
   function tryBuild(c, r) {
+    if (S.placing === 'mine') {
+      if (!G.canPlaceMine(c, r)) return;
+      S.money -= D.MINE.cost;
+      S.mines.push({ c: c, r: r,
+        x: c * TILE + TILE / 2, y: r * TILE + TILE / 2, t: Math.random() * 2 });
+      G.burst(c * TILE + TILE / 2, r * TILE + TILE / 2, '#9a7a44', 8, 55);
+      G.floater(c * TILE + TILE / 2, r * TILE, '-$' + D.MINE.cost, '#e05545');
+      AU.build();
+      // sigue en modo colocación para sembrar varias seguidas
+      if (S.money < D.MINE.cost || S.mines.length >= D.MINE.max) S.placing = null;
+      return;
+    }
     if (G.isBldgKey(S.placing)) {
       var bdef = D.BUILDINGS[S.placing];
       if (!G.canBuild(c, r) || S.money < bdef.cost) return;
@@ -862,6 +883,35 @@
         target: bte, lx: bte.x, ly: bte.y
       });
       AU.shot();
+    }
+
+    // minas: estallan bajo el primer terrestre que las pisa
+    for (i = S.mines.length - 1; i >= 0; i--) {
+      var mn = S.mines[i];
+      mn.t += dt;
+      var tripped = false;
+      for (var mj = 0; mj < S.enemies.length; mj++) {
+        var me = S.enemies[mj];
+        if (!me.dead && !me.flying &&
+            G.dist2(mn.x, mn.y, me.x, me.y) <= D.MINE.trigger * D.MINE.trigger) {
+          tripped = true;
+          break;
+        }
+      }
+      if (!tripped) continue;
+      S.mines.splice(i, 1);
+      G.fx.ring(mn.x, mn.y, D.MINE.radius, '#e8912a', 0.4);
+      G.burst(mn.x, mn.y, '#e8912a', 14, 110);
+      G.burst(mn.x, mn.y, '#9a7a44', 10, 80);
+      S.decals.push({ x: mn.x, y: mn.y, life: 15, size: 8, rubble: true });
+      AU.boom();
+      for (mj = 0; mj < S.enemies.length; mj++) {
+        var me2 = S.enemies[mj];
+        if (!me2.dead && !me2.flying &&
+            G.dist2(mn.x, mn.y, me2.x, me2.y) <= D.MINE.radius * D.MINE.radius) {
+          damageEnemy(me2, D.MINE.dmg + me2.def.armor);   // ignora blindaje
+        }
+      }
     }
 
     // bombardeos en caída

@@ -177,6 +177,10 @@
     var rangeShow = null;
     if (S.selected) {
       rangeShow = { x: S.selected.x, y: S.selected.y, r: G.towerStats(S.selected).range, ok: true };
+    } else if (S.placing === 'mine' && S.hover) {
+      var okM = G.canPlaceMine(S.hover.c, S.hover.r);
+      ctx.strokeStyle = okM ? '#9ee34a' : '#e05545';
+      ctx.strokeRect(S.hover.c * TILE + 1.5, S.hover.r * TILE + 1.5, TILE - 3, TILE - 3);
     } else if (S.placing && S.hover && !G.isBldgKey(S.placing)) {
       var hdef = D.TOWERS[S.placing];
       rangeShow = {
@@ -197,6 +201,17 @@
       ctx.strokeStyle = ctx.fillStyle;
       ctx.beginPath(); ctx.arc(rangeShow.x, rangeShow.y, rangeShow.r, 0, Math.PI * 2); ctx.stroke();
       ctx.globalAlpha = 1;
+    }
+
+    // minas enterradas (luz de armado parpadeante)
+    for (i = 0; i < S.mines.length; i++) {
+      var mn = S.mines[i];
+      ctx.drawImage(SP.mine, mn.x - SP.mine.width, mn.y + 4 - SP.mine.height * 2,
+        SP.mine.width * 2, SP.mine.height * 2);
+      if (((mn.t * 2) | 0) % 2 === 0) {
+        ctx.fillStyle = '#e05545';
+        ctx.fillRect(mn.x - 1, mn.y - 2, 2, 2);
+      }
     }
 
     // edificios de apoyo
@@ -514,7 +529,8 @@
 
     // fantasma de colocación
     if (S.placing && S.hover) {
-      var gs = G.isBldgKey(S.placing) ? SP.buildings[S.placing] : SP.mechs[S.placing];
+      var gs = S.placing === 'mine' ? SP.mine
+        : G.isBldgKey(S.placing) ? SP.buildings[S.placing] : SP.mechs[S.placing];
       ctx.globalAlpha = 0.6;
       ctx.drawImage(gs, S.hover.c * TILE, S.hover.r * TILE + TILE - 2 - gs.height * 2,
         32, gs.height * 2);

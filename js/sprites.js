@@ -618,6 +618,15 @@
     '.kkkk......kkkk.'
   ];
 
+  // mina terrestre: montículo de acero con la luz de armado al centro
+  var MINE_SPR = [
+    '...kkkk...',
+    '..kggggk..',
+    '.kgGooGgk.',
+    'kgGGGGGGgk',
+    'kkkkkkkkkk'
+  ];
+
   // ==========================================================================
   // LA CARA DEL PILOTO (estilo Doom: se magulla con la vida del mecha)
   // ==========================================================================
@@ -727,6 +736,7 @@
       carrier: [makeSprite(CARRIER_A), makeSprite(CARRIER_B)],
       drone:   [makeSprite(ALLY_DRONE_A), makeSprite(ALLY_DRONE_B)]
     },
+    mine: makeSprite(MINE_SPR),
     faces: [makeSprite(FACE_OK), makeSprite(FACE_BRUISED),
             makeSprite(FACE_BLEEDING), makeSprite(FACE_CRITICAL)],
     barn: makeSprite(BARN),

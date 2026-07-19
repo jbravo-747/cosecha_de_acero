@@ -33,6 +33,7 @@ python3 -m http.server 8080
 | `1`–`6` o clic en tarjeta | Elegir mecha para colocar |
 | `7` / `8` | Generador de energía / Taller de ensamblado |
 | `9` / `0` | Reclutar CARGADOR / DRON (salen del granero) |
+| `M` | Enterrar una MINA ($40) en un tile del camino |
 | `H` o botón ? AYUDA | Manual de campo (pausa mientras lees) |
 | Clic en el pasto | Colocar el mecha o edificio |
 | Clic en mecha / edificio / unidad | Seleccionar |
@@ -78,6 +79,16 @@ bicho se les pega, lo aplastan a golpes (sin gastar munición). Se
 casillas alcanzables con **flechas** — y **cambian de aspecto** al subir
 de nivel: hombreras de acero a nivel 2, astas doradas a nivel 3. Mejorar
 cuesta dinero **y partes ⚙** y entrega el mecha reparado y recargado.
+
+Cada mecha viste **su propio color de chasis** (arena, azul, marrón,
+carbón, verde, turquesa) para distinguirlos de un vistazo.
+
+### Minas
+
+La **MINA** ($40, tecla `M`, máx. 8 activas) se entierra en cualquier
+tile libre del camino y revienta al primer bicho **terrestre** que la
+pisa: 90 de daño en área ignorando blindaje. Los voladores ni la ven.
+Barata, sucia y muy de granja.
 
 ### Unidades de apoyo
 

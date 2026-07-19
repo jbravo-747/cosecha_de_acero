@@ -109,6 +109,7 @@
     S.chainQ = [];             // detonaciones en cadena pendientes
     S.confirmBoom = 0;         // temporizador de confirmación de autodestrucción
     S.fields = [];             // campos de fuerza entre pares de CERCA-9
+    S.mines = [];              // minas enterradas en el camino
     S.aimingBomb = false;      // apuntando el especial
     S.hoverPx = null;          // posición exacta del ratón en el canvas
     S.placing = null;          // tipo de torre/edificio en colocación
@@ -225,6 +226,18 @@
     return true;
   }
 
+  // las minas van justo donde nada más puede ir: sobre el camino
+  function mineAt(c, r) {
+    for (var i = 0; i < S.mines.length; i++) {
+      if (S.mines[i].c === c && S.mines[i].r === r) return S.mines[i];
+    }
+    return null;
+  }
+  function canPlaceMine(c, r) {
+    return !!pathCells[c + ',' + r] && !mineAt(c, r) &&
+      S.money >= D.MINE.cost && S.mines.length < D.MINE.max;
+  }
+
   // los edificios deben ir pegados al camino (ahí los muerden los bichos)
   function nearPath(c, r) {
     for (var dc = -1; dc <= 1; dc++) {
@@ -327,6 +340,8 @@
   G.towerAt = towerAt;
   G.buildingAt = buildingAt;
   G.canBuild = canBuild;
+  G.mineAt = mineAt;
+  G.canPlaceMine = canPlaceMine;
   G.nearPath = nearPath;
   G.isBldgKey = isBldgKey;
   G.towerStats = towerStats;
