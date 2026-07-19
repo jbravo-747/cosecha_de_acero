@@ -51,10 +51,12 @@
   .gauge.parts b{color:#c65fd1; text-shadow:0 0 8px rgba(198,95,209,.5);}
 
   /* ================= mapa ================= */
+  /* el mapa se pega al arsenal: la acción y las tarjetas juntas */
   #stage{
-    position:relative; flex:1; min-width:0;
-    display:flex; align-items:center; justify-content:center;
+    flex:1; min-width:0;
+    display:flex; align-items:center; justify-content:flex-start;
   }
+  #stageBox{position:relative; display:flex;}
   #game{
     image-rendering:pixelated; image-rendering:crisp-edges;
     border:3px solid var(--edge); border-radius:6px;
@@ -290,6 +292,7 @@
     <div class="towers" id="towerBtns"></div>
   </div>
   <div id="stage">
+    <div id="stageBox">
     <canvas id="game" width="640" height="384"></canvas>
 
     <div id="title" class="overlay">
@@ -365,6 +368,7 @@
         [Espacio] paga +$2 por segundo restante.
       </div>
       <button id="helpClose">CERRAR [H]</button>
+    </div>
     </div>
   </div>
   </div>
