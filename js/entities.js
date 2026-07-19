@@ -216,7 +216,7 @@
     S.parts -= lv.parts;
     S.barnLevel++;
     S.lives += lv.lives;
-    var m = D.BARN_UP.mounts[S.barnLevel - 2];
+    var m = D.BARN_UP.mounts[S.barnLevel - 1];
     S.barnGuns.push({ x: m.x, y: m.y, cd: 0, gunA: -Math.PI / 2, gflash: 0,
       stats: lv.turret });
     G.fx.ring(D.BARN_POS.x, D.BARN_POS.y - 10, 42, '#f2d94e');

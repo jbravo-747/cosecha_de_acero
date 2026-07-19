@@ -64,10 +64,11 @@
     S.endless = !!d.endless;
     S.giftT = d.giftT || D.DRONE_GIFT;
     S.bombCd = d.bombCd || 0;
-    // remontar las torretas del granero según el nivel guardado
+    // remontar las torretas del granero según el nivel guardado (la de
+    // serie ya la puso resetState)
     S.barnLevel = d.barn || 1;
     for (var gi = 0; gi < S.barnLevel - 1; gi++) {
-      var m = D.BARN_UP.mounts[gi];
+      var m = D.BARN_UP.mounts[gi + 1];
       S.barnGuns.push({ x: m.x, y: m.y, cd: 0, gunA: -Math.PI / 2, gflash: 0,
         stats: D.BARN_UP.levels[gi].turret });
     }

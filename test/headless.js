@@ -621,7 +621,8 @@ assert(S.phase === 'build' && S.wave === 0 && S.money === D.START_MONEY &&
   S.towers.length === 0 && S.units.length === 1, 'confirmar reinicia la partida al vuelo');
 
 console.log('— El granero se refuerza —');
-assert(S.barnLevel === 1 && S.barnGuns.length === 0, 'el granero arranca en nivel 1 sin torretas');
+assert(S.barnLevel === 1 && S.barnGuns.length === 1,
+  'el granero arranca en nivel 1 con su torreta de serie');
 canvasClick(19, 6);   // esquina lejos del dron que ronda la puerta
 assert(S.selectedBarn === true, 'clic en el granero lo selecciona');
 const lvB = D.BARN_UP.levels[0];
@@ -631,7 +632,7 @@ S.parts += lvB.parts;
 byId.upBtn.click();
 assert(S.barnLevel === 2 && S.lives === lB + lvB.lives,
   'reforzar sube el granero a nivel 2 y da +' + lvB.lives + ' vidas');
-assert(S.barnGuns.length === 1, 'el refuerzo monta una torreta en el techo');
+assert(S.barnGuns.length === 2, 'el refuerzo monta una torreta más en el techo');
 assert(S.money === mB && S.parts === 0, 'el refuerzo cobra dinero y partes ⚙');
 key('Escape');
 assert(S.selectedBarn === false, 'Esc deselecciona el granero');

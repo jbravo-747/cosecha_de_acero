@@ -300,7 +300,13 @@ NUEVA PARTIDA lo borran. Tolerante a localStorage bloqueado.
   blindaje; los voladores no la activan. El modo colocación permite
   sembrar varias seguidas y se guardan en la partida.
 
-## 24. Refactor: arquitectura modular ✔
+## 24. Torreta de serie en el granero ✔
+
+- El granero arranca con una **torreta básica** montada (daño 6, rango
+  100): la última línea de defensa nunca está indefensa. Los refuerzos
+  de nivel 2 y 3 añaden sus torretas encima, hasta 3 en total.
+
+## 25. Refactor: arquitectura modular ✔
 
 `game.js` se partió en módulos IIFE comunicados por `window.G` (sin build,
 se conserva el doble clic en `index.html`): `core.js` (estado + helpers),

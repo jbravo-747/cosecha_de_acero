@@ -118,7 +118,9 @@
     S.selectedU = null;        // unidad seleccionada
     S.selectedBarn = false;    // granero seleccionado
     S.barnLevel = 1;           // nivel del granero
-    S.barnGuns = [];           // torretas montadas en el techo del granero
+    // torretas del techo: el granero trae una de serie desde el arranque
+    S.barnGuns = [{ x: D.BARN_UP.mounts[0].x, y: D.BARN_UP.mounts[0].y,
+      cd: 0, gunA: -Math.PI / 2, gflash: 0, stats: D.BARN_UP.baseTurret }];
     S.hover = null;            // {c, r}
     S.hurtFlash = 0;
     S.shake = 0;

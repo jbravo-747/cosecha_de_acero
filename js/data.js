@@ -197,7 +197,9 @@
   // en el techo (la del nivel 3 es más potente que la del 2)
   var BARN_UP = {
     maxLevel: 3,
-    mounts: [{ x: 590, y: 138 }, { x: 622, y: 138 }],
+    // el primer soporte es la torreta de serie; los otros dos, refuerzos
+    mounts: [{ x: 606, y: 132 }, { x: 590, y: 140 }, { x: 622, y: 140 }],
+    baseTurret: { range: 100, dmg: 6, rof: 0.5, projSpeed: 320 },
     levels: [   // refuerzo a nivel 2 y 3
       { cost: 300, parts: 2, lives: 5,
         turret: { range: 120, dmg: 10, rof: 0.45, projSpeed: 340 } },
