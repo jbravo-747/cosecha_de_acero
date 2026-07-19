@@ -469,12 +469,14 @@ assert(S.units.filter(u => u.type === 'drone').length === D.DRONE_CAP,
 console.log('— Menú contextual de la consola —');
 selectTile(5, 5);
 step(1);
-assert(byId.towerBtns.classList.contains('hidden') && !byId.ctxPanel.classList.contains('hidden'),
-  'al seleccionar, el arsenal cede su lugar al menú contextual');
+assert(!byId.ctxPanel.classList.contains('hidden') && byId.ctxIdle.classList.contains('hidden'),
+  'al seleccionar aparece el menú contextual en la consola');
+assert(!byId.towerBtns.classList.contains('hidden'),
+  'el arsenal lateral sigue visible con algo seleccionado');
 key('Escape');
 step(1);
-assert(!byId.towerBtns.classList.contains('hidden') && byId.ctxPanel.classList.contains('hidden'),
-  'al deseleccionar vuelve el arsenal');
+assert(byId.ctxPanel.classList.contains('hidden') && !byId.ctxIdle.classList.contains('hidden'),
+  'al deseleccionar la consola queda en espera');
 
 console.log('— Autodestrucción y explosión en cadena —');
 S.money += 500;
@@ -601,7 +603,7 @@ assert(S.phase === 'build' && S.wave === 0 && S.money === D.START_MONEY &&
 
 console.log('— El granero se refuerza —');
 assert(S.barnLevel === 1 && S.barnGuns.length === 0, 'el granero arranca en nivel 1 sin torretas');
-canvasClick(18, 5);
+canvasClick(19, 6);   // esquina lejos del dron que ronda la puerta
 assert(S.selectedBarn === true, 'clic en el granero lo selecciona');
 const lvB = D.BARN_UP.levels[0];
 const mB = S.money, lB = S.lives;

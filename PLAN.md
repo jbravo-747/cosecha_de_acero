@@ -220,7 +220,20 @@ NUEVA PARTIDA lo borran. Tolerante a localStorage bloqueado.
   autodestrucción. El nivel se guarda en la partida.
 - **Ingreso pasivo**: cada taller produce $2 cada 6 s mientras siga en pie.
 
-## 18. Refactor: arquitectura modular ✔
+## 18. Cabina de una sola pantalla ✔
+
+- **Todo cabe sin scroll** en una pantalla estándar: el `body` fija
+  `100vh`, el canvas se escala por JS (`fitCanvas`) al hueco disponible
+  y en pantallas angostas (≤760 px) se vuelve al flujo vertical con
+  scroll.
+- **Arsenal vertical**: las 9 tarjetas viven en una columna lateral
+  izquierda, siempre visibles.
+- **Consola solo contextual**: la ranura inferior izquierda es el panel
+  CONTROL (menú contextual de lo seleccionado o nota de espera); el
+  mando se adelgazó (el hint largo se fue al manual de campo, NUEVA
+  PARTIDA y AYUDA comparten fila).
+
+## 19. Refactor: arquitectura modular ✔
 
 `game.js` se partió en módulos IIFE comunicados por `window.G` (sin build,
 se conserva el doble clic en `index.html`): `core.js` (estado + helpers),

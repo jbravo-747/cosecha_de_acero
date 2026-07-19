@@ -25,6 +25,8 @@
     boomBtn: document.getElementById('boomBtn'),
     newBtn: document.getElementById('newBtn'),
     ctxPanel: document.getElementById('ctxPanel'),
+    ctxIdle: document.getElementById('ctxIdle'),
+    stage: document.getElementById('stage'),
     wavePrev: document.getElementById('wavePrev'),
     arsenalLabel: document.getElementById('arsenalLabel'),
     info: document.getElementById('info'),
@@ -219,7 +221,7 @@
     el.parts.textContent = S.parts;
     el.startBtn.disabled = S.phase !== 'build';
     if (S.phase === 'build' && S.wave < D.WAVES.length) {
-      el.startBtn.innerHTML = '&#9654; DESACTIVAR DISRUPTOR (' +
+      el.startBtn.innerHTML = '&#9654; LANZAR OLEADA (' +
         Math.max(0, Math.ceil(S.buildT)) + 's) [Espacio]';
     } else if (S.phase === 'wave') {
       el.startBtn.innerHTML = 'OLEADA EN CURSO...';
@@ -240,10 +242,10 @@
     }
     el.bombBtn.classList.toggle('aiming', S.aimingBomb);
 
-    // menú contextual: al seleccionar algo, el arsenal cede su lugar
+    // menú contextual en la consola (el arsenal lateral siempre queda a mano)
     var sel = S.selectedU || S.selectedB || S.selected || S.selectedBarn;
-    el.towerBtns.classList.toggle('hidden', !!sel);
     el.ctxPanel.classList.toggle('hidden', !sel);
+    el.ctxIdle.classList.toggle('hidden', !!sel);
     // el granero no se puede autodestruir: sin botón ☠ al seleccionarlo
     el.boomBtn.classList.toggle('hidden', !!S.selectedBarn);
     if (sel) {
@@ -256,7 +258,7 @@
         : '&#9760; AUTODESTRUCCI&Oacute;N';
       el.boomBtn.classList.toggle('confirm', S.confirmBoom > 0);
     } else {
-      el.arsenalLabel.innerHTML = '&#9670; ARSENAL &#9670;';
+      el.arsenalLabel.innerHTML = '&#9670; CONTROL &#9670;';
     }
 
     D.TOWER_ORDER.forEach(function (key) {
@@ -380,6 +382,24 @@
       el.sellBtn.disabled = true; el.sellBtn.textContent = 'VENDER';
     }
   }
+
+  // ---------- escalado: que todo quepa en la pantalla sin scroll ----------
+  function fitCanvas() {
+    if (!el.stage.clientWidth || !window.innerWidth) return;
+    if (window.innerWidth <= 760) {
+      // móvil: canvas a lo ancho, la página hace scroll
+      canvas.style.width = '100%';
+      canvas.style.height = 'auto';
+      return;
+    }
+    var sc = Math.min((el.stage.clientWidth - 8) / canvas.width,
+                      (el.stage.clientHeight - 8) / canvas.height);
+    sc = Math.max(0.4, sc);
+    canvas.style.width = Math.floor(canvas.width * sc) + 'px';
+    canvas.style.height = Math.floor(canvas.height * sc) + 'px';
+  }
+  if (window.addEventListener) window.addEventListener('resize', fitCanvas);
+  fitCanvas();
 
   // ---------- input ----------
   function canvasPos(ev) {
@@ -565,7 +585,7 @@
   });
   G._newBtnLabel = function () {
     el.newBtn.innerHTML = performance.now() < confirmNewUntil
-      ? '&#8635; ¿REINICIAR TODO?'
+      ? '&#8635; ¿SEGURO?'
       : '&#8635; NUEVA PARTIDA';
   };
 
