@@ -342,9 +342,11 @@ NUEVA PARTIDA lo borran. Tolerante a localStorage bloqueado.
 - `assets/logo.png` (512 px, generado con IA a partir del prompt de
   diseño): emblema circular con el mecha del hacha, trigo, granero y
   garra alienígena.
-- Vive en la **esquina superior izquierda del HUD** (sustituye al texto
-  COSECHA DE ACERO), es el **favicon** y encabeza el README. El título
-  se compactó (el manual de campo absorbe el texto largo de intro).
+- Durante la partida el HUD muestra solo la **placa de letras**
+  (`assets/logo-text.png`, recorte del original) presidiendo la esquina
+  superior izquierda y **desbordando el marco a propósito**; el emblema
+  completo protagoniza la pantalla de título, es el **favicon** y
+  encabeza el README. El texto largo de intro lo absorbió el manual.
 
 ## 28. Refactor: arquitectura modular ✔
 
