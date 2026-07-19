@@ -264,10 +264,14 @@
   }
 
   // detona una entidad: onda que daña bichos y aliados por igual; los
-  // aliados que no la sobreviven se encadenan con un pequeño retardo
-  function detonateNow(o) {
+  // aliados que no la sobreviven se encadenan con un pequeño retardo.
+  // Si la cadena la encendió un bicho (enemySrc), pega reducida a los
+  // aliados y se agota tras enemyChainDepth eslabones.
+  function detonateNow(o, enemySrc, depth) {
     removeEntity(o);
     var bs = boomStats(o), j;
+    var allyDmg = enemySrc
+      ? Math.round(bs.dmg * D.SELF_DESTRUCT.enemyChainMul) : bs.dmg;
     G.fx.ring(o.x, o.y, bs.r, '#e8912a', 0.5);
     G.burst(o.x, o.y, '#e8912a', 22, 150);
     G.burst(o.x, o.y, '#f2d94e', 12, 120);
@@ -286,13 +290,21 @@
     for (j = 0; j < targets.length; j++) {
       var o2 = targets[j];
       if (G.dist2(o.x, o.y, o2.x, o2.y) > bs.r * bs.r) continue;
-      if (o2.kind === 'field') { damageDefense(o2, bs.dmg); continue; }
+      if (o2.kind === 'field') { damageDefense(o2, allyDmg); continue; }
       if (o2.chained) continue;
-      o2.hp -= bs.dmg;
+      o2.hp -= allyDmg;
       o2.flash = 0.2;
       if (o2.hp <= 0) {
         o2.chained = true;
-        S.chainQ.push({ o: o2, t: D.SELF_DESTRUCT.chainDelay });
+        if (!enemySrc || (depth || 0) < D.SELF_DESTRUCT.enemyChainDepth) {
+          S.chainQ.push({ o: o2, t: D.SELF_DESTRUCT.chainDelay,
+            enemySrc: enemySrc, depth: (depth || 0) + 1 });
+        } else {
+          // la cadena enemiga se agota: la baja cae sin estallar
+          if (o2.kind === 'bldg') destroyBuilding(o2);
+          else if (o2.kind === 'tower') destroyTower(o2);
+          else killUnit(o2);
+        }
       }
     }
     G.recomputePower();
@@ -419,8 +431,11 @@
       o.hp -= bm.dmg;
       o.flash = 0.2;
       if (o.hp <= 0) {
+        // rematado por el Detonador: estalla, pero como cadena enemiga
+        // (onda reducida y sin propagarse más allá)
         o.chained = true;
-        S.chainQ.push({ o: o, t: D.SELF_DESTRUCT.chainDelay });
+        S.chainQ.push({ o: o, t: D.SELF_DESTRUCT.chainDelay,
+          enemySrc: true, depth: 1 });
       }
     }
   }
@@ -794,9 +809,10 @@
     for (i = S.chainQ.length - 1; i >= 0; i--) {
       S.chainQ[i].t -= dt;
       if (S.chainQ[i].t <= 0) {
-        var co = S.chainQ.splice(i, 1)[0].o;
+        var link = S.chainQ.splice(i, 1)[0];
+        var co = link.o;
         var carr = co.kind === 'tower' ? S.towers : co.kind === 'bldg' ? S.buildings : S.units;
-        if (carr.indexOf(co) !== -1) detonateNow(co);
+        if (carr.indexOf(co) !== -1) detonateNow(co, link.enemySrc, link.depth);
       }
     }
 
@@ -929,7 +945,9 @@
       S.buildT = D.BUILD_TIME;   // el disruptor vuelve a contener el portal
       var bonus = Math.round(D.waveBonus(S.wave) * D.DIFFICULTIES[S.diff].moneyMul);
       S.money += bonus;
+      S.parts += 1;   // chatarra recuperada del campo: mejora garantizada
       G.floater(W / 2, H / 2 - 30, 'OLEADA SUPERADA  +$' + bonus, '#8ac94a');
+      G.floater(W / 2, H / 2 - 12, '+1 ⚙ chatarra recuperada', '#c65fd1');
       AU.coin();
       if (S.endless) G.saveRecord(S.wave);
       G.saveGame();              // punto de control tras cada oleada

@@ -143,7 +143,12 @@ matarlos de cerca también los detona) y la **NODRIZA**, que engendra
 drones y escupe. Desde la oleada 4 aparecen
 **variantes de élite** (aura roja): más grandes, con el doble de vida y
 botín; abundan más a cada oleada. Los bichos duros y las élites sueltan
-**partes ⚙** al morir.
+**partes ⚙** al morir, y cada oleada superada deja **+1 ⚙ de chatarra**
+garantizada.
+
+Ojo justo: si un **Detonador** remata a una unidad dañada, ésta estalla
+con onda **reducida** y la cadena no se propaga más allá — las
+explosiones en cadena a plena potencia son solo tuyas.
 
 ## Tecnología
 

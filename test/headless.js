@@ -226,6 +226,7 @@ assert(S.phase === 'build', 'la oleada 1 termina y vuelve la fase de construcci�
 assert(S.buildT === D.BUILD_TIME, 'el disruptor se recarga al terminar la oleada');
 assert(S.money > moneyPreWave, 'los bichos muertos, el bono de oleada y el disruptor pagan (=$' + S.money + ')');
 assert(S.lives === D.START_LIVES, 'con 2 COYOTES no se escapa ningún dron en la oleada 1');
+assert(S.parts >= 1, 'superar la oleada deja +1 ⚙ de chatarra garantizada');
 assert(S.towers.some(t => t.ammo < G.towerStats(t).maxAmmo), 'disparar consume munición');
 
 console.log('— Logística: el cargador repone munición y repara —');
@@ -527,8 +528,11 @@ const kami2 = G.spawnEnemy('kamikaze', 2, 0, kGen.x + 20, kGen.y);
 G.damageEnemy(kami2, 999);
 assert(kami2.dead, 'matarlo de cerca también lo detona');
 step(60);
-assert(S.buildings.indexOf(kGen) === -1 && S.buildings.indexOf(kGen2) === -1,
-  'su estallido remata unidades dañadas y desata la cadena');
+assert(S.buildings.indexOf(kGen) === -1,
+  'su estallido remata unidades dañadas, que aún detonan');
+assert(S.buildings.indexOf(kGen2) !== -1 && kGen2.hp > 0,
+  'pero la cadena enemiga llega contenida: el vecino sano resiste (' +
+  Math.round(kGen2.hp) + ' hp)');
 S.enemies.length = 0;
 
 console.log('— VIUDA: bonus antiaéreo —');
@@ -647,6 +651,24 @@ assert(!byId.helpScreen.classList.contains('hidden') && S.paused,
 key('h');
 assert(byId.helpScreen.classList.contains('hidden') && !S.paused,
   'cerrar las instrucciones reanuda el juego');
+
+console.log('— Cadenas contenidas: la onda enemiga remata pero no arrasa —');
+byId.newBtn.click(); byId.newBtn.click();   // partida limpia
+S.money += 2000;
+const gA = buildB('gen', 5, 2);
+const gB = buildB('gen', 7, 2);   // a 64 px: dentro del radio (70) de A
+gA.hp = 1;
+const kamiX = G.spawnEnemy('kamikaze', 1, 0, gA.x - 20, gA.y);
+G.damageEnemy(kamiX, 99999);      // matarlo lo detona pegado a A
+step(20);                          // la cadena tarda chainDelay en resolverse
+assert(S.buildings.indexOf(gA) === -1,
+  'la unidad rematada por el Detonador aún estalla');
+const gBExp = D.BUILDINGS.gen.hp -
+  Math.round(D.SELF_DESTRUCT.gen.dmg * D.SELF_DESTRUCT.enemyChainMul);
+assert(S.buildings.indexOf(gB) !== -1 && Math.round(gB.hp) === gBExp,
+  'la onda encadenada por bichos pega reducida: el vecino sobrevive (' +
+  Math.round(gB.hp) + '/' + D.BUILDINGS.gen.hp + ')');
+S.enemies.length = 0;
 
 console.log('— Dificultad —');
 S.diff = 'veterano';

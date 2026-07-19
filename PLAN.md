@@ -276,7 +276,18 @@ NUEVA PARTIDA lo borran. Tolerante a localStorage bloqueado.
 - Overlays compactados: el título con selector de dificultad ya cabe
   sin scroll interno.
 
-## 22. Refactor: arquitectura modular ✔
+## 22. Balance: cadenas contenidas y chatarra generosa ✔
+
+- **Cadena enemiga contenida**: cuando un Detonador remata unidades
+  dañadas, éstas aún estallan, pero su onda pega a los aliados con el
+  60% del daño (`enemyChainMul`) y la cadena se agota en 1 eslabón
+  (`enemyChainDepth`): una sola bola ya no arrasa la base. La
+  autodestrucción manual del jugador conserva la cadena ilimitada.
+- **Partes ⚙ más generosas** (la mejora casi no se usaba): escupidor
+  30%→50%, kamikaze 25%→40%, escarabajo suelta 2, élites 50%→75%, y
+  **+1 ⚙ garantizada al superar cada oleada** (chatarra recuperada).
+
+## 23. Refactor: arquitectura modular ✔
 
 `game.js` se partió en módulos IIFE comunicados por `window.G` (sin build,
 se conserva el doble clic en `index.html`): `core.js` (estado + helpers),

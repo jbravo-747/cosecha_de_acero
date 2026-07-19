@@ -88,15 +88,15 @@
     spitter: { name: 'Escupidor',  hp: 78,   speed: 44, bounty: 15,  dmg: 2,  armor: 0, size: 8,  sprite: 'spitter', bDmg: 6,
                behaviors: ['biter', 'spit'],
                spit: { range: 95, cd: 2.2, dmg: 8, speed: 150 },
-               drop: { chance: 0.3, n: 1 } },
+               drop: { chance: 0.5, n: 1 } },
     scarab:  { name: 'Escarabajo', hp: 300,  speed: 27, bounty: 34,  dmg: 3,  armor: 6, size: 9,  sprite: 'scarab',  bDmg: 12,
-               behaviors: ['biter'], drop: { chance: 1, n: 1 } },
+               behaviors: ['biter'], drop: { chance: 1, n: 2 } },
     // carga contra la defensa y se inmola; también estalla si lo matan.
     // Su onda daña a tus unidades y puede iniciar explosiones en cadena.
     kamikaze:{ name: 'Detonador',  hp: 55,   speed: 70, bounty: 18,  dmg: 2,  armor: 0, size: 8,  sprite: 'kamikaze', bDmg: 0,
                behaviors: ['kamikaze'],
                boom: { r: 55, dmg: 70, detect: 110, fuse: 14 },
-               drop: { chance: 0.25, n: 1 } },
+               drop: { chance: 0.4, n: 1 } },
     boss:    { name: 'NODRIZA',    hp: 3400, speed: 15, bounty: 500, dmg: 20, armor: 8, size: 14, sprite: 'boss',    bDmg: 30,
                behaviors: ['biter', 'spawner', 'spit'],
                spit: { range: 115, cd: 2.8, dmg: 14, speed: 150 },
@@ -111,7 +111,7 @@
     chance: 0.06,      // probabilidad extra por oleada desde fromWave
     chanceMax: 0.5,
     hpMul: 2.2, bountyMul: 2,
-    dropChance: 0.5    // las élites sueltan partes con esta probabilidad
+    dropChance: 0.75   // las élites sueltan partes con esta probabilidad
   };
 
   // escala de vida por oleada
@@ -255,7 +255,12 @@
     shop:    { r: 70, dmg: 160 },
     carrier: { r: 46, dmg: 90 },
     drone:   { r: 46, dmg: 100 },
-    chainDelay: 0.18   // seg entre eslabones de la cadena
+    chainDelay: 0.18,     // seg entre eslabones de la cadena
+    // cadena iniciada por bichos (Detonadores): contenida para que una
+    // sola bola no arrase la base — daño reducido a aliados y un solo
+    // eslabón de propagación. La autodestrucción manual no se restringe.
+    enemyChainMul: 0.6,   // fracción del daño a aliados en cadenas enemigas
+    enemyChainDepth: 1    // eslabones máximos de una cadena enemiga
   };
 
   window.DATA = {
