@@ -2,9 +2,12 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#101418">
+<meta name="mobile-web-app-capable" content="yes">
 <title>Cosecha de Acero — Tower Defense</title>
 <link rel="icon" type="image/png" href="assets/logo.png">
+<link rel="apple-touch-icon" href="assets/logo.png">
 <style>
   :root{
     --bg:#101418; --steel:#232c37; --steel2:#1a2129; --edge:#39434f; --rivet:#4e5c6b;
@@ -20,6 +23,7 @@
     font-family:"Courier New", Courier, monospace;
     display:flex; align-items:stretch; justify-content:center;
     height:100vh; overflow:hidden; padding:8px;
+    overscroll-behavior:none;
   }
   #app{display:flex; flex-direction:column; gap:8px; width:100%; max-width:1600px; min-height:0;}
   #main{display:flex; gap:8px; flex:1; min-height:0;}
@@ -375,16 +379,71 @@
     filter:drop-shadow(0 8px 18px rgba(0,0,0,.75));
   }
 
-  /* pantallas angostas (móvil): la página vuelve a hacer scroll */
+  /* ================= móvil (vertical) =================
+     jerarquía de pulgar: mapa arriba, arsenal deslizable pegado al mapa,
+     mando inmediato y el monitor al final. La página puede hacer scroll,
+     pero lo esencial cabe en el primer pantallazo. */
   @media (max-width:760px){
-    body{height:auto; overflow:auto;}
-    #main{flex-direction:column;}
-    #arsenal{flex:0 0 auto; overflow:visible;}
-    .towers{flex-direction:row; flex-wrap:wrap;}
-    .towers .tbtn{flex:1 1 30%;}
-    #console{flex:0 0 auto; overflow:visible;}
-    #hud{flex-wrap:wrap;}
-    #brand{width:100%; text-align:center; padding-bottom:4px;}
+    body{height:auto; overflow:auto; padding:4px;}
+    #app{gap:6px;}
+    #main{flex-direction:column; gap:6px;}
+
+    /* HUD compacto: logo discreto y medidores en línea */
+    #hud{flex-wrap:wrap; gap:4px; padding:4px;}
+    #brandLogo{height:44px; margin:-4px 0;}
+    .gauge{padding:2px 4px 3px; min-width:56px;}
+    .gauge b{font-size:14px;}
+    .gauge.money b{font-size:17px;}
+    .gauge .glabel{font-size:7px; letter-spacing:1px;}
+
+    /* 1º el mapa, a todo lo ancho */
+    #stage{order:1;}
+    #stageBox{width:100%;}
+
+    /* 2º el arsenal: tira horizontal deslizable, targets de pulgar */
+    #arsenal{order:2; flex:0 0 auto; overflow:visible; padding:16px 6px 6px;}
+    .towers{
+      flex-direction:row; flex-wrap:nowrap; gap:6px;
+      overflow-x:auto; -webkit-overflow-scrolling:touch;
+      padding-bottom:6px;
+    }
+    .towers .tbtn{
+      flex:0 0 auto; min-width:84px; min-height:48px;
+      flex-direction:column; text-align:center; gap:2px; padding:5px 4px;
+    }
+    .tbtn .key{display:none;}   /* sin teclado en el táctil */
+
+    /* 3º la consola: mando primero, control después, monitor al final */
+    #console{order:3; flex:0 0 auto; overflow:visible; flex-direction:column;}
+    .col.mando{order:1;}
+    .col.control{order:2; flex:0 0 auto;}
+    .col.monitor{order:3; min-height:70px;}
+
+    /* targets táctiles cómodos */
+    button.act{min-height:46px; font-size:13px;}
+    #startBtn{padding:15px 6px; font-size:13px;}
+    #bombBtn, #boomBtn{min-height:46px;}
+    .overlay button{min-height:48px;}
+    #diffRow button, #modeRow button{min-height:42px; padding:8px 10px;}
+    .overlay p{font-size:12px;}
+    #titleLogo{height:clamp(110px, 24vh, 200px); max-width:88%;}
+  }
+  /* el botón de pantalla completa solo aparece en pantallas táctiles */
+  #fsBtn{display:none;}
+  @media (pointer:coarse){
+    #fsBtn{display:block; flex:0 0 46px;}
+  }
+
+  /* móvil apaisado / ventanas bajas: encoger el cromo, no el mapa */
+  @media (max-height:520px) and (min-width:761px){
+    #brandLogo{height:52px; margin:-8px 0;}
+    .gauge b{font-size:14px;}
+    .gauge.money b{font-size:17px;}
+    #arsenal{flex:0 0 112px;}
+    #console{flex:0 0 236px;}
+    #info{min-height:40px;}
+    #portraitRow canvas{width:42px; height:42px;}
+    #startBtn{padding:8px 6px;}
   }
 </style>
 </head>
@@ -521,6 +580,7 @@
         <button class="act" id="pauseBtn">&#10074;&#10074; PAUSA [P]</button>
         <button class="act" id="speedBtn">&times;1</button>
         <button class="act" id="muteBtn">&#9835;</button>
+        <button class="act" id="fsBtn" title="Pantalla completa">&#x26F6;</button>
       </div>
       <div class="row">
         <button class="act" id="newBtn">&#8635; NUEVA PARTIDA</button>

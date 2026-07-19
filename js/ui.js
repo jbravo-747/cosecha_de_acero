@@ -667,6 +667,19 @@
     S.paused = !S.paused;
     AU.click();
   });
+  // pantalla completa (visible solo en táctil): más mapa, menos navegador
+  var fsBtn = document.getElementById('fsBtn');
+  if (fsBtn) {
+    fsBtn.addEventListener('click', function () {
+      var doc = document;
+      if (!doc.fullscreenElement && doc.documentElement.requestFullscreen) {
+        doc.documentElement.requestFullscreen();
+      } else if (doc.fullscreenElement && doc.exitFullscreen) {
+        doc.exitFullscreen();
+      }
+      AU.click();
+    });
+  }
   el.speedBtn.addEventListener('click', function () {
     S.speed = S.speed === 1 ? 2 : 1;
     el.speedBtn.innerHTML = '&times;' + S.speed;

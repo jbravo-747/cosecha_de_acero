@@ -348,7 +348,21 @@ NUEVA PARTIDA lo borran. Tolerante a localStorage bloqueado.
   completo protagoniza la pantalla de título, es el **favicon** y
   encabeza el README. El texto largo de intro lo absorbió el manual.
 
-## 28. Refactor: arquitectura modular ✔
+## 28. Experiencia móvil ✔
+
+- **Vertical (≤760px), jerarquía de pulgar**: HUD compacto → mapa a todo
+  lo ancho → **arsenal como tira horizontal deslizable** pegada al mapa
+  (targets de 48px+, sin etiquetas de tecla) → MANDO (el botonazo LANZAR
+  inmediato) → CONTROL → monitor al final.
+- **Apaisado / ventanas bajas** (`max-height:520px`): la cabina encoge
+  el cromo (logo, medidores, arsenal 112px, consola 236px) y el mapa
+  conserva el protagonismo.
+- Viewport sin zoom accidental (`maximum-scale=1`), `overscroll-behavior`
+  bloqueado, `theme-color` y `apple-touch-icon` con el logo, y botón
+  **⛶ pantalla completa** que solo aparece en pantallas táctiles
+  (`pointer:coarse`).
+
+## 29. Refactor: arquitectura modular ✔
 
 `game.js` se partió en módulos IIFE comunicados por `window.G` (sin build,
 se conserva el doble clic en `index.html`): `core.js` (estado + helpers),

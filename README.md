@@ -52,7 +52,10 @@ python3 -m http.server 8080
 
 **En pantalla táctil** también se juega: arrastra el dedo para apuntar
 (previsualiza la colocación o la diana del bombardeo) y suelta para
-ejecutar; tocar otra vez la tarjeta del arsenal cancela.
+ejecutar; tocar otra vez la tarjeta del arsenal cancela. En móvil la
+interfaz se reordena para el pulgar — mapa arriba, arsenal deslizable
+pegado al mapa y el botón de oleada inmediato — con botón de
+**pantalla completa ⛶**.
 
 El **radar de oleada** (bajo el monitor táctico) anuncia qué bichos trae
 la próxima oleada — con aviso de élites y de la Nodriza — y, en plena
