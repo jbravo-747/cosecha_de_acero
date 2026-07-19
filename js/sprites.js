@@ -618,6 +618,82 @@
     '.kkkk......kkkk.'
   ];
 
+  // MANTIS: jefa cazadora — garras alzadas y ojos magenta
+  var MANTIS_A = [
+    '...kv......vk...',
+    '..kvvk....kvvk..',
+    '..kvVvk..kvVvk..',
+    '...kvvk..kvvk...',
+    '....kvk..kvk....',
+    '.....kvvvvk.....',
+    '....kvmvvmvk....',
+    '....kvVVVVvk....',
+    '...kvVvvvvVvk...',
+    '...kvVvvvvVvk...',
+    '....kvVVVVvk....',
+    '.....kvvvvk.....',
+    '....kv.kk.vk....',
+    '...kv..kk..vk...',
+    '....k..kk..k....',
+    '................'
+  ];
+  var MANTIS_B = [
+    '..kv........vk..',
+    '..kvvk....kvvk..',
+    '...kvVk..kVvk...',
+    '...kvvk..kvvk...',
+    '....kvk..kvk....',
+    '.....kvvvvk.....',
+    '....kvmvvmvk....',
+    '....kvVVVVvk....',
+    '...kvVvvvvVvk...',
+    '...kvVvvvvVvk...',
+    '....kvVVVVvk....',
+    '.....kvvvvk.....',
+    '....kv.kk.vk....',
+    '....kv.kk.vk....',
+    '.....k.kk.k.....',
+    '................'
+  ];
+
+  // GUSANO: jefe excavador — segmentos anillados y mandíbulas abiertas
+  var WORM_A = [
+    '....km....mk....',
+    '...kmpk..kpmk...',
+    '....kmpppmk.....',
+    '...kmpvvvpmk....',
+    '...kmpppppmk....',
+    '....kpPPPpk.....',
+    '...kpPpppPpk....',
+    '....kpPPPpk.....',
+    '...kpPpppPpk....',
+    '....kpPPPpk.....',
+    '...kpPpppPpk....',
+    '....kpPPPpk.....',
+    '.....kpPpk......',
+    '......kpk.......',
+    '.......k........',
+    '................'
+  ];
+  var WORM_B = [
+    '...km......mk...',
+    '....kpk..kpk....',
+    '....kmpppmk.....',
+    '...kmpvvvpmk....',
+    '...kmpppppmk....',
+    '....kpPPPpk.....',
+    '....kpPpPpk.....',
+    '...kpPpppPpk....',
+    '....kpPPPpk.....',
+    '....kpPpPpk.....',
+    '...kpPpppPpk....',
+    '....kpPPPpk.....',
+    '.....kpPpk......',
+    '......kpk.......',
+    '.......k........',
+    '................'
+  ];
+
   // mina terrestre: montículo de acero con la luz de armado al centro
   var MINE_SPR = [
     '...kkkk...',
@@ -715,7 +791,9 @@
       spitter: [makeSprite(SPIT_A),   makeSprite(SPIT_B)],
       scarab:  [makeSprite(SCARAB_A), makeSprite(SCARAB_B)],
       kamikaze: [makeSprite(KAMI_A),  makeSprite(KAMI_B)],
-      boss:    [makeSprite(BOSS_A),   makeSprite(BOSS_B)]
+      boss:    [makeSprite(BOSS_A),   makeSprite(BOSS_B)],
+      mantis:  [makeSprite(MANTIS_A), makeSprite(MANTIS_B)],
+      worm:    [makeSprite(WORM_A),   makeSprite(WORM_B)]
     },
     // cada mecha viste un color de chasis propio para distinguirse al
     // vistazo: COYOTE arena, BISONTE marrón, VIUDA carbón, CERCA-9 azul,

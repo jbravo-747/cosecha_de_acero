@@ -80,10 +80,12 @@
   function resetState() {
     S.phase = 'menu';          // menu | build | wave | won | lost
     S.diff = S.diff || 'aprendiz';   // la dificultad elegida sobrevive al reinicio
+    S.mode = S.mode || 'campaign';   // campaign | horde (también pegajoso)
     S.endless = false;         // asedio sin fin activado tras la victoria
-    S.money = D.START_MONEY;
+    // en HORDA los bolsillos vienen llenos desde el arranque
+    S.money = S.mode === 'horde' ? D.HORDE.money : D.START_MONEY;
     S.lives = D.START_LIVES;
-    S.parts = 0;               // partes ⚙ para mejorar mechas
+    S.parts = S.mode === 'horde' ? D.HORDE.parts : 0;   // partes ⚙
     S.wave = 0;
     S.speed = 1;
     S.paused = false;

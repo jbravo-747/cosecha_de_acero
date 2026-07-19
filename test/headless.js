@@ -737,4 +737,45 @@ assert(G.getRecord().wave === rec0, 'un intento peor no pisa el récord');
 G.saveRecord(rec0 + 9);
 assert(G.getRecord().wave === rec0 + 9, 'una hazaña mayor sí lo mejora');
 
+console.log('— Modo HORDA y jefes nuevos —');
+S.mode = 'horde';
+byId.newBtn.click(); byId.newBtn.click();
+assert(S.money === D.HORDE.money && S.parts === D.HORDE.parts,
+  'la HORDA arranca con los bolsillos llenos ($' + S.money + ', ' + S.parts + '⚙)');
+assert(JSON.stringify(G.waveDef(1)) === JSON.stringify(G.waveDef(1)),
+  'la oleada aleatoria es determinista: el radar anuncia lo que sale');
+assert(G.waveDef(4).some(g => D.ENEMIES[g.t].boss),
+  'cada 4 oleadas de horda cae un jefe');
+const seen = {};
+for (let n = 4; n <= 60; n += 4) {
+  G.waveDef(n).forEach(g => { if (D.ENEMIES[g.t].boss) seen[g.t] = true; });
+}
+assert(seen.mantis && seen.worm,
+  'la MANTIS y el GUSANO entran en la rotación de jefes');
+byId.startBtn.click();
+assert(S.phase === 'wave' && S.wave === 1 && S.spawnQueue.length > 0,
+  'la horda lanza su primera oleada aleatoria');
+S.spawnQueue.length = 0; S.enemies.length = 0;
+
+// el GUSANO excava bajo los campos de fuerza
+S.phase = 'build';
+S.money += 800;
+buildB('gen', 2, 5);              // energía para los pilones de la prueba
+build('tesla', 2, 4);
+build('tesla', 4, 4);
+assert(S.fields.length === 1, 'campo de fuerza montado para la prueba');
+// pilones indestructibles: que el gusano no pase a mordidas, sino excavando
+S.towers.forEach(t => { t.hp = t.maxHp = 999999; });
+const fieldX = S.fields[0].x, fieldY = S.fields[0].y;
+const digger = G.spawnEnemy('worm', 1, 0, 40, fieldY);
+let wormPassed = false;
+for (let i = 0; i < 30 * 60; i++) {
+  step(1);
+  if (S.enemies.indexOf(digger) === -1) break;   // llegó o murió
+  if (digger.x > fieldX + 20) { wormPassed = true; break; }
+}
+assert(wormPassed, 'el GUSANO pasa por debajo del campo de fuerza');
+S.enemies.length = 0;
+S.mode = 'campaign';
+
 console.log('\nTODO OK — ' + passed + ' aserciones superadas.');

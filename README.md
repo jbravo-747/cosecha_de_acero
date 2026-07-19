@@ -12,6 +12,12 @@ el **☠ ASEDIO SIN FIN**: oleadas procedurales cada vez más feroces, con
 una Nodriza cada 5 y un **récord de la granja** que persiste entre
 partidas.
 
+¿Prefieres el caos? El modo **☠ HORDA** arranca con los bolsillos
+llenos ($4000 y 12 ⚙), genera **oleadas aleatorias sin fin** desde la
+primera y trae un jefe cada 4: la **NODRIZA**, la **MANTIS** (cazadora
+veloz) o el **GUSANO**, un excavador blindado que **pasa por debajo de
+los campos de fuerza** y pare larvas al avanzar.
+
 La partida **se guarda sola** (localStorage) durante cada fase de
 construcción: si cierras a media oleada, el botón **CONTINUAR** del
 título te devuelve a la construcción previa con todo tu arsenal.

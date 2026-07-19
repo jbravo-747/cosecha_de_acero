@@ -363,14 +363,16 @@
   }
 
   // ---------- oleadas ----------
-  // definición de la oleada n: guionizada hasta la 10, procedural después
+  // definición de la oleada n: en HORDA siempre aleatoria (determinista
+  // por número); en campaña, guionizada hasta la 10 y procedural después
   function waveDef(n) {
+    if (S.mode === 'horde') return D.hordeWave(n);
     return n <= D.WAVES.length ? D.WAVES[n - 1] : D.endlessWave(n);
   }
 
   function startWave(manual) {
     if (S.phase !== 'build') return;
-    if (!S.endless && S.wave >= D.WAVES.length) return;
+    if (S.mode !== 'horde' && !S.endless && S.wave >= D.WAVES.length) return;
     if (manual && S.buildT > 0) {
       var bonus = Math.round(S.buildT * D.EARLY_BONUS);
       if (bonus > 0) {
@@ -391,8 +393,12 @@
     });
     S.spawnQueue.sort(function (a, b) { return a.time - b.time; });
     AU.horn();
-    if (groups.some(function (g) { return g.t === 'boss'; })) {
-      G.floater(W / 2, H / 2 - 40, '¡LA NODRIZA SE ACERCA!', '#e05545');
+    var bossGrp = null;
+    groups.forEach(function (g) { if (D.ENEMIES[g.t].boss) bossGrp = g; });
+    if (bossGrp) {
+      G.floater(W / 2, H / 2 - 40,
+        '¡' + (bossGrp.t === 'boss' ? 'LA' : 'EL JEFE') + ' ' +
+        D.ENEMIES[bossGrp.t].name + ' SE ACERCA!', '#e05545');
     }
   }
 
@@ -417,7 +423,7 @@
       chargeTarget: null, dead: false
     };
     // variantes de élite: más frecuentes y duras a mayor oleada
-    if (type !== 'boss' && S.wave >= D.ELITE.fromWave) {
+    if (!def.boss && S.wave >= D.ELITE.fromWave) {
       var chance = Math.min(D.ELITE.chanceMax,
         (S.wave - D.ELITE.fromWave + 1) * D.ELITE.chance);
       if (Math.random() < chance) {
@@ -728,9 +734,10 @@
         var arrive = step >= d;
         var nx = arrive ? wp.x : e.x + dx / d * step;
         var ny = arrive ? wp.y : e.y + dy / d * step;
-        // los campos de fuerza detienen a los terrestres
+        // los campos de fuerza detienen a los terrestres — salvo a los
+        // excavadores, que pasan por debajo
         var blockedByField = false;
-        if (!e.flying) {
+        if (!e.flying && !e.def.burrower) {
           for (j = 0; j < S.fields.length; j++) {
             var ff = S.fields[j];
             if (ff.hp <= 0) continue;
@@ -990,7 +997,10 @@
 
     // ¿oleada terminada?
     if (S.phase === 'wave' && !S.spawnQueue.length && !S.enemies.length) {
-      if (!S.endless && S.wave >= D.WAVES.length) { endGame(true); return; }
+      if (S.mode !== 'horde' && !S.endless && S.wave >= D.WAVES.length) {
+        endGame(true);
+        return;
+      }
       S.phase = 'build';
       S.buildT = D.BUILD_TIME;   // el disruptor vuelve a contener el portal
       var bonus = Math.round(D.waveBonus(S.wave) * D.DIFFICULTIES[S.diff].moneyMul);
@@ -999,7 +1009,7 @@
       G.floater(W / 2, H / 2 - 30, 'OLEADA SUPERADA  +$' + bonus, '#8ac94a');
       G.floater(W / 2, H / 2 - 12, '+1 ⚙ chatarra recuperada', '#c65fd1');
       AU.coin();
-      if (S.endless) G.saveRecord(S.wave);
+      if (S.endless || S.mode === 'horde') G.saveRecord(S.wave);
       G.saveGame();              // punto de control tras cada oleada
     }
   }

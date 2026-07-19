@@ -235,13 +235,14 @@
   #endlessBtn{background:#3a2050; border-color:#7e4696; color:#e0c8f0;}
   #endlessBtn:hover{border-color:#c65fd1;}
 
-  /* selector de dificultad del título */
-  #diffRow{display:flex; gap:8px;}
-  #diffRow button{
+  /* selectores de modo y dificultad del título */
+  #diffRow, #modeRow{display:flex; gap:8px;}
+  #diffRow button, #modeRow button{
     font-size:11px; padding:8px 16px; letter-spacing:1px;
     background:#1a2129; border:2px solid var(--edge); color:var(--dim);
   }
   #diffRow button.sel{border-color:var(--gold); color:var(--gold); background:#2a2616;}
+  #modeRow button.sel{border-color:#c65fd1; color:#e0a8ec; background:#2a1630;}
   #diffNote{font-size:11px; min-height:18px; margin-top:-6px;}
   #recordLine{color:var(--gold); font-size:11px; letter-spacing:1px;}
 
@@ -305,6 +306,7 @@
          están junto al camino y los bichos los morderán al pasar.
          El <b>disruptor de portales</b> contiene cada oleada 30 segundos.<br><br>
          Sobrevive <b>10 oleadas</b>. En la última viene <b>la Nodriza</b>.</p>
+      <div id="modeRow"></div>
       <div id="diffRow"></div>
       <p id="diffNote"></p>
       <div class="row" style="gap:12px;">

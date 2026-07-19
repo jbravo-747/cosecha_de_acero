@@ -24,7 +24,7 @@
     var data = {
       v: VERSION,
       money: S.money, lives: S.lives, parts: S.parts, wave: S.wave,
-      barn: S.barnLevel, diff: S.diff, endless: S.endless,
+      barn: S.barnLevel, diff: S.diff, endless: S.endless, mode: S.mode,
       giftT: Math.round(S.giftT), bombCd: Math.round(S.bombCd),
       towers: S.towers.map(function (t) {
         return { type: t.type, c: t.c, r: t.r, level: t.level,
@@ -61,6 +61,7 @@
     S.parts = d.parts;
     S.wave = d.wave;
     S.diff = D.DIFFICULTIES[d.diff] ? d.diff : 'aprendiz';
+    S.mode = d.mode === 'horde' ? 'horde' : 'campaign';
     S.endless = !!d.endless;
     S.giftT = d.giftT || D.DRONE_GIFT;
     S.bombCd = d.bombCd || 0;
@@ -117,8 +118,10 @@
     if (!store || wave < 1) return;
     var r = getRecord();
     if (r && r.wave >= wave) return;
-    try { store.setItem(KEY_REC, JSON.stringify({ wave: wave, diff: S.diff })); }
-    catch (e) {}
+    try {
+      store.setItem(KEY_REC,
+        JSON.stringify({ wave: wave, diff: S.diff, mode: S.mode }));
+    } catch (e) {}
   }
 
   G.saveGame = saveGame;

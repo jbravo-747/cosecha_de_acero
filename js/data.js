@@ -99,10 +99,20 @@
                drop: { chance: 0.4, n: 1 } },
     // más lenta que cualquier bicho: la pelea final es un asedio, no un sprint
     boss:    { name: 'NODRIZA',    hp: 3400, speed: 11, bounty: 500, dmg: 20, armor: 8, size: 14, sprite: 'boss',    bDmg: 30,
-               behaviors: ['biter', 'spawner', 'spit'],
+               boss: true, behaviors: ['biter', 'spawner', 'spit'],
                spit: { range: 115, cd: 2.8, dmg: 14, speed: 150 },
                spawnEvery: 4.5, spawnType: 'drone', spawnCount: 2,
-               drop: { chance: 1, n: 10 } }
+               drop: { chance: 1, n: 10 } },
+    // jefa cazadora: rápida para su tamaño, tritura la defensa a mordiscos
+    mantis:  { name: 'MANTIS',     hp: 1500, speed: 32, bounty: 260, dmg: 8,  armor: 4, size: 12, sprite: 'mantis',  bDmg: 26,
+               boss: true, behaviors: ['biter'],
+               drop: { chance: 1, n: 4 } },
+    // jefe excavador: pasa POR DEBAJO de los campos de fuerza y va
+    // pariendo larvas por el camino
+    worm:    { name: 'GUSANO',     hp: 2600, speed: 18, bounty: 320, dmg: 12, armor: 10, size: 13, sprite: 'worm',   bDmg: 18,
+               boss: true, burrower: true, behaviors: ['biter', 'spawner'],
+               spawnEvery: 6, spawnType: 'drone', spawnCount: 2,
+               drop: { chance: 1, n: 5 } }
   };
 
   // variantes de élite: bichos más resistentes que aparecen (y abundan)
@@ -169,6 +179,7 @@
   // tras la oleada 10 el portal no se cierra: oleadas procedurales cada
   // vez más feroces, con una Nodriza extra cada 5
   var ENDLESS_HP_RAMP = 1.08;   // vida extra compuesta por oleada de asedio
+  var BOSS_POOL = ['boss', 'mantis', 'worm'];   // jefes en rotación
   function endlessWave(n) {
     var k = n - WAVES.length;
     var g = [
@@ -178,7 +189,46 @@
       { t: 'scarab',   n: 3 + (k >> 1), gap: 2.4, delay: 8 },
       { t: 'kamikaze', n: 3 + (k >> 1), gap: 1.6, delay: 10 }
     ];
-    if (n % 5 === 0) g.push({ t: 'boss', n: 1 + ((k / 10) | 0), gap: 9, delay: 12 });
+    if (n % 5 === 0) {
+      g.push({ t: BOSS_POOL[((n / 5) | 0) % BOSS_POOL.length],
+        n: 1 + ((k / 10) | 0), gap: 9, delay: 12 });
+    }
+    return g;
+  }
+
+  // ---------- modo HORDA ----------
+  // bolsillos llenos y oleadas aleatorias desde la primera (deterministas
+  // por número de oleada: el radar anuncia lo mismo que luego sale)
+  var HORDE = { money: 4000, parts: 12 };
+  function hordeRng(seed) {
+    var s = (seed * 2654435761) >>> 0;
+    return function () {
+      s = (s * 1664525 + 1013904223) >>> 0;
+      return s / 4294967296;
+    };
+  }
+  function hordeWave(n) {
+    var r = hordeRng(n * 7919 + 17);
+    var pool = [
+      { t: 'drone',    cost: 1, gap: 0.55 },
+      { t: 'wasp',     cost: 1, gap: 0.7 },
+      { t: 'spitter',  cost: 2, gap: 1.1 },
+      { t: 'scarab',   cost: 4, gap: 2.6 },
+      { t: 'kamikaze', cost: 2, gap: 1.7 }
+    ];
+    var budget = 10 + n * 3;
+    var g = [], delay = 0;
+    while (budget > 0) {
+      var pick = pool[(r() * pool.length) | 0];
+      var count = Math.min(3 + ((r() * 6) | 0), Math.max(1, (budget / pick.cost) | 0));
+      g.push({ t: pick.t, n: count, gap: pick.gap, delay: delay });
+      budget -= count * pick.cost;
+      delay += 2 + ((r() * 4) | 0);
+    }
+    if (n % 4 === 0) {
+      g.push({ t: BOSS_POOL[(r() * BOSS_POOL.length) | 0],
+        n: 1 + ((n / 12) | 0), gap: 8, delay: delay });
+    }
     return g;
   }
 
@@ -284,6 +334,7 @@
     WAVES: WAVES, waveBonus: waveBonus,
     DIFFICULTIES: DIFFICULTIES, DIFF_ORDER: DIFF_ORDER,
     endlessWave: endlessWave, ENDLESS_HP_RAMP: ENDLESS_HP_RAMP,
+    HORDE: HORDE, hordeWave: hordeWave, BOSS_POOL: BOSS_POOL,
     BUILDINGS: BUILDINGS, BUILDING_ORDER: BUILDING_ORDER, START_BUILDINGS: START_BUILDINGS,
     UNITS: UNITS, UNIT_ORDER: UNIT_ORDER, START_UNITS: START_UNITS, BARN_POS: BARN_POS,
     BUILD_TIME: BUILD_TIME, EARLY_BONUS: EARLY_BONUS,

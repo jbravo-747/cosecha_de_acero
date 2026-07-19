@@ -306,7 +306,24 @@ NUEVA PARTIDA lo borran. Tolerante a localStorage bloqueado.
   100): la última línea de defensa nunca está indefensa. Los refuerzos
   de nivel 2 y 3 añaden sus torretas encima, hasta 3 en total.
 
-## 25. Refactor: arquitectura modular ✔
+## 25. Modo HORDA y jefes nuevos ✔
+
+- **Selector de modo** en el título (pegajoso, se guarda en la partida):
+  CAMPAÑA clásica o **☠ HORDA** — bolsillos llenos ($4000 y 12 ⚙),
+  oleadas aleatorias sin fin desde la primera y jefe cada 4 oleadas.
+- Las oleadas de horda son **deterministas por número** (`hordeWave`,
+  RNG con semilla): el radar anuncia exactamente lo que saldrá.
+- **Jefes nuevos** en rotación (`BOSS_POOL`, también cada 5 oleadas del
+  asedio sin fin de campaña):
+  - **MANTIS** (hp 1500, veloz para su tamaño): cazadora de defensa a
+    mordiscos brutales (26).
+  - **GUSANO** (hp 2600, blindaje 10): excavador — **pasa por debajo de
+    los campos de fuerza** (`burrower`, el contrapeso definitivo al
+    muro) y pare larvas al avanzar.
+- Los jefes no generan variantes de élite (marca `boss: true`); avisos
+  de radar y letrero al lanzar nombran al jefe que viene.
+
+## 26. Refactor: arquitectura modular ✔
 
 `game.js` se partió en módulos IIFE comunicados por `window.G` (sin build,
 se conserva el doble clic en `index.html`): `core.js` (estado + helpers),

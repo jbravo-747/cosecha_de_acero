@@ -49,6 +49,7 @@
     continueBtn: document.getElementById('continueBtn'),
     restartBtn: document.getElementById('restartBtn'),
     endlessBtn: document.getElementById('endlessBtn'),
+    modeRow: document.getElementById('modeRow'),
     diffRow: document.getElementById('diffRow'),
     diffNote: document.getElementById('diffNote'),
     recordLine: document.getElementById('recordLine'),
@@ -171,10 +172,12 @@
       el.wavePrev.appendChild(s);
     });
     var wv = S.wave + 1;
-    if (counts.boss) {
+    var bossT = null;
+    order.forEach(function (t) { if (D.ENEMIES[t].boss) bossT = t; });
+    if (bossT) {
       var wb = document.createElement('span');
       wb.className = 'wwarn';
-      wb.textContent = '⚠ ¡LA NODRIZA!';
+      wb.textContent = '⚠ ¡' + D.ENEMIES[bossT].name + '!';
       el.wavePrev.appendChild(wb);
     }
     if (wv >= D.ELITE.fromWave) {
@@ -187,7 +190,8 @@
     }
   }
   function updateWavePreview() {
-    if (S.phase === 'build' && (S.endless || S.wave < D.WAVES.length)) {
+    if (S.phase === 'build' &&
+        (S.endless || S.mode === 'horde' || S.wave < D.WAVES.length)) {
       if (prevWaveBuilt !== S.wave) { prevWaveBuilt = S.wave; buildWavePreview(); }
       el.wavePrev.classList.remove('hidden');
     } else if (S.phase === 'wave') {
@@ -204,7 +208,35 @@
     }
   }
 
-  // ---------- selector de dificultad y récord del título ----------
+  // ---------- selectores de modo y dificultad, y récord del título ----------
+  var MODES = {
+    campaign: { name: 'CAMPAÑA',
+      desc: 'Las 10 oleadas clásicas — y el asedio sin fin si sobrevives.' },
+    horde: { name: '☠ HORDA',
+      desc: 'Bolsillos llenos ($' + D.HORDE.money + ' y ' + D.HORDE.parts +
+        '⚙), oleadas aleatorias sin fin y jefes nuevos: MANTIS y GUSANO.' }
+  };
+  var modeBtnEls = {};
+  ['campaign', 'horde'].forEach(function (key) {
+    var b = document.createElement('button');
+    b.textContent = MODES[key].name;
+    b.addEventListener('click', function () { setMode(key); AU.click(); });
+    el.modeRow.appendChild(b);
+    modeBtnEls[key] = b;
+  });
+  function setMode(key) {
+    S.mode = key;
+    // aún en el título: re-aplica los recursos de arranque del modo
+    if (S.phase === 'menu') {
+      S.money = key === 'horde' ? D.HORDE.money : D.START_MONEY;
+      S.parts = key === 'horde' ? D.HORDE.parts : 0;
+    }
+    Object.keys(modeBtnEls).forEach(function (k) {
+      modeBtnEls[k].classList.toggle('sel', k === key);
+    });
+    el.diffNote.textContent = MODES[key].desc + ' · ' + D.DIFFICULTIES[S.diff].desc;
+  }
+
   var diffBtnEls = {};
   D.DIFF_ORDER.forEach(function (key) {
     var b = document.createElement('button');
@@ -218,16 +250,17 @@
     D.DIFF_ORDER.forEach(function (k) {
       diffBtnEls[k].classList.toggle('sel', k === key);
     });
-    el.diffNote.textContent = D.DIFFICULTIES[key].desc;
+    el.diffNote.textContent = MODES[S.mode].desc + ' · ' + D.DIFFICULTIES[key].desc;
   }
   setDiff(S.diff);
+  setMode(S.mode);
 
   function refreshRecord() {
     var r = G.getRecord();
     if (!r) return;
     var dname = D.DIFFICULTIES[r.diff] ? D.DIFFICULTIES[r.diff].name : '';
     el.recordLine.textContent = '★ Récord de la granja: oleada ' + r.wave +
-      (dname ? ' · ' + dname : '');
+      (dname ? ' · ' + dname : '') + (r.mode === 'horde' ? ' · HORDA' : '');
     el.recordLine.classList.remove('hidden');
   }
   refreshRecord();
@@ -311,12 +344,13 @@
     updateWavePreview();
     el.money.textContent = S.money;
     el.lives.textContent = S.lives;
-    el.wave.textContent = S.endless
+    el.wave.textContent = (S.endless || S.mode === 'horde')
       ? S.wave + '/∞' : S.wave + '/' + D.WAVES.length;
     el.energy.textContent = S.energyUsed + '/' + S.energyCap;
     el.parts.textContent = S.parts;
     el.startBtn.disabled = S.phase !== 'build';
-    if (S.phase === 'build' && (S.endless || S.wave < D.WAVES.length)) {
+    if (S.phase === 'build' &&
+        (S.endless || S.mode === 'horde' || S.wave < D.WAVES.length)) {
       el.startBtn.innerHTML = '&#9654; LANZAR OLEADA (' +
         Math.max(0, Math.ceil(S.buildT)) + 's) [Espacio]';
     } else if (S.phase === 'wave') {
