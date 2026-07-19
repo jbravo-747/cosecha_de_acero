@@ -26,6 +26,8 @@
     newBtn: document.getElementById('newBtn'),
     ctxPanel: document.getElementById('ctxPanel'),
     ctxIdle: document.getElementById('ctxIdle'),
+    portraitArt: document.getElementById('portraitArt'),
+    pilotFace: document.getElementById('pilotFace'),
     stage: document.getElementById('stage'),
     wavePrev: document.getElementById('wavePrev'),
     arsenalLabel: document.getElementById('arsenalLabel'),
@@ -85,11 +87,11 @@
       function () { G.startPlacing(key); });
   });
   D.BUILDING_ORDER.forEach(function (key, i) {
-    makeBtn('building', key, D.BUILDINGS[key], SP.buildings[key], i + 6,
+    makeBtn('building', key, D.BUILDINGS[key], SP.buildings[key], i + 7,
       function () { G.startPlacing(key); });
   });
   D.UNIT_ORDER.forEach(function (key, i) {
-    makeBtn('unit', key, D.UNITS[key], SP.units[key][0], i + 8,
+    makeBtn('unit', key, D.UNITS[key], SP.units[key][0], ['9', '0'][i],
       function () { G.buyUnit(key); });
   });
 
@@ -188,6 +190,49 @@
     }
   }
 
+  // ---------- retrato de la selección y cara del piloto ----------
+  // La cara se magulla con la vida del mecha (o del granero), estilo Doom.
+  function faceState(frac) {
+    return frac > 0.75 ? 0 : frac > 0.5 ? 1 : frac > 0.25 ? 2 : 3;
+  }
+  var portraitKey = '';
+  function updatePortrait(sel) {
+    if (!sel) { portraitKey = ''; return; }
+    var spr, face = -1, key;
+    if (S.selectedBarn) {
+      spr = SP.barn;
+      var maxLives = D.START_LIVES;
+      for (var i = 0; i < S.barnLevel - 1; i++) maxLives += D.BARN_UP.levels[i].lives;
+      face = faceState(S.lives / maxLives);
+      key = 'barn' + S.barnLevel + ':' + face;
+    } else if (S.selectedU) {
+      spr = SP.units[sel.type][0];
+      key = 'u' + sel.type;
+    } else if (S.selectedB) {
+      spr = SP.buildings[sel.type];
+      key = 'b' + sel.type;
+    } else {
+      spr = SP.mechLevels[sel.type][sel.level - 1];
+      face = faceState(Math.max(0, sel.hp) / sel.maxHp);
+      key = 't' + sel.type + sel.level + ':' + face;
+    }
+    if (key === portraitKey) return;
+    portraitKey = key;
+    var g = el.portraitArt.getContext('2d');
+    g.imageSmoothingEnabled = false;
+    g.clearRect(0, 0, el.portraitArt.width, el.portraitArt.height);
+    var sc = Math.max(1, Math.floor(el.portraitArt.width / Math.max(spr.width, spr.height)));
+    var w = spr.width * sc, h = spr.height * sc;
+    g.drawImage(spr, (el.portraitArt.width - w) >> 1, (el.portraitArt.height - h) >> 1, w, h);
+    el.pilotFace.classList.toggle('hidden', face < 0);
+    if (face >= 0) {
+      var fg = el.pilotFace.getContext('2d');
+      fg.imageSmoothingEnabled = false;
+      fg.clearRect(0, 0, el.pilotFace.width, el.pilotFace.height);
+      fg.drawImage(SP.faces[face], 0, 0);
+    }
+  }
+
   // ---------- pantallas de fin (sincronizadas con S.phase) ----------
   var lastPhase = null;
   function syncEndScreen() {
@@ -246,6 +291,7 @@
     var sel = S.selectedU || S.selectedB || S.selected || S.selectedBarn;
     el.ctxPanel.classList.toggle('hidden', !sel);
     el.ctxIdle.classList.toggle('hidden', !!sel);
+    updatePortrait(sel);
     // el granero no se puede autodestruir: sin botón ☠ al seleccionarlo
     el.boomBtn.classList.toggle('hidden', !!S.selectedBarn);
     if (sel) {
@@ -498,9 +544,9 @@
     if (k === ' ') { ev.preventDefault(); G.startWave(true); }
     else if (k === 'Escape') G.cancelActions();
     else if (k === 'p' || k === 'P') S.paused = !S.paused;
-    else if (k >= '1' && k <= '5') G.startPlacing(D.TOWER_ORDER[+k - 1]);
-    else if (k === '6' || k === '7') G.startPlacing(D.BUILDING_ORDER[+k - 6]);
-    else if (k === '8' || k === '9') G.buyUnit(D.UNIT_ORDER[+k - 8]);
+    else if (k >= '1' && k <= '6') G.startPlacing(D.TOWER_ORDER[+k - 1]);
+    else if (k === '7' || k === '8') G.startPlacing(D.BUILDING_ORDER[+k - 7]);
+    else if (k === '9' || k === '0') G.buyUnit(D.UNIT_ORDER[k === '9' ? 0 : 1]);
     else if (k === 'b' || k === 'B') G.armBomb();
   });
   el.bombBtn.addEventListener('click', function () { G.armBomb(); });

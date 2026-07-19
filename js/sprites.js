@@ -362,6 +362,23 @@
     '..kkkkk..kkkkk..'
   ];
 
+  // SEGADOR: hoja de energía alienígena al hombro, núcleo púrpura en el pecho
+  var MECH_BLADE = [
+    '.....kkkkkk..kmk',
+    '....kaAyyAak.kmk',
+    '...kacrrrcak.kmk',
+    '...kaciiicak.kmk',
+    '....kaaaaaak.kmk',
+    '..kkkaAAAAakkmk.',
+    '.kAAkAaaaaAkktk.',
+    '.kAAkAapmaAktk..',
+    '.kssk.kAAk.kssk.',
+    '...kAAk..kAAk...',
+    '...kAAk..kAAk...',
+    '..kAAAk..kAAAk..',
+    '..kkkkk..kkkkk..'
+  ];
+
   // CERCA-9: pilón de la cerca — bobina, aislante naranja y pie verde
   var TESLA = [
     '......kyyk......',
@@ -594,6 +611,86 @@
     '.kkkk......kkkk.'
   ];
 
+  // ==========================================================================
+  // LA CARA DEL PILOTO (estilo Doom: se magulla con la vida del mecha)
+  // ==========================================================================
+
+  var FACE_OK = [
+    '................',
+    '....kkkkkkkk....',
+    '...krrrrrrrrk...',
+    '..krrrrrrrrrrk..',
+    '..kRRRRRRRRRRk..',
+    '..kiiiiiiiiiik..',
+    '..kiwkiiiikwik..',
+    '..kiiiiiiiiiik..',
+    '..kiiiikkiiiik..',
+    '..kiiiiiiiiiik..',
+    '..kiiikkkkiiik..',
+    '..kiiiiiiiiiik..',
+    '...kiiiiiiiik...',
+    '....kiiiiiik....',
+    '.....kkkkkk.....',
+    '................'
+  ];
+
+  var FACE_BRUISED = [
+    '................',
+    '....kkkkkkkk....',
+    '...krrrrrrrrk...',
+    '..krrrrrrrrrrk..',
+    '..kRRRRRRRRRRk..',
+    '..kikkiiiikkik..',
+    '..kiwkiiiikwik..',
+    '..kiiiiiiiiiik..',
+    '..kiiiikkiiiik..',
+    '..kiiiiiiiriik..',
+    '..kiikkkkkkiik..',
+    '..kiiiiiiiiiik..',
+    '...kiiiiiiiik...',
+    '....kiiiiiik....',
+    '.....kkkkkk.....',
+    '................'
+  ];
+
+  var FACE_BLEEDING = [
+    '................',
+    '....kkkkkkkk....',
+    '...krrrrrRrrk...',
+    '..krrrrrrrrrrk..',
+    '..kRRRRRRRRRRk..',
+    '..kikkiiiikkik..',
+    '..kikkiiiikwik..',
+    '..kiriiiiiiiik..',
+    '..kiiiikkiiiik..',
+    '..kiriiiiiriik..',
+    '..kikwwwwwwkik..',
+    '..kiiiiiiiiiik..',
+    '...kiiiiiiiik...',
+    '....kiiiiiik....',
+    '.....kkkkkk.....',
+    '................'
+  ];
+
+  var FACE_CRITICAL = [
+    '................',
+    '....kkkkkkkk....',
+    '...krrRrrrRrk...',
+    '..krrrrrrrrrrk..',
+    '..kRRRRRRRRRRk..',
+    '..krkkiiiikkrk..',
+    '..kikkiiiikkik..',
+    '..kiriiiiiirik..',
+    '..kiiirkkriiik..',
+    '..kiriiiiiriik..',
+    '..kikwrwwrwkik..',
+    '..kiiiriiriiik..',
+    '...kiiiiiiiik...',
+    '....kiiiiiik....',
+    '.....kkkkkk.....',
+    '................'
+  ];
+
   // ---------- exportación ----------
   var SPRITES = {
     enemies: {
@@ -609,7 +706,8 @@
       cannon: makeSprite(MECH_CANNON),
       sniper: makeSprite(MECH_SNIPER),
       tesla:  makeSprite(TESLA),
-      axe:    makeSprite(MECH_AXE)
+      axe:    makeSprite(MECH_AXE),
+      blade:  makeSprite(MECH_BLADE)
     },
     buildings: {
       gen:  makeSprite(GEN),
@@ -619,6 +717,8 @@
       carrier: [makeSprite(CARRIER_A), makeSprite(CARRIER_B)],
       drone:   [makeSprite(ALLY_DRONE_A), makeSprite(ALLY_DRONE_B)]
     },
+    faces: [makeSprite(FACE_OK), makeSprite(FACE_BRUISED),
+            makeSprite(FACE_BLEEDING), makeSprite(FACE_CRITICAL)],
     barn: makeSprite(BARN),
     hole: makeSprite(HOLE),
     rock: makeSprite(ROCK),

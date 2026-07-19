@@ -56,9 +56,15 @@
       hp: 260, ammo: 0, move: 2,
       proj: 'axe',
       desc: 'Mecha leñador: su hacha barre a todos los bichos al alcance. Cuerpo a cuerpo puro, no gasta munición y aguanta como un tractor.'
+    },
+    blade: {
+      name: 'SEGADOR', cost: 240, range: 46, dmg: 60, rof: 1.3, energy: 2,
+      hp: 220, ammo: 0, move: 2,
+      proj: 'blade',
+      desc: 'Mecha segador: hoja de energía alienígena recuperada del agujero. Un solo tajo brutal que atraviesa el blindaje, sin gastar munición.'
     }
   };
-  var TOWER_ORDER = ['mg', 'tesla', 'cannon', 'sniper', 'axe'];
+  var TOWER_ORDER = ['mg', 'tesla', 'cannon', 'sniper', 'axe', 'blade'];
 
   // golpe cuerpo a cuerpo de emergencia: todos los mechas lo tienen y
   // no gasta munición

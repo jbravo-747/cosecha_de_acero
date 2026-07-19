@@ -233,7 +233,23 @@ NUEVA PARTIDA lo borran. Tolerante a localStorage bloqueado.
   mando se adelgazó (el hint largo se fue al manual de campo, NUEVA
   PARTIDA y AYUDA comparten fila).
 
-## 19. Refactor: arquitectura modular ✔
+## 19. Arte de cabina: mechas nuevos, SEGADOR y la cara del piloto ✔
+
+- **Pixel art nuevo de los mechas** al estilo de las referencias: chasis
+  verde militar, cabina de cristal con el piloto (gorra roja), luces
+  amarillas y armas grises; el pilón CERCA-9 ganó aislante naranja y pie
+  verde.
+- **SEGADOR** ($240, 2 ⚡): sexto mecha, melé de hoja de energía
+  alienígena — un tajo a un solo objetivo que ignora el blindaje
+  (`blade` en `WEAPONS`), efecto de tajo púrpura. Teclas ahora: mechas
+  1-6, edificios 7-8, unidades 9-0.
+- **Retratos**: al seleccionar mecha/edificio/unidad/granero, el panel
+  CONTROL muestra su sprite ampliado en un marco.
+- **La cara del piloto** (estilo Doom): 4 estados de 16×16 (sereno,
+  magullado, sangrando, crítico) elegidos por la fracción de vida del
+  mecha — o del granero, con la vida máxima acumulada de sus refuerzos.
+
+## 20. Refactor: arquitectura modular ✔
 
 `game.js` se partió en módulos IIFE comunicados por `window.G` (sin build,
 se conserva el doble clic en `index.html`): `core.js` (estado + helpers),

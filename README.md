@@ -25,9 +25,10 @@ python3 -m http.server 8080
 
 | Tecla / acción | Efecto |
 |---|---|
-| `1`–`5` o clic en tarjeta | Elegir mecha para colocar |
-| `6` / `7` | Generador de energía / Taller de ensamblado |
-| `8` / `9` | Reclutar CARGADOR / DRON (salen del granero) |
+| `1`–`6` o clic en tarjeta | Elegir mecha para colocar |
+| `7` / `8` | Generador de energía / Taller de ensamblado |
+| `9` / `0` | Reclutar CARGADOR / DRON (salen del granero) |
+| `H` o botón ? AYUDA | Manual de campo (pausa mientras lees) |
 | Clic en el pasto | Colocar el mecha o edificio |
 | Clic en mecha / edificio / unidad | Seleccionar |
 | Mecha seleccionado + clic en tile iluminado | **Moverlo** (paso tipo ajedrez) |
@@ -58,6 +59,12 @@ antes de comprar.
 - **VIUDA** ($260, 2 ⚡, paso 3) — francotirador, 22 balas, ×1.5 a voladores.
 - **LEÑADOR** ($140, 1 ⚡, paso 2) — mecha del hacha: barre a **todos** los
   bichos a su alcance, no gasta munición y aguanta como un tractor (260 vida).
+- **SEGADOR** ($240, 2 ⚡, paso 2) — hoja de energía alienígena: un solo
+  tajo brutal que **atraviesa el blindaje**, sin munición.
+
+Al seleccionar cualquier cosa, la consola muestra su **retrato** y, si
+lleva piloto, **la cara del granjero al estilo Doom**: se va magullando
+y ensangrentando conforme el mecha (o el granero) encaja daño.
 
 Cada disparo gasta munición; sin balas el mecha calla hasta que lo
 reabastezcan — pero **todos los mechas pelean cuerpo a cuerpo**: si un

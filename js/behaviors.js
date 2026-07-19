@@ -184,6 +184,17 @@
       }
     },
 
+    // hoja de energía del SEGADOR: un tajo brutal que ignora el blindaje
+    blade: {
+      fire: function (t, st, e) {
+        G.damageEnemy(e, st.dmg + e.def.armor);
+        S.effects.push({ kind: 'swing', x: t.x, y: t.y - 6, a: t.angle,
+          r: st.range + 6, life: 0.14, c: '#c65fd1', c2: '#efb8f8' });
+        G.burst(e.x, e.y, '#c65fd1', 8, 80);
+        AU.zap();
+      }
+    },
+
     chain: {
       fire: function (t, st, e, def) {
         var hitList = [e], cur = e;

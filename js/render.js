@@ -470,10 +470,10 @@
         ctx.strokeStyle = '#e8f8c0'; ctx.lineWidth = 1;
         zigzag(fx.x1, fx.y1, fx.x2, fx.y2);
       } else if (fx.kind === 'swing') {
-        // tajo de hacha / golpe de melé
-        ctx.strokeStyle = '#e8e0cc'; ctx.lineWidth = 2;
+        // tajo de hacha / golpe de melé (color propio si el arma lo trae)
+        ctx.strokeStyle = fx.c || '#e8e0cc'; ctx.lineWidth = 2;
         ctx.beginPath(); ctx.arc(fx.x, fx.y, fx.r, fx.a - 0.8, fx.a + 0.8); ctx.stroke();
-        ctx.strokeStyle = '#f2d94e'; ctx.lineWidth = 1;
+        ctx.strokeStyle = fx.c2 || '#f2d94e'; ctx.lineWidth = 1;
         ctx.beginPath(); ctx.arc(fx.x, fx.y, fx.r - 3, fx.a - 0.6, fx.a + 0.6); ctx.stroke();
       } else if (fx.kind === 'ring') {
         // anillo de onda expansiva

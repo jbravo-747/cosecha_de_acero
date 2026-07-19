@@ -189,6 +189,14 @@
   .hint{color:var(--dim); font-size:9px; line-height:1.55; border-top:1px solid var(--edge); padding-top:6px;}
 
   /* ================= overlays ================= */
+  /* retrato de la unidad y cara del piloto */
+  #portraitRow{display:flex; gap:8px; justify-content:center;}
+  #portraitRow canvas{
+    width:64px; height:64px; image-rendering:pixelated;
+    background:radial-gradient(circle at 50% 35%, #16222e, #0b0f13);
+    border:2px solid var(--edge); border-radius:6px;
+  }
+
   .overlay{
     position:absolute; inset:3px; background:rgba(8,10,14,.9);
     display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -301,8 +309,8 @@
         Los bichos salen del agujero al oeste; en la &uacute;ltima oleada llega
         <b>la Nodriza</b>.
         <h3>CONTROLES</h3>
-        <span class="k">[1-5]</span> mechas &middot; <span class="k">[6-7]</span> edificios
-        &middot; <span class="k">[8-9]</span> unidades &middot;
+        <span class="k">[1-6]</span> mechas &middot; <span class="k">[7-8]</span> edificios
+        &middot; <span class="k">[9-0]</span> unidades &middot;
         <span class="k">[Espacio]</span> lanzar oleada &middot;
         <span class="k">[B]</span> bombardeo &middot; <span class="k">[P]</span> pausa &middot;
         <span class="k">[Esc]</span>/clic derecho cancelar.
@@ -351,6 +359,10 @@
         o el granero para ver aqu&iacute; sus acciones.</div>
       <!-- menú contextual de la entidad seleccionada -->
       <div id="ctxPanel" class="hidden">
+        <div id="portraitRow">
+          <canvas id="portraitArt" width="48" height="48"></canvas>
+          <canvas id="pilotFace" width="16" height="16"></canvas>
+        </div>
         <div class="row">
           <button class="act" id="upBtn" disabled>MEJORAR</button>
           <button class="act" id="sellBtn" disabled>VENDER</button>

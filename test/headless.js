@@ -103,7 +103,7 @@ function build(type, c, r) {
 }
 function buildB(type, c, r) {
   key('Escape');
-  key(String(D.BUILDING_ORDER.indexOf(type) + 6));
+  key(String(D.BUILDING_ORDER.indexOf(type) + 7));
   canvasClick(c, r);
   const b = S.buildings.find(b => b.c === c && b.r === r);
   if (!b) throw new Error('no se pudo construir ' + type + ' en ' + c + ',' + r);
@@ -230,7 +230,7 @@ assert(S.towers.some(t => t.ammo < G.towerStats(t).maxAmmo), 'disparar consume m
 
 console.log('— Logística: el cargador repone munición y repara —');
 S.buildT = 99999;                       // congela el disruptor durante la prueba
-key('8');                               // comprar CARGADOR
+key('9');                               // comprar CARGADOR
 assert(S.units.some(u => u.type === 'carrier'), 'el cargador se recluta en el granero');
 const hungry = S.towers.find(t => t.c === 4 && t.r === 4);
 hungry.ammo = 1;
@@ -279,6 +279,21 @@ step(40);
 assert(chop1.dead && chop2.dead, 'el hacha barre a todos los bichos al alcance');
 assert(axeMech.ammo === 0 && G.towerStats(axeMech).maxAmmo === 0,
   'el hacha no gasta munición');
+S.enemies.length = 0;
+selectTile(4, 3); byId.sellBtn.click();
+
+console.log('— SEGADOR: la hoja de energía —');
+S.money += 500;
+const bladeMech = build('blade', 4, 3);
+assert(!bladeMech.offline, 'el SEGADOR se enciende junto al generador');
+const armored = G.spawnEnemy('scarab', 3, 0, bladeMech.x + 34, bladeMech.y);
+const hpA = armored.hp;
+const stB = G.towerStats(bladeMech);
+G.WEAPONS.blade.fire(bladeMech, stB, armored);
+assert(hpA - armored.hp === stB.dmg,
+  'la hoja atraviesa el blindaje: daño íntegro ' + stB.dmg + ' pese a la coraza');
+assert(stB.maxAmmo === 0, 'la hoja no gasta munición');
+step(60);   // y el motor la dispara solo sin tropezar
 S.enemies.length = 0;
 selectTile(4, 3); byId.sellBtn.click();
 
@@ -534,7 +549,7 @@ buildB('gen', 12, 4);
 buildB('gen', 15, 7);
 buildB('gen', 14, 5);
 // logística de munición: cargadores + el dron inicial en modo recarga
-key('8'); key('8'); key('8'); key('8');
+key('9'); key('9'); key('9'); key('9');
 // defensa en los cuellos del recorrido
 build('mg', 2, 2);
 build('tesla', 4, 7);
