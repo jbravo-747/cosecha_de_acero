@@ -49,19 +49,12 @@
     continueBtn: document.getElementById('continueBtn'),
     restartBtn: document.getElementById('restartBtn'),
     endlessBtn: document.getElementById('endlessBtn'),
+    // (el título ahora usa assets/logo.png en lugar de arte en canvas)
     modeRow: document.getElementById('modeRow'),
     diffRow: document.getElementById('diffRow'),
     diffNote: document.getElementById('diffNote'),
-    recordLine: document.getElementById('recordLine'),
-    titleArt: document.getElementById('titleArt')
+    recordLine: document.getElementById('recordLine')
   };
-
-  // arte del título: el mecha COYOTE a 3x
-  (function () {
-    var g = el.titleArt.getContext('2d');
-    g.imageSmoothingEnabled = false;
-    g.drawImage(SP.mechs.mg, 0, 4, 48, 39);
-  })();
 
   // botones de torre, edificio y unidad
   var towerBtnEls = {};

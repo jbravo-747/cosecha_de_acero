@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/logo.png" alt="Cosecha de Acero" width="320"></p>
+
 # 🌾🤖 Cosecha de Acero
 
 Tower defense en pixel art: **mechas granjeros contra insectoides alienígenas**.

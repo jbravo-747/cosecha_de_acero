@@ -337,7 +337,16 @@ NUEVA PARTIDA lo borran. Tolerante a localStorage bloqueado.
 - Ajuste fino de alturas (monitor, retratos 56 px, nota) para que la
   consola siga sin scroll interno a 768 px.
 
-## 27. Refactor: arquitectura modular ✔
+## 27. Logo oficial ✔
+
+- `assets/logo.png` (512 px, generado con IA a partir del prompt de
+  diseño): emblema circular con el mecha del hacha, trigo, granero y
+  garra alienígena.
+- Vive en la **esquina superior izquierda del HUD** (sustituye al texto
+  COSECHA DE ACERO), es el **favicon** y encabeza el README. El título
+  se compactó (el manual de campo absorbe el texto largo de intro).
+
+## 28. Refactor: arquitectura modular ✔
 
 `game.js` se partió en módulos IIFE comunicados por `window.G` (sin build,
 se conserva el doble clic en `index.html`): `core.js` (estado + helpers),
