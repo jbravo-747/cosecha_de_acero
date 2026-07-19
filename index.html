@@ -97,7 +97,7 @@
     font-size:9px; letter-spacing:3px; color:#5c6b7c; font-weight:bold;
   }
   .col.control{flex:0 0 auto; display:flex; flex-direction:column; gap:8px;}
-  .col.monitor{flex:1 1 auto; min-height:110px; display:flex; flex-direction:column; gap:8px;}
+  .col.monitor{flex:1 1 auto; min-height:86px; display:flex; flex-direction:column; gap:8px;}
   .col.mando{flex:0 0 auto; display:flex; flex-direction:column; gap:8px;}
 
   /* tarjetas del arsenal, apiladas en vertical */
@@ -105,18 +105,33 @@
   .tbtn{
     position:relative;
     display:flex; align-items:center; gap:6px;
-    background:linear-gradient(180deg, #2c3743, #202932);
-    border:2px solid var(--edge); border-bottom-width:4px; border-radius:6px;
+    background:
+      radial-gradient(circle at calc(100% - 5px) calc(100% - 5px), #5c6976 1.2px, transparent 1.8px),
+      linear-gradient(180deg, #34404d 0%, #232c37 55%, #1c242d 100%);
+    border:2px solid #11161b; border-bottom:0; border-radius:3px;
     color:var(--txt); font-family:inherit; font-size:10px; font-weight:bold;
     padding:3px 6px; cursor:pointer; text-align:left; line-height:1.25;
+    box-shadow:
+      inset 0 2px 0 rgba(255,255,255,.13),
+      inset 0 -2px 0 rgba(0,0,0,.4),
+      0 3px 0 #0c1013, 0 4px 4px rgba(0,0,0,.4);
+    margin-bottom:3px;
+    text-shadow:1px 1px 0 #000;
   }
   .tbtn::after{ /* LED de estado */
     content:''; position:absolute; top:4px; right:4px; width:5px; height:5px;
     border-radius:50%; background:#3a4652; box-shadow:inset 0 0 2px #000;
   }
-  .tbtn:hover{border-color:var(--gold);}
-  .tbtn:active{border-bottom-width:2px; transform:translateY(2px);}
-  .tbtn.sel{border-color:var(--gold); background:linear-gradient(180deg, #46402a, #322c1c);}
+  .tbtn:hover{border-color:var(--gold); filter:brightness(1.12);}
+  .tbtn:active{transform:translateY(3px);
+    box-shadow:inset 0 2px 3px rgba(0,0,0,.3), 0 0 0 #0c1013;}
+  .tbtn.sel{
+    border-color:var(--gold);
+    background:linear-gradient(180deg, #514a2c 0%, #3a3420 55%, #2a2616 100%);
+    transform:translateY(2px);
+    box-shadow:inset 0 2px 3px rgba(0,0,0,.35),
+      0 1px 0 #0c1013, 0 0 10px rgba(242,217,78,.35);
+  }
   .tbtn.sel::after{background:var(--acid); box-shadow:0 0 6px var(--acid);}
   .tbtn.poor{opacity:.45; cursor:not-allowed;}
   .tbtn.poor::after{background:var(--red);}
@@ -126,7 +141,7 @@
 
   /* monitor táctico (CRT) */
   #info{
-    flex:1; min-height:84px; padding:8px 10px; font-size:12px; line-height:1.5;
+    flex:1; min-height:62px; padding:8px 10px; font-size:12px; line-height:1.5;
     color:var(--crt); text-shadow:0 0 4px rgba(120,255,160,.45);
     border:2px solid #0e2417; border-radius:6px;
     background:
@@ -155,48 +170,104 @@
   #wavePrev .wbug canvas{width:22px; height:22px; image-rendering:pixelated;}
   #wavePrev .wwarn{color:var(--red); text-shadow:0 0 5px rgba(224,85,69,.5); font-size:10px;}
   .row{display:flex; gap:7px;}
+  /* botón industrial de acero: bisel, tornillos y base que se hunde */
   button.act{
     flex:1; font-family:inherit; font-weight:bold; font-size:12px;
-    padding:9px 4px; border-radius:6px; border:2px solid var(--edge);
-    border-bottom-width:4px;
-    background:linear-gradient(180deg, #2c3743, #202932); color:var(--txt); cursor:pointer;
+    padding:9px 4px; border-radius:3px;
+    border:2px solid #11161b; border-bottom:0;
+    background:
+      radial-gradient(circle at 6px 6px, #71808f 1.5px, transparent 2.2px),
+      radial-gradient(circle at calc(100% - 6px) 6px, #71808f 1.5px, transparent 2.2px),
+      linear-gradient(180deg, #3c4855 0%, #242e39 55%, #1b232c 100%);
+    color:var(--txt); cursor:pointer;
+    box-shadow:
+      inset 0 2px 0 rgba(255,255,255,.16),
+      inset 0 -3px 0 rgba(0,0,0,.45),
+      0 4px 0 #0c1013, 0 6px 5px rgba(0,0,0,.45);
+    text-shadow:1px 1px 0 #000;
+    margin-bottom:4px;
   }
-  button.act:hover{border-color:var(--txt);}
-  button.act:active{border-bottom-width:2px; transform:translateY(2px);}
-  button.act:disabled{opacity:.4; cursor:not-allowed; transform:none;}
-  #upBtn{background:linear-gradient(180deg, #28455e, #1b3145); border-color:#3a6a96; color:#cfe4f8;}
-  #sellBtn{background:linear-gradient(180deg, #5a2c26, #40201c); border-color:#8a4038; color:#f8d0c8;}
+  button.act:hover{color:#fff; filter:brightness(1.15);}
+  button.act:active{
+    transform:translateY(4px);
+    box-shadow:
+      inset 0 2px 0 rgba(0,0,0,.25),
+      inset 0 -1px 0 rgba(255,255,255,.08),
+      0 0 0 #0c1013, 0 1px 2px rgba(0,0,0,.4);
+  }
+  button.act:disabled{opacity:.4; cursor:not-allowed; transform:none; filter:none;}
+  #upBtn{background:
+      radial-gradient(circle at 6px 6px, #6a94bc 1.5px, transparent 2.2px),
+      radial-gradient(circle at calc(100% - 6px) 6px, #6a94bc 1.5px, transparent 2.2px),
+      linear-gradient(180deg, #2e547a 0%, #1e3a56 55%, #16293d 100%);
+    color:#cfe4f8;}
+  #sellBtn{background:
+      radial-gradient(circle at 6px 6px, #b06a5c 1.5px, transparent 2.2px),
+      radial-gradient(circle at calc(100% - 6px) 6px, #b06a5c 1.5px, transparent 2.2px),
+      linear-gradient(180deg, #6a3830 0%, #48241e 55%, #341a16 100%);
+    color:#f8d0c8;}
 
-  /* palanca del disruptor */
+  /* el botonazo rojo del disruptor: carcasa amarilla y base negra */
   #startBtn{
-    width:100%; padding:10px 6px; font-size:11px; font-weight:bold; letter-spacing:1px;
+    width:calc(100% - 12px); margin:4px 6px 14px;
+    padding:12px 6px; font-size:11px; font-weight:bold; letter-spacing:1px;
     font-family:inherit; border-radius:6px; cursor:pointer;
-    background:linear-gradient(180deg, #3a5a24, #24401a); color:#cfe8a0;
-    border:2px solid #4a7a2e; border-bottom-width:5px;
-    text-shadow:0 0 6px rgba(158,227,74,.4);
+    color:#fff;
+    background:linear-gradient(180deg, #ff7a60 0%, #e03a28 45%, #a82015 100%);
+    border:3px solid #14181c; border-bottom:0;
+    box-shadow:
+      inset 0 3px 0 rgba(255,255,255,.4),
+      inset 0 -4px 0 rgba(0,0,0,.35),
+      0 0 0 5px #e8b820,
+      0 5px 0 5px #a87f10,
+      0 9px 0 5px #15181c,
+      0 12px 8px rgba(0,0,0,.55);
+    text-shadow:0 1px 0 #7a1610;
   }
-  #startBtn:hover{border-color:var(--acid); color:#fff;}
-  #startBtn:active{border-bottom-width:2px; transform:translateY(3px);}
-  #startBtn:disabled{opacity:.45; cursor:not-allowed; transform:none;}
+  #startBtn:hover{filter:brightness(1.1);}
+  #startBtn:active{
+    transform:translateY(4px);
+    box-shadow:
+      inset 0 3px 4px rgba(0,0,0,.35),
+      0 0 0 5px #e8b820,
+      0 1px 0 5px #a87f10,
+      0 5px 0 5px #15181c,
+      0 7px 6px rgba(0,0,0,.5);
+  }
+  #startBtn:disabled{
+    cursor:not-allowed; transform:none;
+    filter:grayscale(.55) brightness(.75);
+  }
+  /* bombardeo: caja de mando con franjas de peligro */
   #bombBtn{
     width:100%; padding:10px 6px; font-size:11px; font-weight:bold; letter-spacing:1px;
-    font-family:inherit; border-radius:6px; cursor:pointer;
-    background:linear-gradient(180deg, #5e3220, #401f14); color:#f8c8a0;
-    border:2px solid #96522e; border-bottom-width:5px;
-    text-shadow:0 0 6px rgba(232,145,42,.4);
+    font-family:inherit; border-radius:0; cursor:pointer;
+    background:linear-gradient(180deg, #34271a 0%, #241a10 60%, #1a120a 100%);
+    color:#f8c8a0;
+    border:4px solid;
+    border-image:repeating-linear-gradient(45deg, #e8b820 0 7px, #15181c 7px 14px) 4;
+    box-shadow:
+      inset 0 2px 0 rgba(255,255,255,.08),
+      inset 0 -3px 0 rgba(0,0,0,.5),
+      0 4px 0 #0c1013, 0 6px 5px rgba(0,0,0,.45);
+    text-shadow:0 0 6px rgba(232,145,42,.5);
+    margin-bottom:4px;
   }
-  #bombBtn:hover{border-color:#e8912a; color:#fff;}
-  #bombBtn:active{border-bottom-width:2px; transform:translateY(3px);}
-  #bombBtn:disabled{opacity:.45; cursor:not-allowed; transform:none;}
-  #bombBtn.aiming{border-color:var(--red); color:#fff;
-    box-shadow:0 0 10px rgba(224,85,69,.6);}
+  #bombBtn:hover{color:#fff; filter:brightness(1.15);}
+  #bombBtn:active{transform:translateY(4px);
+    box-shadow:inset 0 2px 4px rgba(0,0,0,.4), 0 0 0 #0c1013;}
+  #bombBtn:disabled{opacity:.45; cursor:not-allowed; transform:none; filter:none;}
+  #bombBtn.aiming{color:#fff;
+    border-image:repeating-linear-gradient(45deg, #e05545 0 7px, #15181c 7px 14px) 4;
+    box-shadow:inset 0 0 12px rgba(224,85,69,.5),
+      0 4px 0 #0c1013, 0 0 14px rgba(224,85,69,.55);}
   .hint{color:var(--dim); font-size:9px; line-height:1.55; border-top:1px solid var(--edge); padding-top:6px;}
 
   /* ================= overlays ================= */
   /* retrato de la unidad y cara del piloto */
   #portraitRow{display:flex; gap:8px; justify-content:center;}
   #portraitRow canvas{
-    width:64px; height:64px; image-rendering:pixelated;
+    width:56px; height:56px; image-rendering:pixelated;
     background:radial-gradient(circle at 50% 35%, #16222e, #0b0f13);
     border:2px solid var(--edge); border-radius:6px;
   }
@@ -209,37 +280,70 @@
   }
   .hidden{display:none !important;}
   #ctxPanel{display:flex; flex-direction:column; gap:8px;}
-  .ctxnote{color:var(--dim); font-size:9px; line-height:1.5;}
+  .ctxnote{color:var(--dim); font-size:8px; line-height:1.4;}
+  /* autodestrucción: interruptor de emergencia bajo franjas rojas */
   #boomBtn{
     width:100%; padding:10px 6px; font-size:11px; font-weight:bold; letter-spacing:1px;
-    font-family:inherit; border-radius:6px; cursor:pointer;
-    background:linear-gradient(180deg, #5e2020, #401414); color:#f8b0a8;
-    border:2px solid #96302e; border-bottom-width:5px;
+    font-family:inherit; border-radius:0; cursor:pointer;
+    background:linear-gradient(180deg, #6a221e 0%, #481412 60%, #340e0c 100%);
+    color:#f8b0a8;
+    border:4px solid;
+    border-image:repeating-linear-gradient(45deg, #b0402e 0 7px, #15181c 7px 14px) 4;
+    box-shadow:
+      inset 0 2px 0 rgba(255,255,255,.1),
+      inset 0 -3px 0 rgba(0,0,0,.5),
+      0 4px 0 #0c1013, 0 6px 5px rgba(0,0,0,.45);
     text-shadow:0 0 6px rgba(224,85,69,.4);
+    margin-bottom:4px;
   }
-  #boomBtn:hover{border-color:var(--red); color:#fff;}
-  #boomBtn:active{border-bottom-width:2px; transform:translateY(3px);}
-  #boomBtn.confirm{border-color:#fff; color:#fff; background:linear-gradient(180deg, #8a2a24, #5e1a16);
-    box-shadow:0 0 12px rgba(224,85,69,.8);}
+  #boomBtn:hover{color:#fff; filter:brightness(1.2);}
+  #boomBtn:active{transform:translateY(4px);
+    box-shadow:inset 0 2px 4px rgba(0,0,0,.4), 0 0 0 #0c1013;}
+  #boomBtn.confirm{color:#fff;
+    background:linear-gradient(180deg, #b03428 0%, #7a1e18 60%, #5a1410 100%);
+    border-image:repeating-linear-gradient(45deg, #ffd23e 0 7px, #b0402e 7px 14px) 4;
+    box-shadow:inset 0 0 10px rgba(255,210,62,.3),
+      0 4px 0 #0c1013, 0 0 16px rgba(224,85,69,.8);}
   .overlay h2{font-size:34px; letter-spacing:6px; color:var(--gold); text-shadow:3px 3px 0 #000;}
   .overlay h2.bad{color:var(--red);}
   .overlay p{color:var(--dim); max-width:520px; line-height:1.7; font-size:13px;}
+  /* botones de overlay: placa amarilla industrial con base negra */
   .overlay button{
-    font-family:inherit; font-size:16px; font-weight:bold; letter-spacing:2px;
-    padding:12px 34px; background:#2c4a1e; color:#cfe8a0;
-    border:3px solid #4a7a2e; border-radius:4px; cursor:pointer;
+    font-family:inherit; font-size:15px; font-weight:bold; letter-spacing:2px;
+    padding:12px 30px; border-radius:4px; cursor:pointer;
+    color:#1c1508;
+    background:linear-gradient(180deg, #ffd23e 0%, #e8a81a 55%, #c9880e 100%);
+    border:3px solid #14181c; border-bottom:0;
+    box-shadow:
+      inset 0 2px 0 rgba(255,255,255,.5),
+      inset 0 -3px 0 rgba(0,0,0,.25),
+      0 5px 0 #14181c, 0 8px 6px rgba(0,0,0,.5);
+    text-shadow:0 1px 0 rgba(255,255,255,.35);
   }
-  .overlay button:hover{border-color:var(--acid); color:#fff;}
-  #continueBtn{background:#20364a; border-color:#3a6a96; color:#cfe4f8;}
-  #continueBtn:hover{border-color:#6ab0e8;}
-  #endlessBtn{background:#3a2050; border-color:#7e4696; color:#e0c8f0;}
-  #endlessBtn:hover{border-color:#c65fd1;}
+  .overlay button:hover{filter:brightness(1.08);}
+  .overlay button:active{transform:translateY(5px);
+    box-shadow:inset 0 3px 4px rgba(0,0,0,.3), 0 0 0 #14181c;}
+  #continueBtn{color:#eaf4ff; text-shadow:0 1px 0 #0c1a28;
+    background:linear-gradient(180deg, #4a80b4 0%, #2c527a 55%, #1e3a58 100%);}
+  #endlessBtn{color:#f4e4ff; text-shadow:0 1px 0 #200a2c;
+    background:linear-gradient(180deg, #8a50a8 0%, #5c2e78 55%, #421e58 100%);}
 
   /* selectores de modo y dificultad del título */
   #diffRow, #modeRow{display:flex; gap:8px;}
+  /* palanquitas de configuración: se hunden al quedar seleccionadas */
   #diffRow button, #modeRow button{
     font-size:11px; padding:8px 16px; letter-spacing:1px;
-    background:#1a2129; border:2px solid var(--edge); color:var(--dim);
+    background:linear-gradient(180deg, #232c37 0%, #1a2129 60%, #141a21 100%);
+    border:2px solid #11161b; border-bottom:0; border-radius:3px;
+    color:var(--dim);
+    box-shadow:inset 0 2px 0 rgba(255,255,255,.1),
+      0 3px 0 #0c1013, 0 4px 4px rgba(0,0,0,.4);
+    text-shadow:1px 1px 0 #000;
+  }
+  #diffRow button:hover, #modeRow button:hover{filter:brightness(1.2);}
+  #diffRow button.sel, #modeRow button.sel{
+    transform:translateY(2px);
+    box-shadow:inset 0 2px 3px rgba(0,0,0,.35), 0 1px 0 #0c1013;
   }
   #diffRow button.sel{border-color:var(--gold); color:var(--gold); background:#2a2616;}
   #modeRow button.sel{border-color:#c65fd1; color:#e0a8ec; background:#2a1630;}

@@ -323,7 +323,21 @@ NUEVA PARTIDA lo borran. Tolerante a localStorage bloqueado.
 - Los jefes no generan variantes de élite (marca `boss: true`); avisos
   de radar y letrero al lanzar nombran al jefe que viene.
 
-## 26. Refactor: arquitectura modular ✔
+## 26. Botonería industrial ✔
+
+- Rediseño CSS de todos los botones al lenguaje "tablero de máquina":
+  biseles 3D con base negra que se hunde al pulsar (`translateY` +
+  `box-shadow` escalonado), tornillos en las esquinas y franjas de
+  peligro.
+- **LANZAR OLEADA** es el botonazo rojo sobre carcasa amarilla (como el
+  interruptor de emergencia de referencia); BOMBARDEO y AUTODESTRUCCIÓN
+  llevan marcos de franjas amarillas/rojas; los botones de overlay son
+  placas amarillas industriales; las tarjetas del arsenal y los
+  selectores del título se hunden al quedar seleccionados.
+- Ajuste fino de alturas (monitor, retratos 56 px, nota) para que la
+  consola siga sin scroll interno a 768 px.
+
+## 27. Refactor: arquitectura modular ✔
 
 `game.js` se partió en módulos IIFE comunicados por `window.G` (sin build,
 se conserva el doble clic en `index.html`): `core.js` (estado + helpers),
