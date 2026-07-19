@@ -265,7 +265,18 @@ NUEVA PARTIDA lo borran. Tolerante a localStorage bloqueado.
 - La derrota en asedio presume las oleadas aguantadas; el HUD marca
   `11/∞`.
 
-## 21. Refactor: arquitectura modular ✔
+## 21. Cabina lateral: el mapa manda ✔
+
+- La consola (CONTROL + MONITOR + MANDO) pasó de franja inferior a
+  **columna derecha** pegada al mapa: el espacio muerto a la derecha se
+  aprovecha y el canvas crece a todo el alto disponible (~el doble de
+  área en 1366×768 y 1726×976).
+- El arsenal (izquierda) y la consola (derecha) flanquean la acción:
+  mínimo viaje visual (ley de Fitts / proximidad Gestalt).
+- Overlays compactados: el título con selector de dificultad ya cabe
+  sin scroll interno.
+
+## 22. Refactor: arquitectura modular ✔
 
 `game.js` se partió en módulos IIFE comunicados por `window.G` (sin build,
 se conserva el doble clic en `index.html`): `core.js` (estado + helpers),

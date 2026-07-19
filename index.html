@@ -70,9 +70,11 @@
     overflow-y:auto; min-height:0;
   }
 
-  /* ================= consola de mando del mecha ================= */
+  /* ================= consola de mando del mecha =================
+     columna derecha: control, monitor y mando apilados junto al mapa */
   #console{
-    display:flex; gap:8px; align-items:stretch;
+    flex:0 0 300px; display:flex; flex-direction:column; gap:8px;
+    min-height:0; overflow-y:auto;
     background:linear-gradient(180deg, var(--steel), var(--steel2));
     border:2px solid var(--edge); border-radius:8px; padding:10px;
     border-top:8px solid;
@@ -94,9 +96,9 @@
     position:absolute; top:5px; left:0; right:0; text-align:center;
     font-size:9px; letter-spacing:3px; color:#5c6b7c; font-weight:bold;
   }
-  .col.control{flex:0 0 250px; display:flex; flex-direction:column; gap:8px;}
-  .col.monitor{flex:1; display:flex; flex-direction:column; gap:8px;}
-  .col.mando{flex:0 0 210px; display:flex; flex-direction:column; gap:8px;}
+  .col.control{flex:0 0 auto; display:flex; flex-direction:column; gap:8px;}
+  .col.monitor{flex:1 1 auto; min-height:110px; display:flex; flex-direction:column; gap:8px;}
+  .col.mando{flex:0 0 auto; display:flex; flex-direction:column; gap:8px;}
 
   /* tarjetas del arsenal, apiladas en vertical */
   .towers{display:flex; flex-direction:column; gap:5px;}
@@ -202,7 +204,7 @@
   .overlay{
     position:absolute; inset:3px; background:rgba(8,10,14,.9);
     display:flex; flex-direction:column; align-items:center; justify-content:center;
-    text-align:center; gap:14px; z-index:5; padding:20px; border-radius:4px;
+    text-align:center; gap:10px; z-index:5; padding:14px; border-radius:4px;
     overflow-y:auto;
   }
   .hidden{display:none !important;}
@@ -266,8 +268,7 @@
     #arsenal{flex:0 0 auto; overflow:visible;}
     .towers{flex-direction:row; flex-wrap:wrap;}
     .towers .tbtn{flex:1 1 30%;}
-    #console{flex-wrap:wrap;}
-    .col.control, .col.mando{flex:1 1 100%;}
+    #console{flex:0 0 auto; overflow:visible;}
     #hud{flex-wrap:wrap;}
     #brand{width:100%; text-align:center; padding-bottom:4px;}
   }
@@ -322,7 +323,7 @@
       </div>
     </div>
 
-    <div id="helpScreen" class="overlay hidden">
+    <div id="helpScreen" class="overlay hidden"><!-- (dentro del stageBox) -->
       <h2>MANUAL DE CAMPO</h2>
       <div id="helpBody">
         <h3>OBJETIVO</h3>
@@ -371,9 +372,8 @@
     </div>
     </div>
   </div>
-  </div>
 
-  <!-- Consola de mando del mecha -->
+  <!-- Consola de mando del mecha: columna derecha, junto al mapa -->
   <div id="console">
     <div class="col control">
       <div class="clabel" id="arsenalLabel">&#9670; CONTROL &#9670;</div>
@@ -415,6 +415,7 @@
         <button class="act" id="helpBtn">? AYUDA [H]</button>
       </div>
     </div>
+  </div>
   </div>
 
 </div>
