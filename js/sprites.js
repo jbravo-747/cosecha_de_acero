@@ -21,7 +21,9 @@
     'p': '#7e4696', 'P': '#52276b', 'd': '#2e1442',
     'v': '#9ee34a', 'V': '#5f9926', 'm': '#c65fd1',
     // varios
-    'e': '#688a34', 'E': '#4e6a26', 'f': '#e06a9a'
+    'e': '#688a34', 'E': '#4e6a26', 'f': '#e06a9a',
+    // mechas granjeros: chasis verde militar, cabina de cristal y piloto
+    'a': '#7f9e40', 'A': '#566e2c', 'c': '#9fd8ec', 'i': '#e8b48a'
   };
 
   // ---------- utilidades ----------
@@ -291,71 +293,76 @@
   // MECHAS (vista frontal; el arma se dibuja aparte y rota)
   // ==========================================================================
 
+  // COYOTE: chasis verde de granja, cabina con el piloto (gorra roja),
+  // luces en el techo y gatlings grises en los brazos
   var MECH_MG = [
     '.....kkkkkk.....',
-    '....kbbbbbbk....',
-    '...kbBooooBbk...',
-    '...kbBoyooBbk...',
-    '....kbbbbbbk....',
-    '..kkkbBBBBbkkk..',
-    '.kbbkBbbbbBkbbk.',
-    '.kbbkBbyybBkbbk.',
-    '.kllk.kBBk.kllk.',
-    '...kBBk..kBBk...',
-    '...kBBk..kBBk...',
-    '..kBBBk..kBBBk..',
+    '....kaAyyAak....',
+    '...kaccrrccak...',
+    '...kacciiccak...',
+    '....kaaaaaak....',
+    '..kkkaAAAAakkk..',
+    '.kggkAaaaaAkggk.',
+    '.kggkAaoyaAkggk.',
+    '.kGGk.kAAk.kGGk.',
+    '...kAAk..kAAk...',
+    '...kAAk..kAAk...',
+    '..kAAAk..kAAAk..',
     '..kkkkk..kkkkk..'
   ];
 
+  // BISONTE: el hermano ancho — doble cañón y panel naranja de servicio
   var MECH_CANNON = [
     '....kkkkkkkk....',
-    '...kggggggggk...',
-    '..kgGooooooGgk..',
-    '..kgGooyyooGgk..',
-    '...kggggggggk...',
-    '.kkkgGGGGGGgkkk.',
-    'kggkGggggggGkggk',
-    'kggkGgryyrgGkggk',
-    'kggk.kGGGGk.kggk',
-    '..kGGGk..kGGGk..',
-    '..kGGGk..kGGGk..',
-    '.kGGGGk..kGGGGk.',
+    '...kaaAyyAaak...',
+    '..kacccrrcccak..',
+    '..kaccciicccak..',
+    '...kaaaaaaaak...',
+    '.kkkaAAAAAAakkk.',
+    'kggkAaaaaaaAkggk',
+    'kggkAaoyyoaAkggk',
+    'kggk.kAAAAk.kggk',
+    '..kAAAk..kAAAk..',
+    '..kAAAk..kAAAk..',
+    '.kAAAAk..kAAAAk.',
     '.kkkkkk..kkkkkk.'
   ];
 
+  // VIUDA: silueta fina, antena de puntería y zancas largas
   var MECH_SNIPER = [
     '.......ky.......',
     '.....kkkkkk.....',
-    '....kBBBBBBk....',
-    '...kBbyyyybBk...',
-    '...kBbyooybBk...',
-    '....kBBBBBBk....',
-    '..kkkBbbbbBkkk..',
-    '.kBBkbBBBBbkBBk.',
-    '.kBBk.kBBk.kBBk.',
-    '...kBBk..kBBk...',
-    '....kBk..kBk....',
-    '...kBBk..kBBk...',
+    '....kAayyaAk....',
+    '...kaccrrccak...',
+    '...kacciiccak...',
+    '....kaaaaaak....',
+    '..kkkAaaaaAkkk..',
+    '.kAAkaAAAAakAAk.',
+    '.kAAk.kAAk.kAAk.',
+    '...kAAk..kAAk...',
+    '....kAk..kAk....',
+    '...kAAk..kAAk...',
     '...kkkk..kkkk...'
   ];
 
-  // Mecha leñador: chasis de madera y acero con el hacha al hombro
+  // LEÑADOR: cabina verde, brazos de madera y el hacha al hombro
   var MECH_AXE = [
     '.....kkkkkk.kWk.',
-    '....kttttttkWWWk',
-    '...ktToooTtkWWWk',
-    '...ktToyoTtk.tk.',
-    '....kttttttk.tk.',
-    '..kkktTTTTtk.tk.',
-    '.kttkTttttTkktk.',
-    '.kttkTtyytTktk..',
-    '.kssk.kTTk.kssk.',
-    '...kTTk..kTTk...',
-    '...kTTk..kTTk...',
-    '..kTTTk..kTTTk..',
+    '....kaAyyAakWWWk',
+    '...kacrrrcakWWWk',
+    '...kaciiicak.tk.',
+    '....kaaaaaak.tk.',
+    '..kkkaAAAAak.tk.',
+    '.kttkAaaaaAkktk.',
+    '.kttkAayyaAktk..',
+    '.kssk.kAAk.kssk.',
+    '...kAAk..kAAk...',
+    '...kAAk..kAAk...',
+    '..kAAAk..kAAAk..',
     '..kkkkk..kkkkk..'
   ];
 
+  // CERCA-9: pilón de la cerca — bobina, aislante naranja y pie verde
   var TESLA = [
     '......kyyk......',
     '.....ky..yk.....',
@@ -366,11 +373,11 @@
     '......kgGk......',
     '.....kgGGgk.....',
     '......kgGk......',
-    '.....kgGGgk.....',
-    '......ktTk......',
-    '.....ktTTtk.....',
-    '....ktTTTTtk....',
-    '...kttTTTTttk...',
+    '.....koOOok.....',
+    '......kaAk......',
+    '.....kaAAak.....',
+    '....kaAAAAak....',
+    '...kaaAAAAaak...',
     '...kkkkkkkkkk...'
   ];
 
