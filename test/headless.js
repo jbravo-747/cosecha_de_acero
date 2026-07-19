@@ -283,6 +283,21 @@ assert(axeMech.ammo === 0 && G.towerStats(axeMech).maxAmmo === 0,
 S.enemies.length = 0;
 selectTile(4, 3); byId.sellBtn.click();
 
+console.log('— COYOTE nivel 3: lanzallamas —');
+S.money += 800; S.parts += 5;
+const pyro = build('mg', 4, 3);
+pyro.level = 3;
+const stP = G.towerStats(pyro);
+const b1 = G.spawnEnemy('drone', 3, 0, pyro.x + 30, pyro.y);
+const b2 = G.spawnEnemy('drone', 3, 0, pyro.x + 50, pyro.y + 12);
+const b3 = G.spawnEnemy('drone', 3, 0, pyro.x - 40, pyro.y);   // a la espalda
+const hp1 = b1.hp, hp2 = b2.hp, hp3 = b3.hp;
+G.WEAPONS.flame.fire(pyro, stP, b1, D.TOWERS.mg);
+assert(b1.hp < hp1 && b2.hp < hp2, 'el chorro de fuego baña a todos los bichos del cono');
+assert(b3.hp === hp3, 'pero no quema a los que están a la espalda');
+S.enemies.length = 0;
+selectTile(4, 3); byId.sellBtn.click();
+
 console.log('— SEGADOR: la hoja de energía —');
 S.money += 500;
 const bladeMech = build('blade', 4, 3);

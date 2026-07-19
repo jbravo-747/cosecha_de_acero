@@ -66,6 +66,8 @@ antes de comprar.
 ### Mechas (unidades móviles con vida y munición)
 
 - **COYOTE** ($100, 1 ⚡, paso 2) — ametralladora rápida, 200 balas.
+  A **nivel 3 monta un lanzallamas**: cada disparo baña en fuego un cono
+  entero de bichos.
 - **CERCA-9** ($150, 1 ⚡, paso 1) — pilón tesla: salta entre bichos y los
   frena. **Dos pilones flanqueando el camino crean un campo de fuerza**
   que bloquea a los terrestres: tiene vida (80 × suma de niveles), lo
@@ -79,9 +81,12 @@ antes de comprar.
 - **SEGADOR** ($240, 2 ⚡, paso 2) — hoja de energía alienígena: un solo
   tajo brutal que **atraviesa el blindaje**, sin munición.
 
-Al seleccionar cualquier cosa, la consola muestra su **retrato** y, si
-lleva piloto, **la cara del granjero al estilo Doom**: se va magullando
-y ensangrentando conforme el mecha (o el granero) encaja daño.
+Al seleccionar cualquier cosa, la consola muestra su **retrato** — los
+mechas tienen **ilustraciones de cabina detalladas** (24×24, con el
+piloto a la vista y su arma característica; lámina en
+`assets/ilustraciones-mechas.png`) — y, si lleva piloto, **la cara del
+granjero al estilo Doom**: se va magullando y ensangrentando conforme
+el mecha (o el granero) encaja daño.
 
 Cada disparo gasta munición; sin balas el mecha calla hasta que lo
 reabastezcan — pero **todos los mechas pelean cuerpo a cuerpo**: si un

@@ -280,7 +280,9 @@
       spr = SP.buildings[sel.type];
       key = 'b' + sel.type;
     } else {
-      spr = SP.mechLevels[sel.type][sel.level - 1];
+      // ilustración de cabina detallada (24×24) en lugar del sprite de campo
+      spr = (SP.mechArt && SP.mechArt[sel.type]) ||
+        SP.mechLevels[sel.type][sel.level - 1];
       face = faceState(Math.max(0, sel.hp) / sel.maxHp);
       key = 't' + sel.type + sel.level + ':' + face;
     }

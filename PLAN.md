@@ -362,7 +362,21 @@ NUEVA PARTIDA lo borran. Tolerante a localStorage bloqueado.
   **⛶ pantalla completa** que solo aparece en pantallas táctiles
   (`pointer:coarse`).
 
-## 29. Refactor: arquitectura modular ✔
+## 29. Lanzallamas e ilustraciones de cabina ✔
+
+- **COYOTE nivel 3 monta un LANZALLAMAS**: mecanismo genérico `projMax`
+  en los datos (arma alternativa al nivel máximo) + arma `flame` en
+  `WEAPONS` — baña en fuego un cono de ~63° (`flameArc: 0.55`) dañando
+  a todos los bichos dentro, con lengua de partículas y arco naranja.
+- **Ilustraciones de cabina 24×24** (`SPRITES.mechArt`): base anatómica
+  compartida (`ART_BASE` + `artVariant`) con cabina, piloto, hombreras y
+  panel; cada mecha añade su arma (cañones laterales, antena y rifle,
+  hacha, hoja de energía con núcleo púrpura) y viste su color; el pilón
+  CERCA-9 tiene anatomía propia. El panel CONTROL las usa como retrato
+  en lugar del sprite de campo estirado.
+- Lámina de referencia en `assets/ilustraciones-mechas.png`.
+
+## 30. Refactor: arquitectura modular ✔
 
 `game.js` se partió en módulos IIFE comunicados por `window.G` (sin build,
 se conserva el doble clic en `index.html`): `core.js` (estado + helpers),

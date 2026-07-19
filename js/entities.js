@@ -571,7 +571,9 @@
     t.cd = st.rof;
     t.flash = 0.08;
     if (def.ammo > 0) t.ammo--;
-    G.WEAPONS[def.proj].fire(t, st, e, def);
+    // algunos mechas cambian de arma al nivel máximo (COYOTE → lanzallamas)
+    var proj = (t.level >= D.MAX_LEVEL && def.projMax) ? def.projMax : def.proj;
+    G.WEAPONS[proj].fire(t, st, e, def);
   }
 
   // golpe cuerpo a cuerpo: cualquier mecha aplasta a los bichos pegados,

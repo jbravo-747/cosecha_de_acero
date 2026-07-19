@@ -184,6 +184,32 @@
       }
     },
 
+    // lanzallamas del COYOTE a nivel máximo: baña en fuego un cono entero
+    flame: {
+      fire: function (t, st, e, def) {
+        var a = Math.atan2(e.y - t.y, e.x - t.x);
+        var arc = def.flameArc || 0.55;
+        for (var i = 0; i < S.enemies.length; i++) {
+          var o = S.enemies[i];
+          if (o.dead) continue;
+          if (G.dist2(t.x, t.y, o.x, o.y) > st.range * st.range) continue;
+          var da = Math.abs(Math.atan2(
+            Math.sin(Math.atan2(o.y - t.y, o.x - t.x) - a),
+            Math.cos(Math.atan2(o.y - t.y, o.x - t.x) - a)));
+          if (da <= arc) G.damageEnemy(o, st.dmg);
+        }
+        // lengua de fuego: partículas a lo largo del chorro
+        for (var f = 1; f <= 3; f++) {
+          var d = st.range * f / 3.4;
+          G.burst(t.x + Math.cos(a) * d, t.y + Math.sin(a) * d,
+            f === 1 ? '#f2d94e' : '#e8912a', 3, 40);
+        }
+        S.effects.push({ kind: 'swing', x: t.x, y: t.y - 4, a: a,
+          r: st.range * 0.8, life: 0.1, c: '#e8912a', c2: '#f2d94e' });
+        AU.shot();
+      }
+    },
+
     // hoja de energía del SEGADOR: un tajo brutal que ignora el blindaje
     blade: {
       fire: function (t, st, e) {

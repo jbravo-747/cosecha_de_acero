@@ -31,7 +31,8 @@
       name: 'COYOTE', cost: 100, range: 105, dmg: 8, rof: 0.16, energy: 1,
       hp: 160, ammo: 200, move: 2,
       proj: 'bullet', projSpeed: 380,
-      desc: 'Ametralladora ligera. Rápida y barata: ideal contra enjambres de drones.'
+      projMax: 'flame', flameArc: 0.55,   // a nivel 3 monta un lanzallamas
+      desc: 'Ametralladora ligera. Rápida y barata: ideal contra enjambres de drones. A nivel 3 monta un LANZALLAMAS que baña en fuego un cono entero.'
     },
     tesla: {
       name: 'CERCA-9', cost: 150, range: 90, dmg: 15, rof: 0.85, energy: 1,

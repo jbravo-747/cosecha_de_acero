@@ -704,6 +704,72 @@
   ];
 
   // ==========================================================================
+  // ILUSTRACIONES DE CABINA (retratos 24×24, el cuádruple de detalle)
+  // Base compartida: cabina con piloto, hombreras, panel del pecho y
+  // patas; cada mecha cambia arma/accesorios y viste su color de chasis.
+  // ==========================================================================
+
+  var ART_BASE = [
+    '........kkkkkkkk........',
+    '.......kaAAAAAAak.......',
+    '......kaAyyAAyyAak......',
+    '.....kaaaaaaaaaaaak.....',
+    '.....kaccccccccccak.....',
+    '.....kaccrrrrrrccak.....',
+    '.....kaccriiiirccak.....',
+    '.....kacciiiiiiccak.....',
+    '.....kacccikkicccak.....',
+    '.....kaaaaaaaaaaaak.....',
+    '..kkkaaAAAAAAAAAAaakkk..',
+    '.kggkaAAaaaaaaaaAAakggk.',
+    '.kgGkaAaaaaaaaaaaAakgGk.',
+    '.kgGkaAaaoyyoaaaaAakgGk.',
+    '.kgGkaAaaoyyoaaaaAakgGk.',
+    '.kggkaAAaaaaaaaaAAakggk.',
+    '..kkkaaAAAAAAAAAAaakkk..',
+    '....kaAAAAAAAAAAAAak....',
+    '.....kaaAAAAAAAAaak.....',
+    '.....kAAk......kAAk.....',
+    '.....kAAk......kAAk.....',
+    '....kaAAk......kAAak....',
+    '....kAAAk......kAAAk....',
+    '...kkkkkk......kkkkkk...'
+  ];
+  function artVariant(edits) {
+    var rows = ART_BASE.slice();
+    Object.keys(edits).forEach(function (i) { rows[+i] = edits[i]; });
+    return rows;
+  }
+
+  // CERCA-9: el pilón no comparte anatomía — bobina, aislante y pie propio
+  var TESLA_ART = [
+    '..........kyyk..........',
+    '........kky..ykk........',
+    '.......ky..yy..yk.......',
+    '......ky...yy...yk......',
+    '......ky...yy...yk......',
+    '.......ky..yy..yk.......',
+    '........kky..ykk........',
+    '..........kyyk..........',
+    '.........kgGGgk.........',
+    '........kgGGGGgk........',
+    '.........kgGGgk.........',
+    '........kgGGGGgk........',
+    '.........kgGGgk.........',
+    '........koOOOOok........',
+    '.........koOOok.........',
+    '.........kaAAak.........',
+    '........kaAAAAak........',
+    '........kaAAAAak........',
+    '.......kaAAAAAAak.......',
+    '.......kaAAAAAAak.......',
+    '......kaaAAAAAAaak......',
+    '.....kaaAAAAAAAAaak.....',
+    '....kaaaaAAAAAAaaaak....',
+    '...kkkkkkkkkkkkkkkkkk...'
+  ];
+
+  // ==========================================================================
   // LA CARA DEL PILOTO (estilo Doom: se magulla con la vida del mecha)
   // ==========================================================================
 
@@ -813,6 +879,53 @@
     units: {
       carrier: [makeSprite(CARRIER_A), makeSprite(CARRIER_B)],
       drone:   [makeSprite(ALLY_DRONE_A), makeSprite(ALLY_DRONE_B)]
+    },
+    // retratos detallados: COYOTE gatling (base), BISONTE con cañones
+    // laterales, VIUDA con antena y rifle, LEÑADOR con el hacha al hombro,
+    // SEGADOR con la hoja de energía y el pilón CERCA-9
+    mechArt: {
+      mg: makeSprite(ART_BASE, 1, { a: 's', A: 'S' }),
+      cannon: makeSprite(artVariant({
+        12: 'GkgGkaAaaaaaaaaaaAakgGkG',
+        13: 'GkgGkaAaaoyyoaaaaAakgGkG'
+      }), 1, { a: 't', A: 'T' }),
+      sniper: makeSprite(artVariant({
+        0: '........kkkkkkkk....ky..',
+        1: '.......kaAAAAAAak...kyk.',
+        2: '......kaAyyAAyyAak..kGk.',
+        3: '.....kaaaaaaaaaaaak.kGk.',
+        4: '.....kaccccccccccak.kGk.',
+        5: '.....kaccrrrrrrccak.kGk.',
+        6: '.....kaccriiiirccak.kGk.',
+        7: '.....kacciiiiiiccakkkGk.'
+      }), 1, { a: 'g', A: 'G' }),
+      axe: makeSprite(artVariant({
+        0: '........kkkkkkkk...kWWk.',
+        1: '.......kaAAAAAAak.kWWWk.',
+        2: '......kaAyyAAyyAakkWWWk.',
+        3: '.....kaaaaaaaaaaaak.ktk.',
+        4: '.....kaccccccccccak.ktk.',
+        5: '.....kaccrrrrrrccak.ktk.',
+        6: '.....kaccriiiirccak.ktk.',
+        7: '.....kacciiiiiiccakkktk.',
+        11: '.kttkaAAaaaaaaaaAAakttk.',
+        12: '.kttkaAaaaaaaaaaaAakttk.',
+        15: '.kttkaAAaaaaaaaaAAakttk.'
+      })),
+      blade: makeSprite(artVariant({
+        0: '........kkkkkkkk....kmk.',
+        1: '.......kaAAAAAAak...kmk.',
+        2: '......kaAyyAAyyAak..kmk.',
+        3: '.....kaaaaaaaaaaaak.kmk.',
+        4: '.....kaccccccccccak.kmk.',
+        5: '.....kaccrrrrrrccak.kmk.',
+        6: '.....kaccriiiirccak.kmk.',
+        7: '.....kacciiiiiiccak.ktk.',
+        8: '.....kacccikkicccakkktk.',
+        13: '.kgGkaAaapmmpaaaaAakgGk.',
+        14: '.kgGkaAaapmmpaaaaAakgGk.'
+      }), 1, { a: 'n', A: 'N' }),
+      tesla: makeSprite(TESLA_ART, 1, { a: 'b', A: 'B' })
     },
     mine: makeSprite(MINE_SPR),
     faces: [makeSprite(FACE_OK), makeSprite(FACE_BRUISED),
