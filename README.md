@@ -5,7 +5,12 @@ Inspirado en el corto *"Suits"* de Love, Death + Robots.
 
 Los bichos salieron del agujero al oeste de la propiedad y avanzan por el
 camino de tierra hacia el granero. Coloca mechas, electrifica la cerca y
-sobrevive 10 oleadas — en la última llega **la Nodriza**.
+sobrevive 10 oleadas — en la última llega **la Nodriza**. Elige tu
+**dificultad** en el título (APRENDIZ / GRANJERO / VETERANO: más vida
+para los bichos y menos créditos para ti) y, si salvas la granja, acepta
+el **☠ ASEDIO SIN FIN**: oleadas procedurales cada vez más feroces, con
+una Nodriza cada 5 y un **récord de la granja** que persiste entre
+partidas.
 
 La partida **se guarda sola** (localStorage) durante cada fase de
 construcción: si cierras a media oleada, el botón **CONTINUAR** del

@@ -12,6 +12,7 @@
   var G = window.G, S = G.S;
   var TILE = G.TILE;
   var KEY = 'cosecha-de-acero-save';
+  var KEY_REC = 'cosecha-de-acero-record';
   var VERSION = 1;
 
   // localStorage puede no existir (pruebas) o estar bloqueado (privacidad)
@@ -23,7 +24,7 @@
     var data = {
       v: VERSION,
       money: S.money, lives: S.lives, parts: S.parts, wave: S.wave,
-      barn: S.barnLevel,
+      barn: S.barnLevel, diff: S.diff, endless: S.endless,
       giftT: Math.round(S.giftT), bombCd: Math.round(S.bombCd),
       towers: S.towers.map(function (t) {
         return { type: t.type, c: t.c, r: t.r, level: t.level,
@@ -58,6 +59,8 @@
     S.lives = d.lives;
     S.parts = d.parts;
     S.wave = d.wave;
+    S.diff = D.DIFFICULTIES[d.diff] ? d.diff : 'aprendiz';
+    S.endless = !!d.endless;
     S.giftT = d.giftT || D.DRONE_GIFT;
     S.bombCd = d.bombCd || 0;
     // remontar las torretas del granero según el nivel guardado
@@ -99,8 +102,23 @@
     return true;
   }
 
+  // ---------- récord de oleadas (sobrevive entre partidas) ----------
+  function getRecord() {
+    try { return JSON.parse(store.getItem(KEY_REC)) || null; }
+    catch (e) { return null; }
+  }
+  function saveRecord(wave) {
+    if (!store || wave < 1) return;
+    var r = getRecord();
+    if (r && r.wave >= wave) return;
+    try { store.setItem(KEY_REC, JSON.stringify({ wave: wave, diff: S.diff })); }
+    catch (e) {}
+  }
+
   G.saveGame = saveGame;
   G.loadGame = loadGame;
   G.hasSave = hasSave;
   G.clearSave = clearSave;
+  G.getRecord = getRecord;
+  G.saveRecord = saveRecord;
 })();

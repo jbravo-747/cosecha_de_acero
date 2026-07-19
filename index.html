@@ -228,6 +228,18 @@
   .overlay button:hover{border-color:var(--acid); color:#fff;}
   #continueBtn{background:#20364a; border-color:#3a6a96; color:#cfe4f8;}
   #continueBtn:hover{border-color:#6ab0e8;}
+  #endlessBtn{background:#3a2050; border-color:#7e4696; color:#e0c8f0;}
+  #endlessBtn:hover{border-color:#c65fd1;}
+
+  /* selector de dificultad del título */
+  #diffRow{display:flex; gap:8px;}
+  #diffRow button{
+    font-size:11px; padding:8px 16px; letter-spacing:1px;
+    background:#1a2129; border:2px solid var(--edge); color:var(--dim);
+  }
+  #diffRow button.sel{border-color:var(--gold); color:var(--gold); background:#2a2616;}
+  #diffNote{font-size:11px; min-height:18px; margin-top:-6px;}
+  #recordLine{color:var(--gold); font-size:11px; letter-spacing:1px;}
 
   /* manual de campo */
   #helpScreen{z-index:6; justify-content:flex-start; overflow-y:auto; gap:10px;}
@@ -289,16 +301,22 @@
          están junto al camino y los bichos los morderán al pasar.
          El <b>disruptor de portales</b> contiene cada oleada 30 segundos.<br><br>
          Sobrevive <b>10 oleadas</b>. En la última viene <b>la Nodriza</b>.</p>
+      <div id="diffRow"></div>
+      <p id="diffNote"></p>
       <div class="row" style="gap:12px;">
         <button id="playBtn">ARRANCAR</button>
         <button id="continueBtn" class="hidden">CONTINUAR</button>
       </div>
+      <p id="recordLine" class="hidden"></p>
     </div>
 
     <div id="endScreen" class="overlay hidden">
       <h2 id="endTitle">VICTORIA</h2>
       <p id="endText"></p>
-      <button id="restartBtn">OTRA COSECHA</button>
+      <div class="row" style="gap:12px;">
+        <button id="restartBtn">OTRA COSECHA</button>
+        <button id="endlessBtn" class="hidden">&#9760; ASEDIO SIN FIN</button>
+      </div>
     </div>
 
     <div id="helpScreen" class="overlay hidden">

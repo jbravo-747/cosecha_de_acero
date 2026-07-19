@@ -648,4 +648,46 @@ key('h');
 assert(byId.helpScreen.classList.contains('hidden') && !S.paused,
   'cerrar las instrucciones reanuda el juego');
 
+console.log('— Dificultad —');
+S.diff = 'veterano';
+S.wave = 1;
+const vHard = G.spawnEnemy('drone', 1, 0, 100, 100);
+assert(Math.abs(vHard.maxHp - D.ENEMIES.drone.hp * D.hpScale(1) *
+  D.DIFFICULTIES.veterano.hpMul) < 0.001,
+  'en VETERANO los bichos traen +55% de vida');
+assert(vHard.bounty === Math.round(D.ENEMIES.drone.bounty * D.DIFFICULTIES.veterano.moneyMul),
+  'y pagan recompensas recortadas');
+S.enemies.length = 0;
+S.diff = 'aprendiz';
+S.wave = 0;
+
+console.log('— Asedio sin fin —');
+assert(G.waveDef(3) === D.WAVES[2], 'las 10 primeras oleadas siguen el guion');
+assert(G.waveDef(15).some(g => g.t === 'boss'), 'cada 5 oleadas de asedio vuelve una Nodriza');
+assert(G.waveDef(20).find(g => g.t === 'drone').n > G.waveDef(11).find(g => g.t === 'drone').n,
+  'las oleadas del asedio crecen sin tope');
+S.wave = 10; S.phase = 'won';
+G.startEndless();
+assert(S.endless && S.phase === 'build', 'tras la victoria el asedio reabre el portal');
+byId.startBtn.click();
+assert(S.phase === 'wave' && S.wave === 11 && S.spawnQueue.length > 0,
+  'la oleada 11 se genera procedural');
+const eliteFrom = D.ELITE.fromWave;
+D.ELITE.fromWave = 999;   // sin élites aleatorias: medimos la rampa pura
+const eEnd = G.spawnEnemy('drone', 1, 0, 50, 50);
+D.ELITE.fromWave = eliteFrom;
+assert(Math.abs(eEnd.maxHp - D.ENEMIES.drone.hp * D.hpScale(11) * D.ENDLESS_HP_RAMP) < 0.001,
+  'la rampa del asedio endurece a los bichos');
+S.enemies.length = 0; S.spawnQueue.length = 0;
+step(1);
+assert(S.phase === 'build' && G.getRecord() && G.getRecord().wave >= 11,
+  'superar una oleada de asedio actualiza el récord');
+
+console.log('— Récord —');
+const rec0 = G.getRecord().wave;
+G.saveRecord(rec0 - 1);
+assert(G.getRecord().wave === rec0, 'un intento peor no pisa el récord');
+G.saveRecord(rec0 + 9);
+assert(G.getRecord().wave === rec0 + 9, 'una hazaña mayor sí lo mejora');
+
 console.log('\nTODO OK — ' + passed + ' aserciones superadas.');

@@ -151,6 +151,36 @@
 
   function waveBonus(wave) { return 60 + 15 * wave; }
 
+  // ---------- dificultad ----------
+  // multiplicadores sobre la vida de los bichos y sobre toda la economía
+  // (recompensas y bono de oleada)
+  var DIFFICULTIES = {
+    aprendiz: { name: 'APRENDIZ', hpMul: 1, moneyMul: 1,
+                desc: 'La invasión clásica: para aprender el oficio.' },
+    granjero: { name: 'GRANJERO', hpMul: 1.25, moneyMul: 0.9,
+                desc: 'Bichos más correosos y recompensas más flacas.' },
+    veterano: { name: 'VETERANO', hpMul: 1.55, moneyMul: 0.75,
+                desc: 'La pradera no perdona. Cada crédito cuesta sangre.' }
+  };
+  var DIFF_ORDER = ['aprendiz', 'granjero', 'veterano'];
+
+  // ---------- asedio sin fin ----------
+  // tras la oleada 10 el portal no se cierra: oleadas procedurales cada
+  // vez más feroces, con una Nodriza extra cada 5
+  var ENDLESS_HP_RAMP = 1.08;   // vida extra compuesta por oleada de asedio
+  function endlessWave(n) {
+    var k = n - WAVES.length;
+    var g = [
+      { t: 'drone',    n: 10 + 2 * k,   gap: Math.max(0.25, 0.5 - 0.02 * k), delay: 0 },
+      { t: 'wasp',     n: 6 + k,        gap: 0.6, delay: 3 },
+      { t: 'spitter',  n: 6 + k,        gap: 1.0, delay: 6 },
+      { t: 'scarab',   n: 3 + (k >> 1), gap: 2.4, delay: 8 },
+      { t: 'kamikaze', n: 3 + (k >> 1), gap: 1.6, delay: 10 }
+    ];
+    if (n % 5 === 0) g.push({ t: 'boss', n: 1 + ((k / 10) | 0), gap: 9, delay: 12 });
+    return g;
+  }
+
   // ---------- edificios de apoyo ----------
   var BUILDINGS = {
     gen:  { name: 'GENERADOR', cost: 120, hp: 180, energy: 4, powerRange: 110,
@@ -237,6 +267,8 @@
     UP_DMG: UP_DMG, UP_RANGE: UP_RANGE, UP_ROF: UP_ROF, SELL_FACTOR: SELL_FACTOR,
     ENEMIES: ENEMIES, hpScale: hpScale, ELITE: ELITE,
     WAVES: WAVES, waveBonus: waveBonus,
+    DIFFICULTIES: DIFFICULTIES, DIFF_ORDER: DIFF_ORDER,
+    endlessWave: endlessWave, ENDLESS_HP_RAMP: ENDLESS_HP_RAMP,
     BUILDINGS: BUILDINGS, BUILDING_ORDER: BUILDING_ORDER, START_BUILDINGS: START_BUILDINGS,
     UNITS: UNITS, UNIT_ORDER: UNIT_ORDER, START_UNITS: START_UNITS, BARN_POS: BARN_POS,
     BUILD_TIME: BUILD_TIME, EARLY_BONUS: EARLY_BONUS,

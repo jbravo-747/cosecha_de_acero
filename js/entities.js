@@ -330,8 +330,14 @@
   }
 
   // ---------- oleadas ----------
+  // definición de la oleada n: guionizada hasta la 10, procedural después
+  function waveDef(n) {
+    return n <= D.WAVES.length ? D.WAVES[n - 1] : D.endlessWave(n);
+  }
+
   function startWave(manual) {
-    if (S.phase !== 'build' || S.wave >= D.WAVES.length) return;
+    if (S.phase !== 'build') return;
+    if (!S.endless && S.wave >= D.WAVES.length) return;
     if (manual && S.buildT > 0) {
       var bonus = Math.round(S.buildT * D.EARLY_BONUS);
       if (bonus > 0) {
@@ -344,14 +350,15 @@
     S.phase = 'wave';
     S.waveT = 0;
     S.spawnQueue = [];
-    D.WAVES[S.wave - 1].forEach(function (grp) {
+    var groups = waveDef(S.wave);
+    groups.forEach(function (grp) {
       for (var i = 0; i < grp.n; i++) {
         S.spawnQueue.push({ time: grp.delay + i * grp.gap, type: grp.t });
       }
     });
     S.spawnQueue.sort(function (a, b) { return a.time - b.time; });
     AU.horn();
-    if (S.wave === D.WAVES.length) {
+    if (groups.some(function (g) { return g.t === 'boss'; })) {
       G.floater(W / 2, H / 2 - 40, '¡LA NODRIZA SE ACERCA!', '#e05545');
     }
   }
@@ -360,10 +367,15 @@
     var def = D.ENEMIES[type];
     // los voladores toman el atajo aéreo directo al granero
     var path = def.flying ? G.flyPath : wpPix;
+    // dificultad + rampa del asedio sin fin sobre la vida base
+    var diff = D.DIFFICULTIES[S.diff];
+    var hpMul = D.hpScale(S.wave) * diff.hpMul *
+      (S.wave > D.WAVES.length
+        ? Math.pow(D.ENDLESS_HP_RAMP, S.wave - D.WAVES.length) : 1);
     var e = {
       type: type, def: def, path: path, flying: !!def.flying,
-      hp: def.hp * D.hpScale(S.wave), maxHp: def.hp * D.hpScale(S.wave),
-      bounty: def.bounty, elite: false,
+      hp: def.hp * hpMul, maxHp: def.hp * hpMul,
+      bounty: Math.max(1, Math.round(def.bounty * diff.moneyMul)), elite: false,
       x: px !== undefined ? px : path[0].x,
       y: py !== undefined ? py : path[0].y + (Math.random() * 10 - 5),
       wp: atWp !== undefined ? atWp : 1,
@@ -378,7 +390,7 @@
       if (Math.random() < chance) {
         e.elite = true;
         e.hp = e.maxHp = e.maxHp * D.ELITE.hpMul;
-        e.bounty = Math.round(def.bounty * D.ELITE.bountyMul);
+        e.bounty = Math.round(e.bounty * D.ELITE.bountyMul);
       }
     }
     (def.behaviors || []).forEach(function (name) {
@@ -912,21 +924,35 @@
 
     // ¿oleada terminada?
     if (S.phase === 'wave' && !S.spawnQueue.length && !S.enemies.length) {
-      if (S.wave >= D.WAVES.length) { endGame(true); return; }
+      if (!S.endless && S.wave >= D.WAVES.length) { endGame(true); return; }
       S.phase = 'build';
       S.buildT = D.BUILD_TIME;   // el disruptor vuelve a contener el portal
-      var bonus = D.waveBonus(S.wave);
+      var bonus = Math.round(D.waveBonus(S.wave) * D.DIFFICULTIES[S.diff].moneyMul);
       S.money += bonus;
       G.floater(W / 2, H / 2 - 30, 'OLEADA SUPERADA  +$' + bonus, '#8ac94a');
       AU.coin();
+      if (S.endless) G.saveRecord(S.wave);
       G.saveGame();              // punto de control tras cada oleada
     }
   }
 
   function endGame(won) {
     S.phase = won ? 'won' : 'lost';
+    // récord: oleadas sobrevividas completas
+    G.saveRecord(won ? S.wave : S.wave - 1);
     G.clearSave();               // la temporada terminó: sin reanudación
     if (won) AU.win(); else AU.lose();
+  }
+
+  // tras la victoria: el portal no se cierra y empieza el asedio sin fin
+  function startEndless() {
+    if (S.phase !== 'won') return;
+    S.endless = true;
+    S.phase = 'build';
+    S.buildT = D.BUILD_TIME;
+    G.floater(W / 2, H / 2 - 40, 'EL PORTAL SE REABRE: ASEDIO SIN FIN', '#c65fd1');
+    AU.horn();
+    G.saveGame();
   }
 
   G.startPlacing = startPlacing;
@@ -946,6 +972,8 @@
   G.dropBomb = dropBomb;
   G.selfDestructSelected = selfDestructSelected;
   G.startWave = startWave;
+  G.waveDef = waveDef;
+  G.startEndless = startEndless;
   G.spawnEnemy = spawnEnemy;
   G.damageEnemy = damageEnemy;
   G.enemyBoom = enemyBoom;

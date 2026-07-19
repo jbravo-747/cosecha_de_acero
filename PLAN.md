@@ -249,7 +249,23 @@ NUEVA PARTIDA lo borran. Tolerante a localStorage bloqueado.
   magullado, sangrando, crítico) elegidos por la fracción de vida del
   mecha — o del granero, con la vida máxima acumulada de sus refuerzos.
 
-## 20. Refactor: arquitectura modular ✔
+## 20. Dificultad y asedio sin fin ✔
+
+- **Dificultades** en el título (persisten entre reinicios): APRENDIZ
+  (balance clásico), GRANJERO (+25% vida, 90% economía), VETERANO
+  (+55% vida, 75% economía). Multiplican la vida de todo bicho y toda
+  recompensa (botín, élites y bono de oleada).
+- **Asedio sin fin**: al ganar la campaña, el botón ☠ ASEDIO SIN FIN
+  reabre el portal; las oleadas 11+ se generan procedurales
+  (`endlessWave`), crecen sin tope, traen una Nodriza cada 5 y suman
+  una rampa de vida compuesta (+8%/oleada) sobre la escala normal.
+- **Récord de la granja** (localStorage aparte del guardado): mejor
+  oleada sobrevivida con su dificultad; se muestra en el título y se
+  actualiza al ganar, al caer y al superar cada oleada del asedio.
+- La derrota en asedio presume las oleadas aguantadas; el HUD marca
+  `11/∞`.
+
+## 21. Refactor: arquitectura modular ✔
 
 `game.js` se partió en módulos IIFE comunicados por `window.G` (sin build,
 se conserva el doble clic en `index.html`): `core.js` (estado + helpers),

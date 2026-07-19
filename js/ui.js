@@ -48,6 +48,10 @@
     playBtn: document.getElementById('playBtn'),
     continueBtn: document.getElementById('continueBtn'),
     restartBtn: document.getElementById('restartBtn'),
+    endlessBtn: document.getElementById('endlessBtn'),
+    diffRow: document.getElementById('diffRow'),
+    diffNote: document.getElementById('diffNote'),
+    recordLine: document.getElementById('recordLine'),
     titleArt: document.getElementById('titleArt')
   };
 
@@ -131,7 +135,7 @@
   var prevWaveBuilt = -2;   // oleada montada en el radar (-1 = modo "en curso")
   function buildWavePreview() {
     var counts = {}, order = [];
-    D.WAVES[S.wave].forEach(function (grp) {
+    G.waveDef(S.wave + 1).forEach(function (grp) {
       if (!counts[grp.t]) { counts[grp.t] = 0; order.push(grp.t); }
       counts[grp.t] += grp.n;
     });
@@ -173,7 +177,7 @@
     }
   }
   function updateWavePreview() {
-    if (S.phase === 'build' && S.wave < D.WAVES.length) {
+    if (S.phase === 'build' && (S.endless || S.wave < D.WAVES.length)) {
       if (prevWaveBuilt !== S.wave) { prevWaveBuilt = S.wave; buildWavePreview(); }
       el.wavePrev.classList.remove('hidden');
     } else if (S.phase === 'wave') {
@@ -189,6 +193,34 @@
       el.wavePrev.classList.add('hidden');
     }
   }
+
+  // ---------- selector de dificultad y récord del título ----------
+  var diffBtnEls = {};
+  D.DIFF_ORDER.forEach(function (key) {
+    var b = document.createElement('button');
+    b.textContent = D.DIFFICULTIES[key].name;
+    b.addEventListener('click', function () { setDiff(key); AU.click(); });
+    el.diffRow.appendChild(b);
+    diffBtnEls[key] = b;
+  });
+  function setDiff(key) {
+    S.diff = key;
+    D.DIFF_ORDER.forEach(function (k) {
+      diffBtnEls[k].classList.toggle('sel', k === key);
+    });
+    el.diffNote.textContent = D.DIFFICULTIES[key].desc;
+  }
+  setDiff(S.diff);
+
+  function refreshRecord() {
+    var r = G.getRecord();
+    if (!r) return;
+    var dname = D.DIFFICULTIES[r.diff] ? D.DIFFICULTIES[r.diff].name : '';
+    el.recordLine.textContent = '★ Récord de la granja: oleada ' + r.wave +
+      (dname ? ' · ' + dname : '');
+    el.recordLine.classList.remove('hidden');
+  }
+  refreshRecord();
 
   // ---------- retrato de la selección y cara del piloto ----------
   // La cara se magulla con la vida del mecha (o del granero), estilo Doom.
@@ -242,14 +274,22 @@
       el.endTitle.textContent = 'GRANJA SALVADA';
       el.endTitle.classList.remove('bad');
       el.endText.innerHTML = 'La Nodriza cayó y los bichos volvieron a su agujero.<br>' +
-        'La cosecha está a salvo... por esta temporada.<br><br>Vidas restantes: ' + S.lives;
+        'La cosecha está a salvo... por esta temporada.<br><br>Vidas restantes: ' + S.lives +
+        '<br><br>El agujero sigue humeando. ¿Aguantas el <b>asedio sin fin</b>?';
+      el.endlessBtn.classList.remove('hidden');
       el.endScreen.classList.remove('hidden');
+      refreshRecord();
     } else if (S.phase === 'lost') {
       el.endTitle.textContent = 'GRANJA PERDIDA';
       el.endTitle.classList.add('bad');
-      el.endText.innerHTML = 'Los bichos llegaron al granero en la oleada ' + S.wave +
-        '.<br>Habrá que volver a empezar desde el refugio.';
+      el.endText.innerHTML = (S.endless
+        ? 'El asedio te tragó en la oleada ' + S.wave + ' — aguantaste ' +
+          Math.max(0, S.wave - 1) + ' oleadas completas.'
+        : 'Los bichos llegaron al granero en la oleada ' + S.wave + '.') +
+        '<br>Habrá que volver a empezar desde el refugio.';
+      el.endlessBtn.classList.add('hidden');
       el.endScreen.classList.remove('hidden');
+      refreshRecord();
     } else {
       el.endScreen.classList.add('hidden');
     }
@@ -261,11 +301,12 @@
     updateWavePreview();
     el.money.textContent = S.money;
     el.lives.textContent = S.lives;
-    el.wave.textContent = S.wave + '/' + D.WAVES.length;
+    el.wave.textContent = S.endless
+      ? S.wave + '/∞' : S.wave + '/' + D.WAVES.length;
     el.energy.textContent = S.energyUsed + '/' + S.energyCap;
     el.parts.textContent = S.parts;
     el.startBtn.disabled = S.phase !== 'build';
-    if (S.phase === 'build' && S.wave < D.WAVES.length) {
+    if (S.phase === 'build' && (S.endless || S.wave < D.WAVES.length)) {
       el.startBtn.innerHTML = '&#9654; LANZAR OLEADA (' +
         Math.max(0, Math.ceil(S.buildT)) + 's) [Espacio]';
     } else if (S.phase === 'wave') {
@@ -604,6 +645,9 @@
       el.title.classList.add('hidden');
       AU.horn();
     }
+  });
+  el.endlessBtn.addEventListener('click', function () {
+    G.startEndless();
   });
   el.restartBtn.addEventListener('click', function () {
     G.clearSave();

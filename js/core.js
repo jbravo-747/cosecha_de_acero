@@ -79,6 +79,8 @@
 
   function resetState() {
     S.phase = 'menu';          // menu | build | wave | won | lost
+    S.diff = S.diff || 'aprendiz';   // la dificultad elegida sobrevive al reinicio
+    S.endless = false;         // asedio sin fin activado tras la victoria
     S.money = D.START_MONEY;
     S.lives = D.START_LIVES;
     S.parts = 0;               // partes ⚙ para mejorar mechas
