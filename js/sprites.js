@@ -23,11 +23,17 @@
     // varios
     'e': '#688a34', 'E': '#4e6a26', 'f': '#e06a9a',
     // mechas granjeros: chasis verde militar, cabina de cristal y piloto
-    'a': '#7f9e40', 'A': '#566e2c', 'c': '#9fd8ec', 'i': '#e8b48a'
+    'a': '#7f9e40', 'A': '#566e2c', 'c': '#9fd8ec', 'i': '#e8b48a',
+    // chasis turquesa (SEGADOR)
+    'n': '#3f9488', 'N': '#28655c'
   };
 
+  // remapa de paleta por sprite: cada mecha viste su propio color de
+  // chasis (el char 'a'/'A' se sustituye antes de pintar)
+
+
   // ---------- utilidades ----------
-  function makeSprite(rows, scale) {
+  function makeSprite(rows, scale, remap) {
     scale = scale || 1;
     var w = 0, y, x;
     for (y = 0; y < rows.length; y++) w = Math.max(w, rows[y].length);
@@ -36,7 +42,8 @@
     var g = c.getContext('2d');
     for (y = 0; y < rows.length; y++) {
       for (x = 0; x < rows[y].length; x++) {
-        var col = PAL[rows[y][x]];
+        var ch = rows[y][x];
+        var col = PAL[(remap && remap[ch]) || ch];
         if (col) { g.fillStyle = col; g.fillRect(x * scale, y * scale, scale, scale); }
       }
     }
@@ -701,13 +708,16 @@
       kamikaze: [makeSprite(KAMI_A),  makeSprite(KAMI_B)],
       boss:    [makeSprite(BOSS_A),   makeSprite(BOSS_B)]
     },
+    // cada mecha viste un color de chasis propio para distinguirse al
+    // vistazo: COYOTE arena, BISONTE marrón, VIUDA carbón, CERCA-9 azul,
+    // LEÑADOR verde (el original) y SEGADOR turquesa
     mechs: {
-      mg:     makeSprite(MECH_MG),
-      cannon: makeSprite(MECH_CANNON),
-      sniper: makeSprite(MECH_SNIPER),
-      tesla:  makeSprite(TESLA),
+      mg:     makeSprite(MECH_MG,     1, { a: 's', A: 'S' }),
+      cannon: makeSprite(MECH_CANNON, 1, { a: 't', A: 'T' }),
+      sniper: makeSprite(MECH_SNIPER, 1, { a: 'g', A: 'G' }),
+      tesla:  makeSprite(TESLA,       1, { a: 'b', A: 'B' }),
       axe:    makeSprite(MECH_AXE),
-      blade:  makeSprite(MECH_BLADE)
+      blade:  makeSprite(MECH_BLADE,  1, { a: 'n', A: 'N' })
     },
     buildings: {
       gen:  makeSprite(GEN),
