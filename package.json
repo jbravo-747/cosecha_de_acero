@@ -1,0 +1,14 @@
+{
+  "name": "cosecha-de-acero",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tower defense en pixel art: mechas granjeros contra insectoides alienígenas. HTML5 + JS vanilla, sin build.",
+  "scripts": {
+    "start": "python -m http.server 8080",
+    "test": "node test/headless.js",
+    "deploy": "vercel deploy --prod"
+  },
+  "devDependencies": {
+    "vercel": "^56.3.2"
+  }
+}

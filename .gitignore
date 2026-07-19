@@ -1,3 +1,7 @@
 .playwright-mcp/
 *.png
 !assets/*.png
+
+.vercel
+.env*
+node_modules/
