@@ -35,6 +35,16 @@ python3 -m http.server 8080
 | `Espacio` | Desactivar el disruptor de portales (lanza la oleada) |
 | `P` o botón PAUSA | Pausa |
 
+**En pantalla táctil** también se juega: arrastra el dedo para apuntar
+(previsualiza la colocación o la diana del bombardeo) y suelta para
+ejecutar; tocar otra vez la tarjeta del arsenal cancela.
+
+El **radar de oleada** (bajo el monitor táctico) anuncia qué bichos trae
+la próxima oleada — con aviso de élites y de la Nodriza — y, en plena
+oleada, cuántos quedan. Pasar el ratón por una tarjeta del arsenal
+muestra su **ficha técnica** (daño, DPS, rango, vida, munición, paso)
+antes de comprar.
+
 ### Mechas (unidades móviles con vida y munición)
 
 - **COYOTE** ($100, 1 ⚡, paso 2) — ametralladora rápida, 200 balas.

@@ -195,7 +195,21 @@ cerrar a media oleada reanuda en la construcción previa. Botón
 **CONTINUAR** en el título si hay guardado; ganar, perder, ARRANCAR y
 NUEVA PARTIDA lo borran. Tolerante a localStorage bloqueado.
 
-## 16. Refactor: arquitectura modular ✔
+## 16. Pulido y accesibilidad ✔
+
+- **Radar de oleada**: franja CRT bajo el monitor táctico; en construcción
+  muestra la composición de la próxima oleada (sprite × cantidad por tipo)
+  con avisos de élites (% real) y de la Nodriza; durante la oleada, los
+  bichos restantes.
+- **Ficha técnica**: pasar el ratón por una tarjeta del arsenal muestra en
+  el monitor sus números (daño, DPS aproximado, rango, vida, munición,
+  paso, consumo ⚡) antes de comprar.
+- **Soporte táctil**: arrastrar el dedo sobre el mapa apunta (previsualiza
+  colocación y diana del bombardeo) y soltar ejecuta; volver a tocar la
+  tarjeta cancela. `touch-action` ajustado para matar el zoom por doble
+  toque y el resaltado de tap.
+
+## 17. Refactor: arquitectura modular ✔
 
 `game.js` se partió en módulos IIFE comunicados por `window.G` (sin build,
 se conserva el doble clic en `index.html`): `core.js` (estado + helpers),

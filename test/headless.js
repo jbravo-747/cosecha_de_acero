@@ -32,6 +32,7 @@ function makeEl(tag) {
     },
     addEventListener(t, f) { (el.listeners[t] = el.listeners[t] || []).push(f); },
     appendChild(c) { el.children.push(c); },
+    querySelector() { return null; },
     getContext() { return ctxStub(); },
     getBoundingClientRect() { return { left: 0, top: 0, width: el.width, height: el.height }; },
     click() { (el.listeners.click || []).forEach(f => f({ preventDefault() {}, clientX: 0, clientY: 0 })); }
@@ -48,6 +49,7 @@ global.document = {
     return byId[id];
   },
   createElement(tag) { return makeEl(tag); },
+  createTextNode(text) { return { nodeType: 3, textContent: text }; },
   addEventListener(t, f) { (docListeners[t] = docListeners[t] || []).push(f); }
 };
 
@@ -86,6 +88,11 @@ function canvasClickPx(x, y) {
   (canvasEl.listeners.click || []).forEach(f => f({ clientX: x, clientY: y }));
 }
 function canvasClick(c, r) { canvasClickPx(c * 32 + 16, r * 32 + 16); }
+function canvasTouch(c, r) {
+  const ev = { preventDefault() {}, touches: [{ clientX: c * 32 + 16, clientY: r * 32 + 16 }] };
+  (canvasEl.listeners.touchstart || []).forEach(f => f(ev));
+  (canvasEl.listeners.touchend || []).forEach(f => f({ preventDefault() {}, touches: [] }));
+}
 function build(type, c, r) {
   key('Escape');
   key(String(D.TOWER_ORDER.indexOf(type) + 1));
@@ -133,8 +140,13 @@ assert(S.parts === 0 && S.buildT === D.BUILD_TIME, 'sin partes y disruptor carga
 console.log('— Disruptor de portales: apertura automática —');
 step(Math.ceil((D.BUILD_TIME + 1) * 60));
 assert(S.phase === 'wave' && S.wave === 1, 'al agotarse el disruptor el portal se abre solo');
+assert(!byId.wavePrev.classList.contains('hidden') && byId.wavePrev.innerHTML.includes('EN CURSO'),
+  'el radar de oleada muestra la oleada en curso');
 byId.restartBtn.click();
 assert(S.phase === 'build' && S.wave === 0 && S.buildT === D.BUILD_TIME, 'reinicio recarga el disruptor');
+step(1);
+assert(byId.wavePrev.children.some(ch => String(ch.textContent).includes('PRÓXIMA OLEADA 1')),
+  'el radar anuncia la próxima oleada en fase de construcción');
 
 console.log('— Colocación de mechas —');
 build('mg', 2, 2);
@@ -144,6 +156,15 @@ key('Escape'); key('1'); canvasClick(3, 4); // tile de camino
 assert(S.towers.length === before, 'no se puede construir sobre el camino');
 key('1'); canvasClick(2, 2);
 assert(S.towers.length === before, 'no se puede construir sobre otra torre');
+
+console.log('— Entrada táctil —');
+key('Escape');
+canvasTouch(2, 2);
+assert(S.selected && S.selected.c === 2 && S.selected.r === 2,
+  'un toque en pantalla selecciona al mecha');
+assert(S.hover && S.hover.c === 2 && S.hover.r === 2,
+  'el toque actualiza la previsualización (hover)');
+key('Escape');
 
 console.log('— Energía por rango: generadores cerca de los mechas —');
 assert(S.towers[0].offline, 'un mecha lejos de todo generador queda SIN ⚡');

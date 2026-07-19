@@ -25,6 +25,7 @@
     boomBtn: document.getElementById('boomBtn'),
     newBtn: document.getElementById('newBtn'),
     ctxPanel: document.getElementById('ctxPanel'),
+    wavePrev: document.getElementById('wavePrev'),
     arsenalLabel: document.getElementById('arsenalLabel'),
     info: document.getElementById('info'),
     towerBtns: document.getElementById('towerBtns'),
@@ -52,7 +53,8 @@
 
   // botones de torre, edificio y unidad
   var towerBtnEls = {};
-  function makeBtn(key, def, sprite, hotkey, onClick) {
+  var hoverCard = null;   // {kind, key} de la tarjeta bajo el ratón (ficha técnica)
+  function makeBtn(kind, key, def, sprite, hotkey, onClick) {
     var b = document.createElement('button');
     b.className = 'tbtn';
     var mini = document.createElement('canvas');
@@ -66,21 +68,120 @@
       '</span> <span class="key">[' + hotkey + ']</span>';
     b.appendChild(lbl);
     b.addEventListener('click', onClick);
+    b.addEventListener('mouseenter', function () { hoverCard = { kind: kind, key: key }; });
+    b.addEventListener('mouseleave', function () {
+      if (hoverCard && hoverCard.key === key) hoverCard = null;
+    });
     el.towerBtns.appendChild(b);
     towerBtnEls[key] = b;
   }
   D.TOWER_ORDER.forEach(function (key, i) {
-    makeBtn(key, D.TOWERS[key], SP.mechs[key], i + 1,
+    makeBtn('tower', key, D.TOWERS[key], SP.mechs[key], i + 1,
       function () { G.startPlacing(key); });
   });
   D.BUILDING_ORDER.forEach(function (key, i) {
-    makeBtn(key, D.BUILDINGS[key], SP.buildings[key], i + 6,
+    makeBtn('building', key, D.BUILDINGS[key], SP.buildings[key], i + 6,
       function () { G.startPlacing(key); });
   });
   D.UNIT_ORDER.forEach(function (key, i) {
-    makeBtn(key, D.UNITS[key], SP.units[key][0], i + 8,
+    makeBtn('unit', key, D.UNITS[key], SP.units[key][0], i + 8,
       function () { G.buyUnit(key); });
   });
+
+  // ficha técnica de una tarjeta del arsenal (se muestra en el monitor)
+  function cardInfo(kind, key) {
+    if (kind === 'tower') {
+      var d = D.TOWERS[key];
+      var dps = d.rof > 0 ? Math.round(d.dmg / d.rof) : d.dmg;
+      return '<span class="name">' + d.name + '</span> — $' + d.cost +
+        ' &middot; Consumo: <b>' + d.energy + ' ⚡</b>' +
+        '<br>Daño: <b>' + d.dmg + '</b> &middot; DPS: <b>~' + dps +
+        '</b> &middot; Rango: <b>' + d.range + '</b>' +
+        '<br>Vida: <b>' + d.hp + '</b> &middot; ' +
+        (d.ammo > 0 ? 'Munici&oacute;n: <b>' + d.ammo + '</b>'
+          : 'Mel&eacute; puro: <b>sin munici&oacute;n</b>') +
+        ' &middot; Paso: <b>' + d.move + '</b>' +
+        '<br><span class="desc">' + d.desc + '</span>';
+    }
+    if (kind === 'building') {
+      var bd = D.BUILDINGS[key];
+      return '<span class="name">' + bd.name + '</span> — $' + bd.cost +
+        '<br>Vida: <b>' + bd.hp + '</b>' +
+        (bd.energy
+          ? ' &middot; Energía: <b>+' + bd.energy + ' ⚡</b> (radio ' + bd.powerRange + ')'
+          : ' &middot; Descuento de mejora: <b>' + Math.round(D.SHOP_DISCOUNT * 100) +
+            '%</b> por taller extra') +
+        '<br><span class="desc">' + bd.desc + '</span>';
+    }
+    var ud = D.UNITS[key];
+    return '<span class="name">' + ud.name + '</span> — $' + ud.cost +
+      '<br>Vida: <b>' + ud.hp + '</b> &middot; Velocidad: <b>' + ud.speed + '</b>' +
+      (ud.atkDmg ? ' &middot; Metralla: <b>' + ud.atkDmg + '</b> (' + ud.ammo + ' balas)' : '') +
+      '<br><span class="desc">' + ud.desc + '</span>';
+  }
+
+  // ---------- radar de oleada ----------
+  var prevWaveBuilt = -2;   // oleada montada en el radar (-1 = modo "en curso")
+  function buildWavePreview() {
+    var counts = {}, order = [];
+    D.WAVES[S.wave].forEach(function (grp) {
+      if (!counts[grp.t]) { counts[grp.t] = 0; order.push(grp.t); }
+      counts[grp.t] += grp.n;
+    });
+    el.wavePrev.innerHTML = '';
+    var lbl = document.createElement('span');
+    lbl.className = 'wlabel';
+    lbl.textContent = '◆ PRÓXIMA OLEADA ' + (S.wave + 1) + ':';
+    el.wavePrev.appendChild(lbl);
+    order.forEach(function (t) {
+      var s = document.createElement('span');
+      s.className = 'wbug';
+      s.title = D.ENEMIES[t].name;
+      var spr = SP.enemies[t][0];
+      var c = document.createElement('canvas');
+      c.width = 22; c.height = 22;
+      var g = c.getContext('2d');
+      g.imageSmoothingEnabled = false;
+      var sc = Math.min(1, 22 / Math.max(spr.width, spr.height));
+      var w = Math.round(spr.width * sc), h = Math.round(spr.height * sc);
+      g.drawImage(spr, (22 - w) >> 1, (22 - h) >> 1, w, h);
+      s.appendChild(c);
+      s.appendChild(document.createTextNode('×' + counts[t]));
+      el.wavePrev.appendChild(s);
+    });
+    var wv = S.wave + 1;
+    if (counts.boss) {
+      var wb = document.createElement('span');
+      wb.className = 'wwarn';
+      wb.textContent = '⚠ ¡LA NODRIZA!';
+      el.wavePrev.appendChild(wb);
+    }
+    if (wv >= D.ELITE.fromWave) {
+      var pct = Math.round(Math.min(D.ELITE.chanceMax,
+        (wv - D.ELITE.fromWave + 1) * D.ELITE.chance) * 100);
+      var we = document.createElement('span');
+      we.className = 'wwarn';
+      we.textContent = '⚠ élites ~' + pct + '%';
+      el.wavePrev.appendChild(we);
+    }
+  }
+  function updateWavePreview() {
+    if (S.phase === 'build' && S.wave < D.WAVES.length) {
+      if (prevWaveBuilt !== S.wave) { prevWaveBuilt = S.wave; buildWavePreview(); }
+      el.wavePrev.classList.remove('hidden');
+    } else if (S.phase === 'wave') {
+      if (prevWaveBuilt !== -1) {
+        prevWaveBuilt = -1;
+        el.wavePrev.innerHTML = '<span class="wlabel">◆ OLEADA ' + S.wave +
+          ' EN CURSO</span><span class="wcount"></span>';
+      }
+      var cnt = el.wavePrev.querySelector('.wcount');
+      if (cnt) cnt.textContent = 'bichos restantes: ' + (S.enemies.length + S.spawnQueue.length);
+      el.wavePrev.classList.remove('hidden');
+    } else {
+      el.wavePrev.classList.add('hidden');
+    }
+  }
 
   // ---------- pantallas de fin (sincronizadas con S.phase) ----------
   var lastPhase = null;
@@ -107,6 +208,7 @@
   // ---------- panel lateral ----------
   function updateUI() {
     syncEndScreen();
+    updateWavePreview();
     el.money.textContent = S.money;
     el.lives.textContent = S.lives;
     el.wave.textContent = S.wave + '/' + D.WAVES.length;
@@ -244,6 +346,10 @@
         '<br><span class="desc">' + pdef.desc + ' Haz clic en el pasto para colocar.</span>';
       el.upBtn.disabled = true; el.upBtn.textContent = 'MEJORAR';
       el.sellBtn.disabled = true; el.sellBtn.textContent = 'VENDER';
+    } else if (hoverCard) {
+      el.info.innerHTML = cardInfo(hoverCard.kind, hoverCard.key);
+      el.upBtn.disabled = true; el.upBtn.textContent = 'MEJORAR';
+      el.sellBtn.disabled = true; el.sellBtn.textContent = 'VENDER';
     } else {
       el.info.innerHTML = '<span class="desc">Mechas [1-5], edificios [6-7] y unidades [8-9]. ' +
         'Los mechas gastan munici&oacute;n y pelean cuerpo a cuerpo si los rodean. ' +
@@ -270,9 +376,9 @@
   });
   canvas.addEventListener('mouseleave', function () { S.hover = null; S.hoverPx = null; });
 
-  canvas.addEventListener('click', function (ev) {
+  // un clic de ratón y un toque en pantalla comparten la misma lógica
+  function handleTap(p) {
     if (S.phase !== 'build' && S.phase !== 'wave') return;
-    var p = canvasPos(ev);
     var c = (p.x / TILE) | 0, r = (p.y / TILE) | 0;
     if (S.aimingBomb) { G.dropBomb(p.x, p.y); return; }
     if (S.placing) { G.tryBuild(c, r); return; }
@@ -292,7 +398,29 @@
     S.selected = t || null;
     S.selectedB = b || null;
     if (u || t || b) AU.click();
-  });
+  }
+
+  canvas.addEventListener('click', function (ev) { handleTap(canvasPos(ev)); });
+
+  // táctil: arrastrar el dedo apunta (previsualiza colocación / diana del
+  // bombardeo) y soltar ejecuta el toque. preventDefault evita el clic
+  // sintético del navegador y el desplazamiento de la página.
+  canvas.addEventListener('touchstart', function (ev) {
+    ev.preventDefault();
+    var p = canvasPos(ev.touches[0]);
+    S.hover = { c: (p.x / TILE) | 0, r: (p.y / TILE) | 0 };
+    S.hoverPx = { x: p.x, y: p.y };
+  }, { passive: false });
+  canvas.addEventListener('touchmove', function (ev) {
+    ev.preventDefault();
+    var p = canvasPos(ev.touches[0]);
+    S.hover = { c: (p.x / TILE) | 0, r: (p.y / TILE) | 0 };
+    S.hoverPx = { x: p.x, y: p.y };
+  }, { passive: false });
+  canvas.addEventListener('touchend', function (ev) {
+    ev.preventDefault();
+    if (S.hoverPx) handleTap(S.hoverPx);
+  }, { passive: false });
 
   canvas.addEventListener('contextmenu', function (ev) {
     ev.preventDefault();
