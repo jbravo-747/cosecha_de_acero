@@ -19,6 +19,7 @@
     S.selected = null;
     S.selectedB = null;
     S.selectedU = null;
+    S.selectedBarn = false;
     S.confirmBoom = 0;
   }
 
@@ -182,6 +183,24 @@
     b.cd = 0; b.gunA = -Math.PI / 2; b.gflash = 0;
     G.burst(b.x, b.y - 16, '#f2d94e', 12, 70);
     G.floater(b.x, b.y - 16, 'TORRETA INSTALADA', '#8ac94a');
+    AU.build();
+  }
+
+  // refuerzo del granero: vidas extra y torreta nueva en el techo
+  function upgradeBarn() {
+    if (S.barnLevel >= D.BARN_UP.maxLevel) return;
+    var lv = D.BARN_UP.levels[S.barnLevel - 1];
+    if (S.money < lv.cost || S.parts < lv.parts) return;
+    S.money -= lv.cost;
+    S.parts -= lv.parts;
+    S.barnLevel++;
+    S.lives += lv.lives;
+    var m = D.BARN_UP.mounts[S.barnLevel - 2];
+    S.barnGuns.push({ x: m.x, y: m.y, cd: 0, gunA: -Math.PI / 2, gflash: 0,
+      stats: lv.turret });
+    G.fx.ring(D.BARN_POS.x, D.BARN_POS.y - 10, 42, '#f2d94e');
+    G.floater(D.BARN_POS.x, D.BARN_POS.y - 34,
+      'GRANERO NIVEL ' + S.barnLevel + ' · +' + lv.lives + ' ♥', '#8ac94a');
     AU.build();
   }
 
@@ -769,10 +788,18 @@
       }
     }
 
-    // edificios: flash y torreta del taller
+    // edificios: flash, ingreso pasivo del taller y torreta del taller
     for (i = 0; i < S.buildings.length; i++) {
       var bb = S.buildings[i];
       if (bb.flash > 0) bb.flash -= dt;
+      if (bb.type === 'shop') {
+        bb.incomeT = (bb.incomeT || 0) + dt;
+        if (bb.incomeT >= D.SHOP_INCOME.every) {
+          bb.incomeT -= D.SHOP_INCOME.every;
+          S.money += D.SHOP_INCOME.amount;
+          G.floater(bb.x + 6, bb.y - 22, '+$' + D.SHOP_INCOME.amount, '#f2d94e');
+        }
+      }
       if (!bb.turret) continue;
       if (bb.gflash > 0) bb.gflash -= dt;
       bb.cd -= dt;
@@ -786,6 +813,25 @@
         kind: 'bullet', x: bb.x, y: bb.y - 18,
         speed: D.SHOP_TURRET.projSpeed, dmg: D.SHOP_TURRET.dmg, splash: 0,
         target: te, lx: te.x, ly: te.y
+      });
+      AU.shot();
+    }
+
+    // torretas del techo del granero
+    for (i = 0; i < S.barnGuns.length; i++) {
+      var bg = S.barnGuns[i], bst = bg.stats;
+      if (bg.gflash > 0) bg.gflash -= dt;
+      bg.cd -= dt;
+      if (bg.cd > 0) continue;
+      var bte = acquireTarget(bg.x, bg.y, bst.range);
+      if (!bte) continue;
+      bg.cd = bst.rof;
+      bg.gunA = Math.atan2(bte.y - bg.y, bte.x - bg.x);
+      bg.gflash = 0.08;
+      S.projectiles.push({
+        kind: 'bullet', x: bg.x, y: bg.y,
+        speed: bst.projSpeed, dmg: bst.dmg, splash: 0,
+        target: bte, lx: bte.x, ly: bte.y
       });
       AU.shot();
     }
@@ -895,6 +941,7 @@
   G.repairSelectedB = repairSelectedB;
   G.sellSelectedB = sellSelectedB;
   G.upgradeShopTurret = upgradeShopTurret;
+  G.upgradeBarn = upgradeBarn;
   G.armBomb = armBomb;
   G.dropBomb = dropBomb;
   G.selfDestructSelected = selfDestructSelected;

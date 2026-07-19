@@ -240,6 +240,23 @@
       }
     }
 
+    // torretas del techo del granero
+    for (i = 0; i < S.barnGuns.length; i++) {
+      var bgun = S.barnGuns[i];
+      ctx.save();
+      ctx.translate(bgun.x, bgun.y);
+      ctx.rotate(bgun.gunA || -Math.PI / 2);
+      ctx.fillStyle = '#12100e';
+      ctx.fillRect(-3, -3, 15, 6);
+      ctx.fillStyle = '#5a636b';
+      ctx.fillRect(-3, -2, 13, 4);
+      if (bgun.gflash > 0) {
+        ctx.fillStyle = '#f2d94e';
+        ctx.fillRect(13, -2, 4, 4);
+      }
+      ctx.restore();
+    }
+
     // torres (el sprite cambia con el nivel; despliegue, idle y retroceso)
     for (i = 0; i < S.towers.length; i++) {
       var t = S.towers[i];
@@ -504,8 +521,9 @@
       ctx.globalAlpha = 1;
     }
 
-    // marcador animado sobre la entidad seleccionada
-    var selObj = S.selectedU || S.selectedB || S.selected;
+    // marcador animado sobre la entidad seleccionada (o el granero)
+    var selObj = S.selectedU || S.selectedB || S.selected ||
+      (S.selectedBarn ? { x: D.BARN_POS.x + 6, y: 148 } : null);
     if (selObj) {
       var mkY = selObj.y - (S.selectedB ? 32 : S.selectedU ? 20 : 26);
       var bob = Math.sin(performance.now() / 170) * 2.5;

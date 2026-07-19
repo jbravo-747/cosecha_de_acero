@@ -209,6 +209,21 @@
   .overlay button:hover{border-color:var(--acid); color:#fff;}
   #continueBtn{background:#20364a; border-color:#3a6a96; color:#cfe4f8;}
   #continueBtn:hover{border-color:#6ab0e8;}
+
+  /* manual de campo */
+  #helpScreen{z-index:6; justify-content:flex-start; overflow-y:auto; gap:10px;}
+  #helpScreen h2{font-size:20px; letter-spacing:4px;}
+  #helpBody{
+    text-align:left; font-size:11px; line-height:1.65; color:var(--txt);
+    max-width:560px;
+  }
+  #helpBody h3{
+    color:var(--gold); font-size:11px; letter-spacing:2px;
+    margin:10px 0 2px; text-shadow:1px 1px 0 #000;
+  }
+  #helpBody b{color:var(--acid);}
+  #helpBody .k{color:var(--gold);}
+  #helpScreen button{font-size:12px; padding:8px 22px;}
   #titleArt{image-rendering:pixelated; width:160px; height:auto; border:none; background:transparent;}
 
   @media (max-width:820px){
@@ -255,6 +270,54 @@
       <p id="endText"></p>
       <button id="restartBtn">OTRA COSECHA</button>
     </div>
+
+    <div id="helpScreen" class="overlay hidden">
+      <h2>MANUAL DE CAMPO</h2>
+      <div id="helpBody">
+        <h3>OBJETIVO</h3>
+        Sobrevive <b>10 oleadas</b> defendiendo el granero (20 vidas).
+        Los bichos salen del agujero al oeste; en la &uacute;ltima oleada llega
+        <b>la Nodriza</b>.
+        <h3>CONTROLES</h3>
+        <span class="k">[1-5]</span> mechas &middot; <span class="k">[6-7]</span> edificios
+        &middot; <span class="k">[8-9]</span> unidades &middot;
+        <span class="k">[Espacio]</span> lanzar oleada &middot;
+        <span class="k">[B]</span> bombardeo &middot; <span class="k">[P]</span> pausa &middot;
+        <span class="k">[Esc]</span>/clic derecho cancelar.
+        En pantalla t&aacute;ctil: arrastra para apuntar, suelta para colocar y
+        toca la tarjeta otra vez para cancelar.
+        <h3>MECHAS</h3>
+        Tienen vida y munici&oacute;n (sin balas callan hasta que los reabastezcan),
+        pelean <b>cuerpo a cuerpo</b> si los rodean y se <b>mueven</b> como piezas
+        de ajedrez: sel&eacute;cciona y pulsa una casilla iluminada. Mejorar cuesta
+        dinero y partes &#9881; y los entrega reparados y recargados.
+        <h3>ENERG&Iacute;A Y TALLER</h3>
+        Cada <b>generador</b> alimenta 4 &#9889; dentro de su radio: un mecha fuera
+        de cobertura queda SIN &#9889;. Sin un <b>taller</b> en pie no se ensamblan
+        ni mejoran mechas; cada taller extra abarata mejoras (m&aacute;x. &minus;36%),
+        produce <b>$2 cada 6 s</b> y admite una torreta de techo.
+        <h3>EL GRANERO</h3>
+        Haz clic en el granero para <b>reforzarlo</b>: cada nivel da vidas extra
+        y monta una <b>torreta</b> en el techo.
+        <h3>CAMPO DE FUERZA</h3>
+        Dos <b>CERCA-9</b> flanqueando el camino crean una barrera que bloquea
+        a los terrestres. Los escupidores priorizan derribarla y los voladores
+        la ignoran.
+        <h3>APOYO</h3>
+        El <b>CARGADOR</b> recarga y repara en el campo; el <b>DRON</b> alterna
+        RECARGA/ATAQUE (llega uno gratis cada 90 s, tope 4). El
+        <b>BOMBARDEO</b> [B] arrasa un &aacute;rea ignorando blindaje.
+        <h3>BICHOS</h3>
+        Avispas voladoras van directo al granero; escupidores atacan a
+        distancia; escarabajos blindados; <b>Detonadores</b> kamikazes que
+        estallan y encadenan tus propias explosiones; &eacute;lites con aura roja
+        desde la oleada 4. Los duros sueltan <b>partes &#9881;</b>.
+        <h3>DISRUPTOR</h3>
+        Contiene el portal 30 s entre oleadas; desactivarlo antes
+        [Espacio] paga +$2 por segundo restante.
+      </div>
+      <button id="helpClose">CERRAR [H]</button>
+    </div>
   </div>
 
   <!-- Consola de mando del mecha -->
@@ -290,6 +353,7 @@
         <button class="act" id="muteBtn">&#9835;</button>
       </div>
       <button class="act" id="newBtn">&#8635; NUEVA PARTIDA</button>
+      <button class="act" id="helpBtn">? INSTRUCCIONES [H]</button>
       <div class="hint">
         [1-5] mechas &middot; [6-7] edificios &middot; [8] cargador &middot; [9] dron<br>
         En pantalla t&aacute;ctil: arrastra para apuntar y suelta para colocar;<br>

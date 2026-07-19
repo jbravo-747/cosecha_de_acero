@@ -103,7 +103,14 @@ que **arrasa a los bichos del área** (ignora blindaje).
 - **TALLER** ($200) — sin al menos uno en pie no se ensamblan ni mejoran
   mechas. Admite una mejora: **torreta de techo** ($150 + 1⚙) que dispara
   sola a los bichos que pasan. **Cada taller extra abarata las mejoras un
-  12% (máximo 36%)** — la economía de escala de la granja.
+  12% (máximo 36%)** y todo taller **produce $2 cada 6 segundos** — la
+  economía de escala de la granja.
+- **GRANERO** — haz clic en él para **reforzarlo** (2 niveles): cada
+  refuerzo da vidas extra (+5, +8) y monta una **torreta en el techo**;
+  la del nivel 3 pega más fuerte y más lejos.
+
+¿Dudas en plena partida? El botón **? INSTRUCCIONES [H]** abre el manual
+de campo (y pausa el juego mientras lees).
 
 Los bichos **muerden y escupen** a todo: mechas, unidades y edificios.
 Repara, reconstruye y reposiciona.

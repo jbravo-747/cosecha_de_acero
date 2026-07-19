@@ -150,10 +150,24 @@
     gen:  { name: 'GENERADOR', cost: 120, hp: 180, energy: 4, powerRange: 110,
             desc: 'Generador diésel: alimenta con 4 ⚡ a los mechas dentro de su radio.' },
     shop: { name: 'TALLER', cost: 200, hp: 220, energy: 0,
-            desc: 'Taller de ensamblado. Sin al menos uno en pie no se construyen ni mejoran mechas. Cada taller extra abarata las mejoras un 12% (máx. 36%).' }
+            desc: 'Taller de ensamblado. Sin al menos uno en pie no se construyen ni mejoran mechas. Cada taller extra abarata las mejoras un 12% (máx. 36%) y todo taller produce $2 cada 6 s.' }
   };
   var SHOP_DISCOUNT = 0.12;      // descuento de mejora por taller extra
   var SHOP_DISCOUNT_MAX = 0.36;  // tope del descuento
+  var SHOP_INCOME = { every: 6, amount: 2 };  // ingreso pasivo de cada taller
+
+  // el granero se refuerza: cada nivel da vidas extra y monta una torreta
+  // en el techo (la del nivel 3 es más potente que la del 2)
+  var BARN_UP = {
+    maxLevel: 3,
+    mounts: [{ x: 590, y: 138 }, { x: 622, y: 138 }],
+    levels: [   // refuerzo a nivel 2 y 3
+      { cost: 300, parts: 2, lives: 5,
+        turret: { range: 120, dmg: 10, rof: 0.45, projSpeed: 340 } },
+      { cost: 500, parts: 3, lives: 8,
+        turret: { range: 145, dmg: 16, rof: 0.4, projSpeed: 360 } }
+    ]
+  };
 
   // campo de fuerza: dos CERCA-9 flanqueando una celda del camino
   var FIELD = {
@@ -225,6 +239,7 @@
     MOVE_CD: MOVE_CD, RELOAD_TIME: RELOAD_TIME, AMMO_LOW: AMMO_LOW, HP_LOW: HP_LOW,
     SHOP_TURRET: SHOP_TURRET, BOMB: BOMB, DRONE_GIFT: DRONE_GIFT,
     SHOP_DISCOUNT: SHOP_DISCOUNT, SHOP_DISCOUNT_MAX: SHOP_DISCOUNT_MAX,
+    SHOP_INCOME: SHOP_INCOME, BARN_UP: BARN_UP,
     FIELD: FIELD, MELEE: MELEE,
     DRONE_CAP: DRONE_CAP, SELF_DESTRUCT: SELF_DESTRUCT,
     START_MONEY: 320, START_LIVES: 20

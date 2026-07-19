@@ -113,6 +113,9 @@
     S.selected = null;         // torre seleccionada
     S.selectedB = null;        // edificio seleccionado
     S.selectedU = null;        // unidad seleccionada
+    S.selectedBarn = false;    // granero seleccionado
+    S.barnLevel = 1;           // nivel del granero
+    S.barnGuns = [];           // torretas montadas en el techo del granero
     S.hover = null;            // {c, r}
     S.hurtFlash = 0;
     S.shake = 0;

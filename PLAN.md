@@ -209,7 +209,18 @@ NUEVA PARTIDA lo borran. Tolerante a localStorage bloqueado.
   tarjeta cancela. `touch-action` ajustado para matar el zoom por doble
   toque y el resaltado de tap.
 
-## 17. Refactor: arquitectura modular ✔
+## 17. La granja produce y el granero se defiende ✔
+
+- **Manual de campo**: botón ? INSTRUCCIONES [H] (y tecla H, también desde
+  el título) abre un overlay con todas las reglas; abrirlo pausa la
+  partida y cerrarlo la reanuda.
+- **Granero mejorable**: clic en el granero → CONTROL: GRANERO. Reforzarlo
+  (nivel 2: $300+2⚙, nivel 3: $500+3⚙) da vidas extra (+5/+8) y monta una
+  torreta en el techo por nivel (la del 3 es más potente). Sin
+  autodestrucción. El nivel se guarda en la partida.
+- **Ingreso pasivo**: cada taller produce $2 cada 6 s mientras siga en pie.
+
+## 18. Refactor: arquitectura modular ✔
 
 `game.js` se partió en módulos IIFE comunicados por `window.G` (sin build,
 se conserva el doble clic en `index.html`): `core.js` (estado + helpers),

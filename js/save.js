@@ -23,6 +23,7 @@
     var data = {
       v: VERSION,
       money: S.money, lives: S.lives, parts: S.parts, wave: S.wave,
+      barn: S.barnLevel,
       giftT: Math.round(S.giftT), bombCd: Math.round(S.bombCd),
       towers: S.towers.map(function (t) {
         return { type: t.type, c: t.c, r: t.r, level: t.level,
@@ -59,6 +60,13 @@
     S.wave = d.wave;
     S.giftT = d.giftT || D.DRONE_GIFT;
     S.bombCd = d.bombCd || 0;
+    // remontar las torretas del granero según el nivel guardado
+    S.barnLevel = d.barn || 1;
+    for (var gi = 0; gi < S.barnLevel - 1; gi++) {
+      var m = D.BARN_UP.mounts[gi];
+      S.barnGuns.push({ x: m.x, y: m.y, cd: 0, gunA: -Math.PI / 2, gflash: 0,
+        stats: D.BARN_UP.levels[gi].turret });
+    }
     S.buildings = d.buildings.map(function (bd) {
       var b = G.makeBuilding(bd.type, bd.c, bd.r);
       b.hp = Math.min(bd.hp, b.maxHp);

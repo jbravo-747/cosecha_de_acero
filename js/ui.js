@@ -34,6 +34,9 @@
     startBtn: document.getElementById('startBtn'),
     speedBtn: document.getElementById('speedBtn'),
     muteBtn: document.getElementById('muteBtn'),
+    helpBtn: document.getElementById('helpBtn'),
+    helpClose: document.getElementById('helpClose'),
+    helpScreen: document.getElementById('helpScreen'),
     title: document.getElementById('title'),
     endScreen: document.getElementById('endScreen'),
     endTitle: document.getElementById('endTitle'),
@@ -238,13 +241,16 @@
     el.bombBtn.classList.toggle('aiming', S.aimingBomb);
 
     // menú contextual: al seleccionar algo, el arsenal cede su lugar
-    var sel = S.selectedU || S.selectedB || S.selected;
+    var sel = S.selectedU || S.selectedB || S.selected || S.selectedBarn;
     el.towerBtns.classList.toggle('hidden', !!sel);
     el.ctxPanel.classList.toggle('hidden', !sel);
+    // el granero no se puede autodestruir: sin botón ☠ al seleccionarlo
+    el.boomBtn.classList.toggle('hidden', !!S.selectedBarn);
     if (sel) {
-      var selDef = S.selectedU ? D.UNITS[sel.type]
-        : S.selectedB ? D.BUILDINGS[sel.type] : D.TOWERS[sel.type];
-      el.arsenalLabel.innerHTML = '&#9670; CONTROL: ' + selDef.name + ' &#9670;';
+      var selName = S.selectedBarn ? 'GRANERO'
+        : (S.selectedU ? D.UNITS[sel.type]
+          : S.selectedB ? D.BUILDINGS[sel.type] : D.TOWERS[sel.type]).name;
+      el.arsenalLabel.innerHTML = '&#9670; CONTROL: ' + selName + ' &#9670;';
       el.boomBtn.innerHTML = S.confirmBoom > 0
         ? '&#9760; ¿CONFIRMAR DETONACI&Oacute;N?'
         : '&#9760; AUTODESTRUCCI&Oacute;N';
@@ -328,6 +334,21 @@
         : 'MEJORAR $' + G.upgradeCost(t) + ' + ' + uParts + '⚙';
       el.sellBtn.disabled = false;
       el.sellBtn.textContent = 'VENDER $' + Math.round(t.invested * D.SELL_FACTOR);
+    } else if (S.selectedBarn) {
+      var bmax = S.barnLevel >= D.BARN_UP.maxLevel;
+      var blv = bmax ? null : D.BARN_UP.levels[S.barnLevel - 1];
+      el.info.innerHTML =
+        '<span class="name">GRANERO</span> — nivel ' + S.barnLevel + '/' +
+        D.BARN_UP.maxLevel + ' &middot; Vidas: <b>' + S.lives + '</b>' +
+        '<br>Torretas de techo: <b>' + S.barnGuns.length + '</b>' +
+        (blv ? '<br>Refuerzo: <b>+' + blv.lives + ' ♥</b> y torreta (daño ' +
+          blv.turret.dmg + ', rango ' + blv.turret.range + ')' : '') +
+        '<br><span class="desc">El coraz&oacute;n de la granja. Ref&oacute;rzalo ' +
+        'para ganar vidas y que se defienda solo.</span>';
+      el.upBtn.disabled = bmax || S.money < blv.cost || S.parts < blv.parts;
+      el.upBtn.textContent = bmax ? 'NIVEL MÁX.'
+        : 'REFORZAR $' + blv.cost + ' + ' + blv.parts + '⚙';
+      el.sellBtn.disabled = true; el.sellBtn.textContent = 'VENDER';
     } else if (S.placing && G.isBldgKey(S.placing)) {
       var pbdef = D.BUILDINGS[S.placing];
       el.info.innerHTML =
@@ -394,10 +415,13 @@
     var u = G.unitNear(p.x, p.y, 18);
     var t = u ? null : G.towerAt(c, r);
     var b = u || t ? null : G.buildingAt(c, r);
+    var barn = !u && !t && !b &&
+      D.BARN_TILES.some(function (bt) { return bt[0] === c && bt[1] === r; });
     S.selectedU = u || null;
     S.selected = t || null;
     S.selectedB = b || null;
-    if (u || t || b) AU.click();
+    S.selectedBarn = barn;
+    if (u || t || b || barn) AU.click();
   }
 
   canvas.addEventListener('click', function (ev) { handleTap(canvasPos(ev)); });
@@ -427,7 +451,28 @@
     G.cancelActions();
   });
 
+  // manual de campo: pausa el juego mientras está abierto
+  var helpPausedIt = false;
+  function toggleHelp() {
+    var opening = el.helpScreen.classList.contains('hidden');
+    if (opening) {
+      el.helpScreen.classList.remove('hidden');
+      if ((S.phase === 'build' || S.phase === 'wave') && !S.paused) {
+        S.paused = true;
+        helpPausedIt = true;
+      }
+    } else {
+      el.helpScreen.classList.add('hidden');
+      if (helpPausedIt) { S.paused = false; helpPausedIt = false; }
+    }
+    AU.click();
+  }
+  el.helpBtn.addEventListener('click', toggleHelp);
+  el.helpClose.addEventListener('click', toggleHelp);
+
   document.addEventListener('keydown', function (ev) {
+    var k0 = ev.key;
+    if (k0 === 'h' || k0 === 'H') { toggleHelp(); return; }
     if (S.phase === 'menu') return;
     var k = ev.key;
     if (k === ' ') { ev.preventDefault(); G.startWave(true); }
@@ -450,7 +495,8 @@
   });
 
   el.upBtn.addEventListener('click', function () {
-    if (S.selectedU) G.toggleUnitMode();
+    if (S.selectedBarn) G.upgradeBarn();
+    else if (S.selectedU) G.toggleUnitMode();
     else if (S.selectedB) {
       var bl = S.selectedB;
       if (bl.type === 'shop' && !bl.turret && bl.hp >= bl.maxHp) G.upgradeShopTurret();
