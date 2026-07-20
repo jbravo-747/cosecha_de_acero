@@ -354,6 +354,28 @@
   #diffNote{font-size:11px; min-height:18px; margin-top:-6px;}
   #recordLine{color:var(--gold); font-size:11px; letter-spacing:1px;}
 
+  /* cuadro guía del tutorial */
+  #tutBox{
+    position:absolute; left:50%; bottom:10px; transform:translateX(-50%);
+    width:min(470px, 92%); z-index:6;
+    background:rgba(9,13,17,.95); border:2px solid var(--gold); border-radius:6px;
+    padding:10px 12px; font-size:11px; line-height:1.55; color:var(--txt);
+    box-shadow:0 6px 16px rgba(0,0,0,.65);
+    text-align:left;
+  }
+  #tutBox b{color:var(--gold);}
+  #tutBox .act{margin-bottom:0; min-height:34px; font-size:11px;}
+  .tut-glow{
+    position:relative; z-index:5;
+    outline:3px solid var(--gold);
+    animation:tutpulse .8s infinite alternate;
+  }
+  @keyframes tutpulse{
+    from{outline-color:var(--gold);}
+    to{outline-color:#fff;}
+  }
+  #tutBtn{font-size:12px; padding:12px 18px;}
+
   /* manual de campo */
   #helpScreen{z-index:6; justify-content:flex-start; overflow-y:auto; gap:10px;}
   #helpScreen h2{font-size:20px; letter-spacing:4px;}
@@ -481,8 +503,18 @@
       <div class="row" style="gap:12px;">
         <button id="playBtn">ARRANCAR</button>
         <button id="continueBtn" class="hidden">CONTINUAR</button>
+        <button id="tutBtn">TUTORIAL</button>
       </div>
       <p id="recordLine" class="hidden"></p>
+    </div>
+
+    <!-- cuadro guía del tutorial (sobre el mapa, no bloquea el juego) -->
+    <div id="tutBox" class="hidden">
+      <div id="tutText"></div>
+      <div class="row" style="gap:6px; margin-top:8px;">
+        <button class="act" id="tutNext">ENTENDIDO &#9654;</button>
+        <button class="act" id="tutSkip">SALTAR TUTORIAL</button>
+      </div>
     </div>
 
     <div id="endScreen" class="overlay hidden">
@@ -601,6 +633,7 @@
 <script src="js/entities.js"></script>
 <script src="js/render.js"></script>
 <script src="js/ui.js"></script>
+<script src="js/tutorial.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

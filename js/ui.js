@@ -80,6 +80,7 @@
     el.towerBtns.appendChild(b);
     towerBtnEls[key] = b;
   }
+  G._towerBtn = function (key) { return towerBtnEls[key]; };
   D.TOWER_ORDER.forEach(function (key, i) {
     makeBtn('tower', key, D.TOWERS[key], SP.mechs[key], i + 1,
       function () { G.startPlacing(key); });
@@ -337,6 +338,7 @@
   function updateUI() {
     syncEndScreen();
     updateWavePreview();
+    if (G.tutorialTick) G.tutorialTick();
     el.money.textContent = S.money;
     el.lives.textContent = S.lives;
     el.wave.textContent = (S.endless || S.mode === 'horde')
@@ -696,8 +698,23 @@
     G.clearSave();               // partida nueva desde el título
     S.phase = 'build';
     el.title.classList.add('hidden');
+    // primera cosecha: la demo guiada arranca sola
+    if (G.startTutorial && G.tutorialSeen && !G.tutorialSeen()) G.startTutorial();
     AU.horn();
   });
+  // botón TUTORIAL: partida nueva con la demo guiada forzada
+  var tutBtn = document.getElementById('tutBtn');
+  if (tutBtn) {
+    tutBtn.addEventListener('click', function () {
+      AU.unlock();
+      G.clearSave();
+      G.resetState();
+      S.phase = 'build';
+      el.title.classList.add('hidden');
+      if (G.startTutorial) G.startTutorial();
+      AU.horn();
+    });
+  }
   // reanudar la partida guardada
   if (G.hasSave()) el.continueBtn.classList.remove('hidden');
   el.continueBtn.addEventListener('click', function () {

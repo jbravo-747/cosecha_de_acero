@@ -376,7 +376,21 @@ NUEVA PARTIDA lo borran. Tolerante a localStorage bloqueado.
   en lugar del sprite de campo estirado.
 - Lámina de referencia en `assets/ilustraciones-mechas.png`.
 
-## 30. Refactor: arquitectura modular ✔
+## 30. Fondo de guerra y tutorial interactivo ✔
+
+- **Fondo de guerra**: al superar la oleada 9 en campaña (ni horda ni
+  asedio) cae un bono extra de $400 (escalado por dificultad) además del
+  bono normal — colchón para reconstruir antes de la Nodriza, que
+  llegaba demasiado cuesta arriba.
+- **Tutorial interactivo** (`js/tutorial.js`): demo guiada de 7 pasos
+  sobre el mapa que resalta con pulso dorado la tarjeta o el botón que
+  toca usar y **avanza sola cuando el jugador ejecuta la acción**
+  (elegir el COYOTE, plantarlo, lanzar la oleada); los pasos de lectura
+  piden ENTENDIDO. Arranca sola en la primera partida (localStorage
+  `cosecha-de-acero-tutorial`), se puede SALTAR, y el botón TUTORIAL
+  del título la relanza cuando quieras.
+
+## 31. Refactor: arquitectura modular ✔
 
 `game.js` se partió en módulos IIFE comunicados por `window.G` (sin build,
 se conserva el doble clic en `index.html`): `core.js` (estado + helpers),

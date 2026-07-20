@@ -162,6 +162,9 @@
   ];
 
   function waveBonus(wave) { return 60 + 15 * wave; }
+  // fondo de guerra: colchón extra al superar la oleada 9, para llegar
+  // a la pelea contra la Nodriza con margen de reconstrucción
+  var PREBOSS_BONUS = 400;
 
   // ---------- dificultad ----------
   // multiplicadores sobre la vida de los bichos y sobre toda la economía
@@ -332,7 +335,7 @@
     MAX_LEVEL: MAX_LEVEL, UP_COST_FACTOR: UP_COST_FACTOR,
     UP_DMG: UP_DMG, UP_RANGE: UP_RANGE, UP_ROF: UP_ROF, SELL_FACTOR: SELL_FACTOR,
     ENEMIES: ENEMIES, hpScale: hpScale, ELITE: ELITE,
-    WAVES: WAVES, waveBonus: waveBonus,
+    WAVES: WAVES, waveBonus: waveBonus, PREBOSS_BONUS: PREBOSS_BONUS,
     DIFFICULTIES: DIFFICULTIES, DIFF_ORDER: DIFF_ORDER,
     endlessWave: endlessWave, ENDLESS_HP_RAMP: ENDLESS_HP_RAMP,
     HORDE: HORDE, hordeWave: hordeWave, BOSS_POOL: BOSS_POOL,

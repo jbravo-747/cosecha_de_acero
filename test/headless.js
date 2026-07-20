@@ -66,7 +66,7 @@ global.requestAnimationFrame = cb => { rafCb = cb; };
 global.window = global;
 
 // ---------- carga del juego real ----------
-['sprites', 'data', 'audio', 'core', 'anim', 'save', 'behaviors', 'entities', 'render', 'ui', 'main'].forEach(name => {
+['sprites', 'data', 'audio', 'core', 'anim', 'save', 'behaviors', 'entities', 'render', 'ui', 'tutorial', 'main'].forEach(name => {
   const src = fs.readFileSync(path.join(__dirname, '..', 'js', name + '.js'), 'utf8');
   eval(src); // eslint-disable-line no-eval
 });
@@ -792,5 +792,34 @@ for (let i = 0; i < 30 * 60; i++) {
 assert(wormPassed, 'el GUSANO pasa por debajo del campo de fuerza');
 S.enemies.length = 0;
 S.mode = 'campaign';
+
+console.log('— Fondo de guerra en la víspera de la Nodriza —');
+S.mode = 'campaign';
+byId.newBtn.click(); byId.newBtn.click();
+S.wave = 9; S.phase = 'wave';
+S.spawnQueue.length = 0; S.enemies.length = 0;
+const mW = S.money;
+step(1);
+const expW = Math.round(D.waveBonus(9) * D.DIFFICULTIES[S.diff].moneyMul) +
+  Math.round(D.PREBOSS_BONUS * D.DIFFICULTIES[S.diff].moneyMul);
+assert(S.money === mW + expW,
+  'superar la oleada 9 paga el bono normal más el fondo de guerra (+$' + expW + ')');
+
+console.log('— Tutorial interactivo —');
+byId.newBtn.click(); byId.newBtn.click();
+G.startTutorial();
+step(1);
+assert(!byId.tutBox.classList.contains('hidden'), 'la demo guiada aparece sobre el mapa');
+byId.tutNext.click();                       // paso 1 → 2: la tarjeta del COYOTE
+key('1');                                   // elegir COYOTE
+step(1);
+assert(byId.tutText.innerHTML.includes('[3/'), 'elegir el COYOTE avanza la guía');
+S.money = 500;
+canvasClick(2, 2);                          // plantarlo en el pasto
+step(1);
+assert(byId.tutText.innerHTML.includes('[4/'), 'plantar el mecha avanza la guía');
+byId.tutSkip.click();
+assert(byId.tutBox.classList.contains('hidden') && G.tutorialSeen(),
+  'SALTAR cierra la demo y queda marcada como vista');
 
 console.log('\nTODO OK — ' + passed + ' aserciones superadas.');

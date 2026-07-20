@@ -26,6 +26,12 @@ título te devuelve a la construcción previa con todo tu arsenal.
 
 ## Cómo jugar
 
+¿Primera cosecha? El juego arranca con un **tutorial interactivo** que
+te lleva de la mano (elegir mecha, plantarlo, lanzar la oleada) y se
+puede saltar; el botón **TUTORIAL** del título lo repite cuando quieras.
+Y al superar la oleada 9 llega un **fondo de guerra** (+$400) para
+plantarle cara a la Nodriza con la granja reconstruida.
+
 Sin instalación ni dependencias: abre `index.html` en cualquier navegador
 moderno (doble clic basta). Opcionalmente, con un servidor local:
 

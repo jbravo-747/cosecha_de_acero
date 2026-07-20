@@ -1010,6 +1010,12 @@
       S.parts += 1;   // chatarra recuperada del campo: mejora garantizada
       G.floater(W / 2, H / 2 - 30, 'OLEADA SUPERADA  +$' + bonus, '#8ac94a');
       G.floater(W / 2, H / 2 - 12, '+1 ⚙ chatarra recuperada', '#c65fd1');
+      // víspera de la Nodriza: fondo de guerra para reconstruir a fondo
+      if (S.mode !== 'horde' && !S.endless && S.wave === D.WAVES.length - 1) {
+        var war = Math.round(D.PREBOSS_BONUS * D.DIFFICULTIES[S.diff].moneyMul);
+        S.money += war;
+        G.floater(W / 2, H / 2 + 8, '¡FONDO DE GUERRA +$' + war + '!', '#f2d94e');
+      }
       AU.coin();
       if (S.endless || S.mode === 'horde') G.saveRecord(S.wave);
       G.saveGame();              // punto de control tras cada oleada
