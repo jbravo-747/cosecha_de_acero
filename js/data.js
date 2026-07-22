@@ -99,7 +99,7 @@
                boom: { r: 55, dmg: 70, detect: 110, fuse: 14 },
                drop: { chance: 0.4, n: 1 } },
     // más lenta que cualquier bicho: la pelea final es un asedio, no un sprint
-    boss:    { name: 'NODRIZA',    hp: 3400, speed: 11, bounty: 500, dmg: 20, armor: 8, size: 14, sprite: 'boss',    bDmg: 30,
+    boss:    { name: 'NODRIZA',    hp: 3400, speed: 9,  bounty: 500, dmg: 20, armor: 8, size: 14, sprite: 'boss',    bDmg: 30,
                boss: true, behaviors: ['biter', 'spawner', 'spit'],
                spit: { range: 115, cd: 2.8, dmg: 14, speed: 150 },
                spawnEvery: 4.5, spawnType: 'drone', spawnCount: 2,
@@ -300,6 +300,10 @@
   // especial: bombardeo que arrasa un área (ignora blindaje, solo bichos)
   var BOMB = { cost: 250, parts: 2, radius: 70, dmg: 260, cd: 45, delay: 0.8 };
 
+  // la escopeta del granjero: clic directo sobre un bicho = disparo desde
+  // el granero (gratis, con su propio enfriamiento)
+  var PLAYER_SHOT = { dmg: 12, cd: 0.9, grabR: 16 };
+
   // mina terrestre: barata y de un solo uso, se entierra en el camino y
   // revienta (ignora blindaje) al primer terrestre que la pisa
   var MINE = {
@@ -345,7 +349,8 @@
     ATTACK_RANGE: ATTACK_RANGE, ATTACK_CD: ATTACK_CD,
     REPAIR_PER_HP: REPAIR_PER_HP, UP_PARTS: UP_PARTS,
     MOVE_CD: MOVE_CD, RELOAD_TIME: RELOAD_TIME, AMMO_LOW: AMMO_LOW, HP_LOW: HP_LOW,
-    SHOP_TURRET: SHOP_TURRET, BOMB: BOMB, MINE: MINE, DRONE_GIFT: DRONE_GIFT,
+    SHOP_TURRET: SHOP_TURRET, BOMB: BOMB, MINE: MINE,
+    PLAYER_SHOT: PLAYER_SHOT, DRONE_GIFT: DRONE_GIFT,
     SHOP_DISCOUNT: SHOP_DISCOUNT, SHOP_DISCOUNT_MAX: SHOP_DISCOUNT_MAX,
     SHOP_INCOME: SHOP_INCOME, BARN_UP: BARN_UP,
     FIELD: FIELD, MELEE: MELEE,

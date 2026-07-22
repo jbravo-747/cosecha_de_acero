@@ -107,6 +107,7 @@
     S.buildT = D.BUILD_TIME;   // cuenta atrás del disruptor de portales
     S.giftT = D.DRONE_GIFT;    // cuenta atrás del dron de apoyo gratis
     S.bombCd = 0;              // enfriamiento del bombardeo
+    S.shotCd = 0;              // enfriamiento de la escopeta del granjero
     S.bombs = [];              // bombardeos en caída
     S.chainQ = [];             // detonaciones en cadena pendientes
     S.confirmBoom = 0;         // temporizador de confirmación de autodestrucción

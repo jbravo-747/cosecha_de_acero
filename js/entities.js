@@ -225,6 +225,32 @@
     AU.build();
   }
 
+  // ---------- la escopeta del granjero ----------
+  // bicho más cercano al puntero (para la mira y el disparo directo)
+  function enemyNear(px, py, r) {
+    var best = null, bd = Infinity;
+    for (var i = 0; i < S.enemies.length; i++) {
+      var e = S.enemies[i];
+      if (e.dead) continue;
+      var reach = Math.max(r, e.def.size + 6);
+      var d2 = G.dist2(px, py, e.x, e.y);
+      if (d2 <= reach * reach && d2 < bd) { bd = d2; best = e; }
+    }
+    return best;
+  }
+
+  // clic directo sobre un bicho: trueno de escopeta desde el granero
+  function shootEnemy(e) {
+    if (S.shotCd > 0 || !e || e.dead) return false;
+    S.shotCd = D.PLAYER_SHOT.cd;
+    S.effects.push({ kind: 'beam', x1: D.BARN_POS.x, y1: D.BARN_POS.y - 26,
+      x2: e.x, y2: e.y, life: 0.1 });
+    G.burst(e.x, e.y, '#f2d94e', 5, 70);
+    damageEnemy(e, D.PLAYER_SHOT.dmg);
+    AU.snipe();
+    return true;
+  }
+
   // especial: bombardeo de área
   function armBomb() {
     if (S.phase !== 'build' && S.phase !== 'wave') return;
@@ -924,6 +950,7 @@
     }
 
     // bombardeos en caída
+    if (S.shotCd > 0) S.shotCd -= dt;
     if (S.bombCd > 0) S.bombCd -= dt;
     for (i = S.bombs.length - 1; i >= 0; i--) {
       S.bombs[i].t -= dt;
@@ -1056,6 +1083,8 @@
   G.upgradeBarn = upgradeBarn;
   G.armBomb = armBomb;
   G.dropBomb = dropBomb;
+  G.enemyNear = enemyNear;
+  G.shootEnemy = shootEnemy;
   G.selfDestructSelected = selfDestructSelected;
   G.startWave = startWave;
   G.waveDef = waveDef;

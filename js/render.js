@@ -462,6 +462,25 @@
     }
 
     // puntería del bombardeo
+    // mira del granjero sobre el bicho bajo el puntero
+    if (S.hoverPx && !S.aimingBomb && !S.placing &&
+        (S.phase === 'build' || S.phase === 'wave')) {
+      var prey = G.enemyNear(S.hoverPx.x, S.hoverPx.y, D.PLAYER_SHOT.grabR);
+      if (prey) {
+        var rr = prey.def.size + 7;
+        ctx.strokeStyle = S.shotCd > 0 ? '#8a98a8' : '#e05545';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(prey.x, prey.y, rr, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(prey.x - rr - 3, prey.y); ctx.lineTo(prey.x - rr + 4, prey.y);
+        ctx.moveTo(prey.x + rr - 4, prey.y); ctx.lineTo(prey.x + rr + 3, prey.y);
+        ctx.moveTo(prey.x, prey.y - rr - 3); ctx.lineTo(prey.x, prey.y - rr + 4);
+        ctx.moveTo(prey.x, prey.y + rr - 4); ctx.lineTo(prey.x, prey.y + rr + 3);
+        ctx.stroke();
+        ctx.lineWidth = 1;
+      }
+    }
+
     if (S.aimingBomb && S.hoverPx) {
       ctx.globalAlpha = 0.6;
       ctx.strokeStyle = '#e05545';

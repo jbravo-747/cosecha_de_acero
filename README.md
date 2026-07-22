@@ -52,6 +52,7 @@ python3 -m http.server 8080
 | Clic en el pasto | Colocar el mecha o edificio |
 | Clic en mecha / edificio / unidad | Seleccionar |
 | Mecha seleccionado + clic en tile iluminado | **Moverlo** (paso tipo ajedrez) |
+| Clic sobre un bicho | **Trueno de escopeta** del granjero (12 daño, recarga 0.9 s) |
 | `Esc` / clic derecho | Cancelar / deseleccionar |
 | `Espacio` | Desactivar el disruptor de portales (lanza la oleada) |
 | `P` o botón PAUSA | Pausa |

@@ -339,6 +339,10 @@
     syncEndScreen();
     updateWavePreview();
     if (G.tutorialTick) G.tutorialTick();
+    // el puntero se vuelve mira sobre un bicho (o al colocar/apuntar)
+    canvas.style.cursor = (S.placing || S.aimingBomb ||
+      (S.hoverPx && G.enemyNear(S.hoverPx.x, S.hoverPx.y, D.PLAYER_SHOT.grabR)))
+      ? 'crosshair' : 'default';
     el.money.textContent = S.money;
     el.lives.textContent = S.lives;
     el.wave.textContent = (S.endless || S.mode === 'horde')
@@ -573,6 +577,11 @@
     var b = u || t ? null : G.buildingAt(c, r);
     var barn = !u && !t && !b &&
       D.BARN_TILES.some(function (bt) { return bt[0] === c && bt[1] === r; });
+    // sin nada aliado bajo el clic: si hay un bicho, trueno de escopeta
+    if (!u && !t && !b && !barn) {
+      var prey = G.enemyNear(p.x, p.y, D.PLAYER_SHOT.grabR);
+      if (prey) { G.shootEnemy(prey); return; }
+    }
     S.selectedU = u || null;
     S.selected = t || null;
     S.selectedB = b || null;

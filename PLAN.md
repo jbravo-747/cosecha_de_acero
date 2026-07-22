@@ -390,7 +390,20 @@ NUEVA PARTIDA lo borran. Tolerante a localStorage bloqueado.
   `cosecha-de-acero-tutorial`), se puede SALTAR, y el botón TUTORIAL
   del título la relanza cuando quieras.
 
-## 31. Refactor: arquitectura modular ✔
+## 31. La escopeta del granjero ✔
+
+- **Mira sobre los bichos**: el puntero se vuelve crosshair y una
+  retícula roja rodea al bicho bajo el cursor (gris mientras la
+  escopeta recarga).
+- **Clic = trueno de escopeta**: disparo directo desde el granero (12 de
+  daño, enfriamiento 0.9 s, gratis) con trazo de bala y estallido. La
+  selección de lo tuyo tiene prioridad: la escopeta solo truena si el
+  clic no cae sobre mechas/edificios/unidades/granero. En táctil, tocar
+  al bicho dispara igual.
+- La **Nodriza** baja de 11 a **9 px/s**: la ventana de daño del asedio
+  final crece otro ~20%.
+
+## 32. Refactor: arquitectura modular ✔
 
 `game.js` se partió en módulos IIFE comunicados por `window.G` (sin build,
 se conserva el doble clic en `index.html`): `core.js` (estado + helpers),

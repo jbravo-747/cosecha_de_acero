@@ -793,6 +793,22 @@ assert(wormPassed, 'el GUSANO pasa por debajo del campo de fuerza');
 S.enemies.length = 0;
 S.mode = 'campaign';
 
+console.log('— La escopeta del granjero —');
+byId.newBtn.click(); byId.newBtn.click();
+const clay = G.spawnEnemy('drone', 2, 0, 300, 200);
+const clayHp = clay.hp;
+canvasClickPx(clay.x, clay.y);
+assert(clay.hp === clayHp - D.PLAYER_SHOT.dmg,
+  'clic sobre el bicho = trueno de escopeta (-' + D.PLAYER_SHOT.dmg + ' hp)');
+canvasClickPx(clay.x, clay.y);
+assert(clay.hp === clayHp - D.PLAYER_SHOT.dmg,
+  'la escopeta respeta su enfriamiento');
+step(Math.ceil(D.PLAYER_SHOT.cd * 60) + 5);
+canvasClickPx(clay.x, clay.y);
+assert(clay.hp === clayHp - D.PLAYER_SHOT.dmg * 2,
+  'recargada, vuelve a tronar');
+S.enemies.length = 0;
+
 console.log('— Fondo de guerra en la víspera de la Nodriza —');
 S.mode = 'campaign';
 byId.newBtn.click(); byId.newBtn.click();
